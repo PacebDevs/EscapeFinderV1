@@ -1,0 +1,113 @@
+ion-content {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: 80px; // Espacio extra para tab bar
+
+  background: #fff;
+}
+
+ion-searchbar {
+  --background: #f1f1f1;
+  --border-radius: 16px;
+  --box-shadow: none;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --placeholder-color: #999;
+
+  margin: 12px auto 0 auto;
+  max-width: 92%;
+  height: 40px;
+  --height: 40px;
+
+  input {
+    font-size: 14px;
+  }
+}
+
+
+/* 🚀 Scroll de categorías horizontal */
+.categorias-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  gap: 14px;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 🎯 Ítems de categoría */
+.categorias-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  gap: 14px;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.categoria-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  cursor: pointer;
+  opacity: 0.6;
+  scroll-snap-align: start;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+
+  &.active {
+    opacity: 1;
+    transform: scale(1.1); // Solo si está activa
+  }
+
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .nombre {
+    margin-top: 4px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+    color: #333;
+  }
+
+  &.bounce {
+    animation: bounce 0.4s ease;
+  }
+}
+
+@keyframes bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.15); }
+  60%  { transform: scale(0.95); }
+  100% { transform: scale(1.1); } // 🔥 termina con active
+}
+
+
+.spinner-global {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.oculto {
+  display: none;
+}

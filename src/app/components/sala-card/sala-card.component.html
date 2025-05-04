@@ -1,0 +1,60 @@
+<ion-card class="sala-card">
+  <div class="img-wrapper">
+    <div class="image-container">
+      <img
+      [src]="currentImage"
+      [attr.loading]="'lazy'"
+      (load)="onImageLoad()"
+      (error)="onImageError()"
+      [class.loaded]="!loadingImage"
+      alt="Imagen de la sala"
+    />
+    
+    </div>
+    <ion-icon
+    #favoriteIcon
+    [name]="isFavorito ? 'heart' : 'heart-outline'"
+    class="favorite-icon"
+    (click)="toggleFavorito($event)">
+  </ion-icon>
+
+  
+  <ion-icon
+    #favoriteIconFilled
+    name="heart"
+    [class.hidden]="!isFavorito"
+    class="favorite-icon"
+    (click)="toggleFavorito($event)">
+  </ion-icon>
+
+    <div class="nombre-overlay">
+      <h2>{{ sala.nombre }}</h2>
+      <small>{{ sala.ciudad }}</small>
+    </div>
+
+    <div class="info-overlay">
+      <div class="chip">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>{{ sala.jugadores }}</span>
+      </div>
+      <div class="chip">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>{{ sala.tiempo || 60 }} min</span>
+      </div>
+      <div class="chip">
+        <ion-icon name="bar-chart-outline"></ion-icon>
+        <span>{{ sala.dificultad }}</span>
+      </div>
+      <div class="chip" *ngIf="sala.categorias.length">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <span>{{ sala.categorias[0] }}</span>
+      </div>
+    </div>
+  </div>
+
+  <ion-card-content>
+    <p class="descripcion-limitada">
+      {{ sala.descripcion || 'Sin descripción disponible.' }}
+    </p>
+  </ion-card-content>
+</ion-card>

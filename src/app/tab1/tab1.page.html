@@ -1,17 +1,42 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content fullscreen>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-searchbar
+  placeholder="Buscar ciudad..."
+  [(ngModel)]="filters.ciudad"
+  (ionInput)="fetchSalas()">
+</ion-searchbar>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <div class="categorias-scroll">
+    <div
+      #catItem
+      class="categoria-item"
+      *ngFor="let cat of categorias"
+      [class.active]="activeCategoria === cat.nombre"
+      (click)="selectCategoria(cat.nombre, catItem)">
+      
+      <img [src]="cat.icono" alt="{{ cat.nombre }}" />
+      <div class="nombre">{{ cat.nombre }}</div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="salas$ | async as salas">
+    <div *ngIf="!todasCargadas" class="spinner-global">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  
+    <div [class.oculto]="!todasCargadas">
+      <app-sala-card
+        *ngFor="let sala of salas"
+        [sala]="sala"
+        (imagenCargada)="onImagenCargada()">
+      </app-sala-card>
+    </div>
+  </ng-container>
+
+  <ng-template #cargando>
+    <div class="spinner-global">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  </ng-template>
+
 </ion-content>
