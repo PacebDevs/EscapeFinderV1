@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-sala-card',
@@ -25,10 +26,11 @@ export class SalaCardComponent implements OnInit, OnDestroy {
   loadingImage = true;
   private favoritoSub?: Subscription;
   private animationFrameId: number | null = null;
+  
 
   fallbackImage = 'assets/escapeImagen.png';
   currentImage = '';
-
+  private urlImage = environment.imageURL;
   private imagenCargadaEmitida = false;
 
   constructor(
@@ -37,7 +39,7 @@ export class SalaCardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.currentImage = this.sala.cover_url || this.fallbackImage;
+    this.currentImage = this.urlImage+this.sala.cover_url || this.fallbackImage;
 
     this.favoritoSub = this.favoritosService
       .getFavoritoStatusStream(this.sala.id_sala)
