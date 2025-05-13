@@ -6,6 +6,8 @@ import { SocketService } from '../services/socket.service';
 import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
+import { UpdateSala } from '../states/salas/salas.state';
+
 
 @Component({
   selector: 'app-tab1',
@@ -19,7 +21,7 @@ export class Tab1Page implements OnInit, OnDestroy {
   salas$ = this.store.select(SalaState.salas);
   filters: any = {};
   subs: any;
-  activeCategoria: string = 'Todo'; // 👉 controlamos la categoría activa aquí
+  public categoriasActivas: string[] = [];
   public todasCargadas = false;
   private totalSalas = 0;
   private cargadas = 0;
@@ -34,10 +36,23 @@ export class Tab1Page implements OnInit, OnDestroy {
     this.fetchSalas();
     this.socketService.connect();
 
-    this.subs = this.socketService.listenSalasUpdated().subscribe(() => {
-      this.fetchSalas();
-    });
+    this.subs = [
+      this.socketService.listenSalasUpdated().subscribe(() => {
+        console.log('Alta y Baja');
+        this.fetchSalas();
+      }),
+      this.socketService.listenSalaModificada().subscribe((salaModificada: any) => {
+        console.log('modificación');
+        // Solo actualizamos esa sala, sin recargar todo
+        if (this.aplicaFiltros(salaModificada)) {
+          this.store.dispatch(new UpdateSala(salaModificada));
+        }
+      })
+    ];
   }
+
+
+
 
   ngOnDestroy() {
     this.subs?.unsubscribe();
@@ -57,45 +72,47 @@ export class Tab1Page implements OnInit, OnDestroy {
     }
   }
 
-  selectCategoria(nombre: string, el: HTMLElement) {
-    if (nombre === 'Todo') {
-      delete this.filters.categoria;
+  async selectCategoria(nombre: string) {
+    const index = this.categoriasActivas.indexOf(nombre);
+    if (index > -1) {
+      this.categoriasActivas.splice(index, 1);
     } else {
-      this.filters = { ...this.filters, categoria: nombre };
+      this.categoriasActivas.push(nombre);
     }
   
-    this.activeCategoria = nombre;
+    // 👉 Filtro actualizado
+    if (this.categoriasActivas.length === 0) {
+      delete this.filters.categorias;
+    } else {
+      this.filters = { ...this.filters, categorias: [...this.categoriasActivas] };
+    }
   
-    Haptics.impact({ style: ImpactStyle.Medium });
-  
-    // Rebote normal
-    el.classList.add('bounce');
-    setTimeout(() => el.classList.remove('bounce'), 400);
-  
-    // 🎯 Nuevo: Centrar la categoría
-    this.scrollCategoriaIntoView(el);
+    // 👉 Vibración leve
+    await Haptics.impact({ style: ImpactStyle.Light });
   
     this.fetchSalas();
   }
   
-  /** 🔥 Nueva función para hacer scroll automático */
-private scrollCategoriaIntoView(el: HTMLElement) {
-  const scrollContainer = el.parentElement;
-  if (!scrollContainer) return;
+  aplicaFiltros(sala: any): boolean {
+  if (this.filters.query) {
+    const q = this.filters.query.toLowerCase();
+    const nombre = sala.nombre?.toLowerCase() || '';
+    const empresa = sala.empresa?.toLowerCase() || '';
+    if (!nombre.includes(q) && !empresa.includes(q)) return false;
+  }
 
-  const containerWidth = scrollContainer.clientWidth;
-  const elLeft = el.offsetLeft;
-  const elWidth = el.offsetWidth;
+  if (this.filters.categorias?.length > 0) {
+    const categorias = sala.categorias || [];
+    const intersecta = categorias.some(c => this.filters.categorias.includes(c));
+    if (!intersecta) return false;
+  }
 
-  const scrollTo = elLeft - (containerWidth / 2) + (elWidth / 2);
-
-  scrollContainer.scrollTo({
-    left: scrollTo,
-    behavior: 'smooth' // 👈 movimiento suave
-  });
+  return true;
 }
 
+
 fetchSalas() {
+  console.log('Entra en  FETCHSALAS')
   this.todasCargadas = false;
   this.cargadas = 0;
 
@@ -103,16 +120,17 @@ fetchSalas() {
     this.store.selectOnce(SalaState.salas).subscribe(salas => {
       this.totalSalas = salas.length;
 
+  console.log('Entra en  FETCHSALAS y estas son las salas a cargar totalSalas --> '+ this.totalSalas)
       if (this.totalSalas === 0) {
         this.todasCargadas = true;
       } else {
         // ⏱️ Timeout de seguridad para forzar visibilidad si alguna imagen no responde
         setTimeout(() => {
           if (!this.todasCargadas && this.cargadas < this.totalSalas) {
-            //console.warn('Timeout alcanzado. Forzando visibilidad.');
+            console.warn('Timeout alcanzado. Forzando visibilidad.');
             this.todasCargadas = true;
           }
-        }, 2000);
+        }, 50);
       }
     });
   });
@@ -122,12 +140,17 @@ fetchSalas() {
 
 onImagenCargada() {
   this.cargadas++;
- // console.log(`🧩 Imágenes cargadas: ${this.cargadas}/${this.totalSalas}`);
+ console.log(`🧩 Imágenes cargadas: ${this.cargadas}/${this.totalSalas}`);
+ //console.log(this.cargadas+ ' Entra en  onImagenCargada')
   if (this.cargadas >= this.totalSalas) {
-    console.log('✅ Todas las imágenes procesadas, mostrando salas');
+    //console.log('✅ Todas las imágenes procesadas, mostrando salas');
     this.todasCargadas = true;
   }
 }
+
+  trackBySalaId(_i: number, sala: any): any {
+    return sala.id_sala;
+  }
 
 
 }

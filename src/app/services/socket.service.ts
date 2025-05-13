@@ -16,9 +16,13 @@ export class SocketService {
   }
 
   listenSalasUpdated(): Observable<any> {
+console.log('listenSalasUpdated CLIENT');
     return fromEvent(this.socket, 'salasUpdated');
   }
-
+  listenSalaModificada(): Observable<any> {
+    console.log('listenSalaModificada CLIENT');
+  return fromEvent(this.socket, 'salaActualizada');
+  }
   disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();

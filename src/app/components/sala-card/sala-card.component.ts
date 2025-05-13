@@ -60,7 +60,7 @@ export class SalaCardComponent implements OnInit, OnDestroy {
 
  onImageLoad() {
     if (!this.imagenCargadaEmitida) {
-      console.log('✅ Imagen cargada:', this.sala.nombre);
+      //console.log('✅ Imagen cargada:', this.sala.nombre);
       this.loadingImage = false;
       this.imagenCargada.emit();
       this.imagenCargadaEmitida = true;

@@ -1,19 +1,17 @@
 <ion-content fullscreen>
 
   <ion-searchbar
-  placeholder="Buscar ciudad..."
-  [(ngModel)]="filters.ciudad"
-  (ionInput)="fetchSalas()">
-</ion-searchbar>
+    placeholder="Buscar sala o empresa..."
+    [(ngModel)]="filters.query"
+    (ionInput)="fetchSalas()">
+  </ion-searchbar>
 
   <div class="categorias-scroll">
     <div
-      #catItem
       class="categoria-item"
       *ngFor="let cat of categorias"
-      [class.active]="activeCategoria === cat.nombre"
-      (click)="selectCategoria(cat.nombre, catItem)">
-      
+      [class.active]="categoriasActivas.includes(cat.nombre)"
+      (click)="selectCategoria(cat.nombre)">
       <img [src]="cat.icono" alt="{{ cat.nombre }}" />
       <div class="nombre">{{ cat.nombre }}</div>
     </div>
@@ -23,10 +21,10 @@
     <div *ngIf="!todasCargadas" class="spinner-global">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
     </div>
-  
+
     <div [class.oculto]="!todasCargadas">
       <app-sala-card
-        *ngFor="let sala of salas"
+        *ngFor="let sala of salas; trackBy: trackBySalaId"
         [sala]="sala"
         (imagenCargada)="onImagenCargada()">
       </app-sala-card>
