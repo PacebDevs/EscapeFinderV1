@@ -7,6 +7,7 @@ import { FiltersModalComponent } from '../components/filters-modal/filters-modal
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { UpdateSala } from '../states/salas/salas.state';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -20,11 +21,13 @@ export class Tab1Page implements OnInit, OnDestroy {
   categorias = CATEGORIAS;
   salas$ = this.store.select(SalaState.salas);
   filters: any = {};
-  subs: any;
+ 
   public categoriasActivas: string[] = [];
   public todasCargadas = false;
   private totalSalas = 0;
   private cargadas = 0;
+  public numeroSalas = 0;
+private subs: Subscription[] = [];
 
   constructor(
     private store: Store,
@@ -32,32 +35,43 @@ export class Tab1Page implements OnInit, OnDestroy {
     private modalCtrl: ModalController
   ) {}
 
-  ngOnInit() {
-    this.fetchSalas();
-    this.socketService.connect();
+ngOnInit() {
+  // ① Suscripción a cambios de lista de salas
+  this.subs.push(
+    this.salas$.subscribe(salas => {
+      this.numeroSalas = salas.length;
+      console.log(`Hay ${this.numeroSalas} salas`);
+      // Si quisieras también usarlo para el spinner:
+      this.totalSalas = this.numeroSalas;
+     // if (this.totalSalas === 0) this.todasCargadas = true; 
+    })
+  );
 
-    this.subs = [
-      this.socketService.listenSalasUpdated().subscribe(() => {
-        console.log('Alta y Baja');
-        this.fetchSalas();
-      }),
-      this.socketService.listenSalaModificada().subscribe((salaModificada: any) => {
-        console.log('modificación');
-        // Solo actualizamos esa sala, sin recargar todo
-        if (this.aplicaFiltros(salaModificada)) {
-          this.store.dispatch(new UpdateSala(salaModificada));
-        }
-      })
-    ];
-  }
+  // ② Resto de tus subsocket
+  this.socketService.connect();
+  this.subs.push(
+    this.socketService.listenSalasUpdated().subscribe(() => this.fetchSalas())
+  );
+  this.subs.push(
+    this.socketService.listenSalaModificada().subscribe(sala => {
+      if (this.aplicaFiltros(sala)) {
+        this.store.dispatch(new UpdateSala(sala));
+      }
+    })
+  );
+
+  // ③ Lanza la primera carga
+  this.fetchSalas();
+}
 
 
 
 
   ngOnDestroy() {
-    this.subs?.unsubscribe();
-    this.socketService.disconnect();
-  }
+  this.subs.forEach(s => s.unsubscribe());
+  this.socketService.disconnect();
+}
+
 
   async openFilters() {
     const modal = await this.modalCtrl.create({
@@ -110,37 +124,31 @@ export class Tab1Page implements OnInit, OnDestroy {
   return true;
 }
 
-
-fetchSalas() {
-  console.log('Entra en  FETCHSALAS')
+ fetchSalas() {
   this.todasCargadas = false;
   this.cargadas = 0;
-
-  this.store.dispatch(new GetSalas(this.filters)).subscribe(() => {
-    this.store.selectOnce(SalaState.salas).subscribe(salas => {
-      this.totalSalas = salas.length;
-
-  console.log('Entra en  FETCHSALAS y estas son las salas a cargar totalSalas --> '+ this.totalSalas)
+  this.store.dispatch(new GetSalas(this.filters))
+    .subscribe(() => {
+      // El número de salas y el flag de todasCargadas
+      // ya se actualiza en la suscripción a salas$
       if (this.totalSalas === 0) {
         this.todasCargadas = true;
-      } else {
-        // ⏱️ Timeout de seguridad para forzar visibilidad si alguna imagen no responde
-        setTimeout(() => {
-          if (!this.todasCargadas && this.cargadas < this.totalSalas) {
-            console.warn('Timeout alcanzado. Forzando visibilidad.');
-            this.todasCargadas = true;
-          }
-        }, 50);
       }
+      // el timeout de seguridad para las imágenes sigue igual
+      setTimeout(() => {
+        if (!this.todasCargadas && this.cargadas < this.totalSalas) {
+          
+          this.todasCargadas = true;
+        }
+      }, 6000);
     });
-  });
 }
 
 
 
 onImagenCargada() {
   this.cargadas++;
- console.log(`🧩 Imágenes cargadas: ${this.cargadas}/${this.totalSalas}`);
+ console.log(`🧩 Imágenes cargadas: ${this.cargadas}/${this.numeroSalas}`);
  //console.log(this.cargadas+ ' Entra en  onImagenCargada')
   if (this.cargadas >= this.totalSalas) {
     //console.log('✅ Todas las imágenes procesadas, mostrando salas');
