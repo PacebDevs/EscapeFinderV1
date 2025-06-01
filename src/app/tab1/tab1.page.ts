@@ -1,14 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// tab1.page.ts
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ModalController } from '@ionic/angular';
-import { GetSalas, SalaState } from '../states/salas/salas.state';
+import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
 import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
-import { UpdateSala } from '../states/salas/salas.state';
 import { Subscription } from 'rxjs';
-
+import { IonInfiniteScroll } from '@ionic/angular';
 
 @Component({
   selector: 'app-tab1',
@@ -16,18 +16,22 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./tab1.page.scss'],
   standalone: false
 })
-export class Tab1Page implements OnInit, OnDestroy {
-
+export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   categorias = CATEGORIAS;
   salas$ = this.store.select(SalaState.salas);
   filters: any = {};
- 
-  public categoriasActivas: string[] = [];
-  public todasCargadas = false;
-  private totalSalas = 0;
-  private cargadas = 0;
-  public numeroSalas = 0;
-private subs: Subscription[] = [];
+  categoriasActivas: string[] = [];
+  numeroSalas = 0;
+  private subs: Subscription[] = [];
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
+
+  limit = 20;
+  offset = 0;
+  todasCargadas = false;
+  cargando = false;
+  observer!: IntersectionObserver;
+
+  @ViewChild('sentinela', { static: false }) sentinelaRef!: ElementRef;
 
   constructor(
     private store: Store,
@@ -35,54 +39,59 @@ private subs: Subscription[] = [];
     private modalCtrl: ModalController
   ) {}
 
-ngOnInit() {
-  // ① Suscripción a cambios de lista de salas
-  this.subs.push(
-    this.salas$.subscribe(salas => {
-      this.numeroSalas = salas.length;
-      console.log(`Hay ${this.numeroSalas} salas`);
-      // Si quisieras también usarlo para el spinner:
-      this.totalSalas = this.numeroSalas;
-     // if (this.totalSalas === 0) this.todasCargadas = true; 
-    })
-  );
+  ngOnInit() {
+    this.subs.push(
+      this.salas$.subscribe(salas => {
+        this.numeroSalas = salas.length;
+      })
+    );
 
-  // ② Resto de tus subsocket
-  this.socketService.connect();
-  this.subs.push(
-    this.socketService.listenSalasUpdated().subscribe(() => this.fetchSalas())
-  );
-  this.subs.push(
-    this.socketService.listenSalaModificada().subscribe(sala => {
-      if (this.aplicaFiltros(sala)) {
-        this.store.dispatch(new UpdateSala(sala));
-      }
-    })
-  );
+    this.socketService.connect();
+    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
+    this.subs.push(
+      this.socketService.listenSalaModificada().subscribe(sala => {
+        if (this.aplicaFiltros(sala)) {
+          this.store.dispatch(new UpdateSala(sala));
+        }
+      })
+    );
 
-  // ③ Lanza la primera carga
-  this.fetchSalas();
+    this.reloadSalas();
+  }
+
+ngAfterViewInit() {
+  this.observer = new IntersectionObserver(entries => {
+    const entry = entries[0];
+    console.log('🎯 Observando intersección:', entry);
+    if (entry.isIntersecting && !this.cargando && !this.todasCargadas) {
+      this.loadMore();
+    }
+  });
+
+  // 🟢 ESTA PARTE FALTABA
+  if (this.sentinelaRef?.nativeElement) {
+    this.observer.observe(this.sentinelaRef.nativeElement);
+  }
 }
-
-
 
 
   ngOnDestroy() {
-  this.subs.forEach(s => s.unsubscribe());
-  this.socketService.disconnect();
-}
-
+    this.subs.forEach(s => s.unsubscribe());
+    this.socketService.disconnect();
+    if (this.observer && this.sentinelaRef) {
+      this.observer.unobserve(this.sentinelaRef.nativeElement);
+    }
+  }
 
   async openFilters() {
     const modal = await this.modalCtrl.create({
       component: FiltersModalComponent,
       componentProps: { filters: this.filters }
     });
-
     const { data } = await modal.onDidDismiss();
     if (data) {
       this.filters = data;
-      this.fetchSalas();
+      this.reloadSalas();
     }
   }
 
@@ -93,72 +102,69 @@ ngOnInit() {
     } else {
       this.categoriasActivas.push(nombre);
     }
-  
-    // 👉 Filtro actualizado
-    if (this.categoriasActivas.length === 0) {
-      delete this.filters.categorias;
-    } else {
-      this.filters = { ...this.filters, categorias: [...this.categoriasActivas] };
-    }
-  
-    // 👉 Vibración leve
+    this.filters = this.categoriasActivas.length === 0
+      ? { ...this.filters, categorias: undefined }
+      : { ...this.filters, categorias: [...this.categoriasActivas] };
     await Haptics.impact({ style: ImpactStyle.Light });
-  
-    this.fetchSalas();
+    this.reloadSalas();
   }
-  
+
   aplicaFiltros(sala: any): boolean {
-  if (this.filters.query) {
-    const q = this.filters.query.toLowerCase();
+    const q = this.filters.query?.toLowerCase() || '';
     const nombre = sala.nombre?.toLowerCase() || '';
     const empresa = sala.empresa?.toLowerCase() || '';
-    if (!nombre.includes(q) && !empresa.includes(q)) return false;
+    if (q && !nombre.includes(q) && !empresa.includes(q)) return false;
+    if (this.filters.categorias?.length > 0) {
+      const categorias = sala.categorias || [];
+      const intersecta = categorias.some(c => this.filters.categorias.includes(c));
+      if (!intersecta) return false;
+    }
+    return true;
   }
 
-  if (this.filters.categorias?.length > 0) {
-    const categorias = sala.categorias || [];
-    const intersecta = categorias.some(c => this.filters.categorias.includes(c));
-    if (!intersecta) return false;
-  }
+  reloadSalas() {
+    this.offset = 0;
+    this.todasCargadas = false;
+    this.cargando = true;
+    const filtros = { ...this.filters, offset: 0, limit: this.limit };
+    this.store.dispatch(new GetSalas(filtros)).subscribe(() => {
+      this.offset = this.limit;
+      this.cargando = false;
 
-  return true;
-}
-
- fetchSalas() {
-  this.todasCargadas = false;
-  this.cargadas = 0;
-  this.store.dispatch(new GetSalas(this.filters))
-    .subscribe(() => {
-      // El número de salas y el flag de todasCargadas
-      // ya se actualiza en la suscripción a salas$
-      if (this.totalSalas === 0) {
-        this.todasCargadas = true;
-      }
-      // el timeout de seguridad para las imágenes sigue igual
-      setTimeout(() => {
-        if (!this.todasCargadas && this.cargadas < this.totalSalas) {
-          
-          this.todasCargadas = true;
-        }
-      }, 6000);
     });
-}
-
-
-
-onImagenCargada() {
-  this.cargadas++;
- console.log(`🧩 Imágenes cargadas: ${this.cargadas}/${this.numeroSalas}`);
- //console.log(this.cargadas+ ' Entra en  onImagenCargada')
-  if (this.cargadas >= this.totalSalas) {
-    //console.log('✅ Todas las imágenes procesadas, mostrando salas');
-    this.todasCargadas = true;
   }
+
+
+
+loadMore(event?: any) {
+  if (this.cargando || this.todasCargadas) {
+    event?.target?.complete();
+    return;
+  }
+
+  this.cargando = true;
+  const filtros = { ...this.filters, offset: this.offset, limit: this.limit };
+
+  this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
+    const recibidas = res.sala?.cantidad || 0;
+    
+    console.log(`🧾 Recibidas ${recibidas} salas, offset actual: ${this.offset}`);
+//console.log('🧾 Recibidas IDs:', res.sala.salas.map(s => s.id_sala));
+    this.offset += recibidas;
+
+    if (recibidas === 0 || recibidas < this.limit) {
+      this.todasCargadas = true;
+    }
+
+    event?.target?.complete();
+    this.cargando = false;
+  });
 }
+
+
+
 
   trackBySalaId(_i: number, sala: any): any {
     return sala.id_sala;
   }
-
-
 }

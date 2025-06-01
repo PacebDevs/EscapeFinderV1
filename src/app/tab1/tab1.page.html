@@ -3,7 +3,7 @@
   <ion-searchbar
     placeholder="Buscar sala o empresa..."
     [(ngModel)]="filters.query"
-    (ionInput)="fetchSalas()">
+    (ionInput)="reloadSalas()">
   </ion-searchbar>
 
   <div class="categorias-scroll">
@@ -18,23 +18,18 @@
   </div>
 
   <ng-container *ngIf="salas$ | async as salas">
-    <div *ngIf="!todasCargadas" class="spinner-global">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
-    </div>
-
-    <div [class.oculto]="!todasCargadas">
-      <app-sala-card
-        *ngFor="let sala of salas; trackBy: trackBySalaId"
-        [sala]="sala"
-        (imagenCargada)="onImagenCargada()">
-      </app-sala-card>
-    </div>
+    <app-sala-card
+      *ngFor="let sala of salas; trackBy: trackBySalaId"
+      [sala]="sala">
+    </app-sala-card>
   </ng-container>
 
-  <ng-template #cargando>
-    <div class="spinner-global">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
-    </div>
-  </ng-template>
+  <!-- Scroll infinito -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" *ngIf="!todasCargadas">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Cargando más salas...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 
 </ion-content>

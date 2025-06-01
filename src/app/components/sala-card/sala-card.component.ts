@@ -1,6 +1,13 @@
 import {
-  Component, Input, ViewChild, ElementRef, ChangeDetectorRef,
-  OnDestroy, OnInit, EventEmitter, Output
+  Component,
+  Input,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+  OnDestroy,
+  OnInit,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { Sala } from 'src/app/models/sala.model';
 import { CommonModule } from '@angular/common';
@@ -10,6 +17,13 @@ import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
+/**
+ * SalaCardComponent
+ *
+ * Componente que representa visualmente una sala de escape.
+ * Muestra skeleton mientras se carga la imagen, incluyendo retardo mínimo visual.
+ * Resetea el estado visual cuando la sala cambia (Input muta sin destruir el componente).
+ */
 @Component({
   selector: 'app-sala-card',
   standalone: true,
@@ -17,29 +31,34 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./sala-card.component.scss'],
   imports: [CommonModule, IonicModule]
 })
-export class SalaCardComponent implements OnInit, OnDestroy {
+export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sala!: Sala;
-  @Output() imagenCargada = new EventEmitter<void>();
   @ViewChild('favoriteIcon') favoriteIconRef!: ElementRef;
 
   isFavorito = false;
   loadingImage = true;
+
+  // Tiempo mínimo que el skeleton debe estar visible, en milisegundos.
+  private skeletonDelay = 400;
+  private imageLoadStart = 0;
+
   private favoritoSub?: Subscription;
   private animationFrameId: number | null = null;
-  
 
   fallbackImage = 'assets/escapeImagen.png';
   currentImage = '';
   private urlImage = environment.imageURL;
-  private imagenCargadaEmitida = false;
 
   constructor(
     private favoritosService: FavoritosService,
     private cdr: ChangeDetectorRef
   ) {}
 
+  /**
+   * Se llama cuando el componente se inicializa por primera vez.
+   */
   ngOnInit() {
-    this.currentImage = this.urlImage+this.sala.cover_url || this.fallbackImage;
+    this.resetCard(); // inicialización de imagen y skeleton
 
     this.favoritoSub = this.favoritosService
       .getFavoritoStatusStream(this.sala.id_sala)
@@ -49,37 +68,71 @@ export class SalaCardComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Detecta cambios en el input `sala` (cuando Angular reutiliza la card).
+   * Esto es necesario porque Angular NO destruye el componente si se usa `trackBy`.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sala'] && !changes['sala'].firstChange) {
+      this.resetCard(); // reiniciar imagen y skeleton al recibir nueva sala
+    }
+  }
+
   ngOnDestroy() {
     this.favoritoSub?.unsubscribe();
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
   }
 
-  get coverSrc(): string {
-    return this.currentImage;
+  /**
+   * Inicializa la imagen y fuerza la visualización del skeleton con retardo mínimo.
+   */
+  private resetCard() {
+    this.loadingImage = true;
+    this.imageLoadStart = performance.now();
+
+    this.currentImage = this.sala.cover_url
+      ? this.urlImage + this.sala.cover_url
+      : this.fallbackImage;
+
+    const img = new Image();
+    img.src = this.currentImage;
+    img.onload = () => this.onImageLoad();
+    img.onerror = () => this.onImageError();
   }
 
- onImageLoad() {
-    if (!this.imagenCargadaEmitida) {
-      //console.log('✅ Imagen cargada:', this.sala.nombre);
+  /**
+   * Evento lanzado cuando la imagen se ha cargado (o el fallback).
+   * Asegura un mínimo de tiempo para que el skeleton sea visible.
+   */
+  onImageLoad() {
+    const elapsed = performance.now() - this.imageLoadStart;
+    const remaining = Math.max(this.skeletonDelay - elapsed, 0);
+
+    setTimeout(() => {
       this.loadingImage = false;
-      this.imagenCargada.emit();
-      this.imagenCargadaEmitida = true;
-    }
+      this.cdr.markForCheck(); // forzar redibujo en caso de imagen rápida
+    }, remaining);
   }
 
+  /**
+   * Si la imagen falla, se usa una imagen por defecto.
+   * También se asegura que se dispare `onImageLoad()` aunque falle la carga original.
+   */
   onImageError() {
     if (this.currentImage !== this.fallbackImage) {
       this.currentImage = this.fallbackImage;
-      setTimeout(() => this.onImageLoad(), 0); // 🔁 Forzar visibilidad
+
+      const fallback = new Image();
+      fallback.src = this.fallbackImage;
+      fallback.onload = () => this.onImageLoad();
     } else {
       this.loadingImage = false;
-      if (!this.imagenCargadaEmitida) {
-        this.imagenCargada.emit();
-        this.imagenCargadaEmitida = true;
-      }
     }
   }
 
+  /**
+   * Marca o desmarca una sala como favorita, con feedback háptico y animación.
+   */
   async toggleFavorito(event: Event) {
     event.stopPropagation();
     event.preventDefault();

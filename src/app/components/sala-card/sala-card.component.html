@@ -1,60 +1,72 @@
 <ion-card class="sala-card">
-  <div class="img-wrapper">
-    <div class="image-container">
-      <img
-      [src]="currentImage"
-      [attr.loading]="'lazy'"
-      (load)="onImageLoad()"
-      (error)="onImageError()"
-      [class.loaded]="!loadingImage"
-      alt="Imagen de la sala"
-    />
+  <!-- Mostrar el contenido real solo cuando la imagen se ha cargado completamente -->
+  <ng-container *ngIf="!loadingImage; else skeletonTemplate">
     
+    <!-- Imagen principal de la sala -->
+    <div class="img-wrapper">
+      <div class="image-container">
+        <img
+          [src]="currentImage"
+          [attr.loading]="'lazy'"
+          (load)="onImageLoad()"
+          (error)="onImageError()"
+          [class.loaded]="!loadingImage"
+          alt="Imagen de la sala"
+        />
+      </div>
+
+      <!-- Icono de favorito (verde si activo) -->
+      <ion-icon
+        #favoriteIcon
+        [name]="isFavorito ? 'heart' : 'heart-outline'"
+        class="favorite-icon"
+        (click)="toggleFavorito($event)">
+      </ion-icon>
+
+      <!-- Nombre de la sala y ciudad -->
+      <div class="nombre-overlay">
+        <h2>{{ sala.nombre }}</h2>
+        <small>{{ sala.ciudad }}</small>
+      </div>
+
+      <!-- Chips de información: jugadores, tiempo, dificultad, categoría -->
+      <div class="info-overlay">
+        <div class="chip">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ sala.jugadores }}</span>
+        </div>
+        <div class="chip">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ sala.tiempo || 60 }} min</span>
+        </div>
+        <div class="chip">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>{{ sala.dificultad }}</span>
+        </div>
+        <div class="chip" *ngIf="sala.categorias.length">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          <span>{{ sala.categorias[0] }}</span>
+        </div>
+      </div>
     </div>
-    <ion-icon
-    #favoriteIcon
-    [name]="isFavorito ? 'heart' : 'heart-outline'"
-    class="favorite-icon"
-    (click)="toggleFavorito($event)">
-  </ion-icon>
 
-  
-  <ion-icon
-    #favoriteIconFilled
-    name="heart"
-    [class.hidden]="!isFavorito"
-    class="favorite-icon"
-    (click)="toggleFavorito($event)">
-  </ion-icon>
+    <!-- Descripción de la sala -->
+    <ion-card-content>
+      <p class="descripcion-limitada">
+        {{ sala.descripcion || 'Sin descripción disponible.' }}
+      </p>
+    </ion-card-content>
+  </ng-container>
 
-    <div class="nombre-overlay">
-      <h2>{{ sala.nombre }}</h2>
-      <small>{{ sala.ciudad }}</small>
-    </div>
-
-    <div class="info-overlay">
-      <div class="chip">
-        <ion-icon name="people-outline"></ion-icon>
-        <span>{{ sala.jugadores }}</span>
-      </div>
-      <div class="chip">
-        <ion-icon name="time-outline"></ion-icon>
-        <span>{{ sala.tiempo || 60 }} min</span>
-      </div>
-      <div class="chip">
-        <ion-icon name="bar-chart-outline"></ion-icon>
-        <span>{{ sala.dificultad }}</span>
-      </div>
-      <div class="chip" *ngIf="sala.categorias.length">
-        <ion-icon name="pricetag-outline"></ion-icon>
-        <span>{{ sala.categorias[0] }}</span>
+  <!-- 💀 SKELETON (sólo se muestra mientras loadingImage === true) -->
+  <ng-template #skeletonTemplate>
+    <div class="skeleton-wrapper">
+      <div class="skeleton-image shimmer"></div>
+      <div class="skeleton-lines">
+        <div class="shimmer skeleton-line short"></div>
+        <div class="shimmer skeleton-line medium"></div>
+        <div class="shimmer skeleton-line long"></div>
       </div>
     </div>
-  </div>
-
-  <ion-card-content>
-    <p class="descripcion-limitada">
-      {{ sala.descripcion || 'Sin descripción disponible.' }}
-    </p>
-  </ion-card-content>
+  </ng-template>
 </ion-card>
