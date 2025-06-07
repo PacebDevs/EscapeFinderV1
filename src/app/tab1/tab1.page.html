@@ -1,21 +1,27 @@
-<ion-content fullscreen>
-
-  <ion-searchbar
-    placeholder="Buscar sala o empresa..."
-    [(ngModel)]="filters.query"
-    (ionInput)="reloadSalas()">
-  </ion-searchbar>
-
-  <div class="categorias-scroll">
-    <div
-      class="categoria-item"
-      *ngFor="let cat of categorias"
-      [class.active]="categoriasActivas.includes(cat.nombre)"
-      (click)="selectCategoria(cat.nombre)">
-      <img [src]="cat.icono" alt="{{ cat.nombre }}" />
-      <div class="nombre">{{ cat.nombre }}</div>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Buscar sala o empresa..."
+      [(ngModel)]="filters.query"
+      (ionInput)="reloadSalas()"
+      debounce="300"
+      showCancelButton="never"
+      animated>
+    </ion-searchbar>
+    <div class="categorias-scroll">
+      <div
+        class="categoria-item"
+        *ngFor="let cat of categorias"
+        [class.active]="categoriasActivas.includes(cat.nombre)"
+        (click)="selectCategoria(cat.nombre)">
+        <img [src]="cat.icono" alt="{{ cat.nombre }}" />
+        <div class="nombre">{{ cat.nombre }}</div>
+      </div>
     </div>
-  </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
 
   <ng-container *ngIf="salas$ | async as salas">
     <app-sala-card

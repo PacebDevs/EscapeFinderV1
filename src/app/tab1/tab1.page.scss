@@ -1,10 +1,10 @@
-ion-content {
+/*ion-content {
   --padding-start: 16px;
   --padding-end: 16px;
-  --padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
-  --padding-bottom: 80px; // Espacio extra para tab bar
+  --padding-top: 8px; // espacio visual opcional
+  --padding-bottom: 200px; // para evitar que se monte el último item
   background: #fff;
-}
+}*/
 
 ion-searchbar {
   --background: #f1f1f1;
@@ -64,7 +64,7 @@ ion-searchbar {
     left: 6px;
     width: 70px;
     height: 70px;
-    background: #a2e3b1; // verde suave
+    background: #a2e3b1;
     border-radius: 50% 40% 50% 60% / 60% 50% 40% 50%;
     z-index: 1;
     filter: blur(2px);

@@ -11,7 +11,12 @@ const config: CapacitorConfig = {
   android: {
     // → permite peticiones HTTP y WS desde página HTTP
     allowMixedContent: true
-  }
+  },
+    plugins: {
+    EdgeToEdge: {
+      backgroundColor: "#ffffff",
+    },
+  },
 };
 
 export default config;

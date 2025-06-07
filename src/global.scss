@@ -35,3 +35,19 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+ion-header,
+ion-toolbar {
+  padding-top: var(--safe-area-inset-top, 0px);
+  background: #fff;
+}
+
+ion-content {
+  --padding-top: 0px;
+  --padding-bottom: calc(var(--safe-area-inset-bottom, 0px) + 80px); // 80px para la barra de tabs
+  background: #fff;
+}
+
+ion-footer {
+  padding-bottom: var(--safe-area-inset-bottom, 0px);
+}
