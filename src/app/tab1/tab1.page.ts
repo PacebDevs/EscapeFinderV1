@@ -1,7 +1,7 @@
 // tab1.page.ts
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { ModalController } from '@ionic/angular';
+import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
 import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
@@ -24,6 +24,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   numeroSalas = 0;
   private subs: Subscription[] = [];
   @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
+  @ViewChild(IonContent) pageContent!: IonContent;
 
   limit = 20;
   offset = 0;
@@ -123,6 +124,7 @@ ngAfterViewInit() {
   }
 
   reloadSalas() {
+    this.pageContent?.scrollToTop(0);
     this.offset = 0;
     this.todasCargadas = false;
     this.cargando = true;
