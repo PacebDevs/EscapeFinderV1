@@ -1,7 +1,7 @@
 // tab1.page.ts
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild,  AfterViewInit } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { ModalController } from '@ionic/angular';
+import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
 import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
@@ -24,6 +24,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   numeroSalas = 0;
   private subs: Subscription[] = [];
   @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
+   @ViewChild(IonContent) pageContent!: IonContent;
 
   limit = 20;
   offset = 0;
@@ -31,7 +32,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   cargando = false;
   observer!: IntersectionObserver;
 
-  @ViewChild('sentinela', { static: false }) sentinelaRef!: ElementRef;
+
 
   constructor(
     private store: Store,
@@ -68,19 +69,14 @@ ngAfterViewInit() {
     }
   });
 
-  // 🟢 ESTA PARTE FALTABA
-  if (this.sentinelaRef?.nativeElement) {
-    this.observer.observe(this.sentinelaRef.nativeElement);
-  }
+
 }
 
 
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
-    if (this.observer && this.sentinelaRef) {
-      this.observer.unobserve(this.sentinelaRef.nativeElement);
-    }
+  
   }
 
   async openFilters() {
@@ -123,6 +119,7 @@ ngAfterViewInit() {
   }
 
   reloadSalas() {
+    this.pageContent?.scrollToTop(0);
     this.offset = 0;
     this.todasCargadas = false;
     this.cargando = true;
