@@ -21,7 +21,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content #pageContent>
 
   <ng-container *ngIf="salas$ | async as salas">
     <app-sala-card
