@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { SalaService } from 'src/app/services/sala.service';
 import { Sala } from 'src/app/models/sala.model';
 import { map, tap } from 'rxjs/operators';
+import { enrichSala } from 'src/app/utils/sala.utils';
 
 export class GetSalas {
   static readonly type = '[Sala] Get';
@@ -69,29 +70,21 @@ appendSalas({ getState, patchState }: StateContext<SalaStateModel>, { filtros }:
   );
 }
 
-/*@Action(AppendSalas)
-appendSalas({ getState, patchState }: StateContext<SalaStateModel>, { filtros }: AppendSalas) {
-  return this.salaService.getSalas(filtros).pipe(
-    tap((salas) => {
-      console.log('📦 AppendSalas recibió del servicio:', salas.length);
-      const state = getState();
-      patchState({ salas: [...state.salas, ...salas] });
-    }),
-    map((salas) => {
-      console.log('🧪 Devueltas al componente:', salas.map(s => s.id_sala));
-      return {
-       // nuevas: salas,
-        cantidad: salas.length
-      };
-    })
-  );
-}*/
-
   // 🔧 Actualiza una sala concreta (por WebSocket)
-  @Action(UpdateSala)
+  /*@Action(UpdateSala)
   updateSala({ getState, patchState }: StateContext<SalaStateModel>, { sala }: UpdateSala) {
     const state = getState();
     const nuevas = state.salas.map(s => s.id_sala === sala.id_sala ? sala : s);
     patchState({ salas: nuevas });
-  }
+  }*/
+
+    
+@Action(UpdateSala)
+updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: UpdateSala) {
+  const enriched = enrichSala(sala);
+  const salas = getState().salas.map(s =>
+    s.id_sala === enriched.id_sala ? enriched : s
+  );
+  patchState({ salas });
+}
 }

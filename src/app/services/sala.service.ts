@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Sala } from '../models/sala.model';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
+import { enrichSala } from '../utils/sala.utils';
 
 @Injectable({ providedIn: 'root' })
 export class SalaService {
@@ -18,6 +19,8 @@ export class SalaService {
       }
     }
     console.log(this.http.get<Sala[]>(this.baseUrl, { params }));
-    return this.http.get<Sala[]>(this.baseUrl, { params });
+     return this.http.get<Sala[]>(this.baseUrl, { params }).pipe(
+      map((salas) => salas.map(enrichSala))
+    );
   }
 }
