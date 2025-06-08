@@ -1,5 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
+    <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
     <ion-searchbar
       placeholder="Buscar sala o empresa..."
       [(ngModel)]="filters.query"

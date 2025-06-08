@@ -104,6 +104,15 @@ ngAfterViewInit() {
     await Haptics.impact({ style: ImpactStyle.Light });
     this.reloadSalas();
   }
+  onCiudadSeleccionada(ciudad: string | null) {
+    if (ciudad) {
+      this.filters = { ...this.filters, ciudad };
+    } else {
+      const { ciudad: _c, ...rest } = this.filters;
+      this.filters = { ...rest };
+    }
+    this.reloadSalas();
+  }
 
   aplicaFiltros(sala: any): boolean {
     const q = this.filters.query?.toLowerCase() || '';
