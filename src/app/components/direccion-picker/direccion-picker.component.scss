@@ -31,13 +31,13 @@
 }
 
 .search-container ion-searchbar {
-  --padding-start: 40px; /* espacio para el icono a la izquierda */
+  --padding-end: 40px;
 }
 
 .geo-icon {
   position: absolute;
-  left: 12px;
-  top: 50%;
+  right: 20px;
+  top: 40%;
   transform: translateY(-50%);
   font-size: 20px;
   color: var(--ion-color-primary, #3880ff);

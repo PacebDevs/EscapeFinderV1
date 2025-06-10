@@ -2,8 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { UbicacionService } from 'src/app/services/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
 
 @Component({
@@ -21,7 +20,7 @@ export class DireccionPickerComponent {
   predicciones: string[] = [];
   ciudadActual: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private ubicacionService: UbicacionService) {}
 
   togglePanel() {
     this.abierto = !this.abierto;
@@ -36,12 +35,9 @@ export class DireccionPickerComponent {
       this.predicciones = [];
       return;
     }
-    const params = new HttpParams().set('query', texto);
-    this.http
-      .get<string[]>(`${environment.apiUrl}/ubicacion`, { params })
-      .subscribe((res) => {
-        this.predicciones = res || [];
-      });
+    this.ubicacionService.buscarCiudad(texto).subscribe((res) => {
+      this.predicciones = res || [];
+    });
   }
 
   seleccionar(ciudad: string) {
@@ -53,11 +49,8 @@ export class DireccionPickerComponent {
 
   usarMiUbicacion() {
     Geolocation.getCurrentPosition().then((pos) => {
-      const params = new HttpParams()
-        .set('lat', String(pos.coords.latitude))
-        .set('lng', String(pos.coords.longitude));
-      this.http
-        .get<string[]>(`${environment.apiUrl}/ubicacion`, { params })
+      this.ubicacionService
+        .ciudadDesdeCoords(pos.coords.latitude, pos.coords.longitude)
         .subscribe((res) => {
           if (res && res.length) {
             this.seleccionar(res[0]);
