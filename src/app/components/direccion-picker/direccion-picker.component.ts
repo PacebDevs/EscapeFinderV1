@@ -1,8 +1,12 @@
+// ==============================
+// 🧭 DireccionPickerComponent.ts
+// ==============================
+
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { UbicacionService } from 'src/app/services/ubicacion.service';
+import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -21,6 +25,8 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   query = '';
   predicciones: string[] = [];
   ciudadActual: string | null = null;
+  direccionActual: string | null = null;
+
   private queryChanged = new Subject<string>();
   private querySub?: Subscription;
 
@@ -34,8 +40,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.predicciones = [];
           return;
         }
-        const params = texto.trim();
-        this.ubicacionService.buscarCiudad(params).subscribe((res) => {
+        this.ubicacionService.autocomplete(texto.trim()).subscribe((res) => {
           this.predicciones = res || [];
         });
       });
@@ -56,27 +61,40 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     this.queryChanged.next(this.query);
   }
 
-  seleccionar(ciudad: string) {
-    this.ciudadActual = ciudad;
-    this.ciudadSeleccionada.emit(ciudad);
-    this.abierto = false;
-    this.predicciones = [];
+  seleccionar(prediccion: string) {
+    this.ubicacionService.geocode(prediccion).subscribe({
+      next: (res: UbicacionResultado) => {
+        this.direccionActual = res.direccion;
+        this.ciudadActual = res.ciudad;
+        this.query = res.direccion;
+        this.ciudadSeleccionada.emit(res.ciudad);
+        this.abierto = false;
+        this.predicciones = [];
+      },
+      error: (err) => {
+        console.error('Error geocodificando:', err);
+        alert('No se pudo obtener la ciudad desde la dirección.');
+      }
+    });
   }
 
   async usarMiUbicacion() {
     try {
       const pos = await Geolocation.getCurrentPosition();
-      this.ubicacionService
-        .ciudadDesdeCoords(pos.coords.latitude, pos.coords.longitude)
-        .subscribe({
-          next: (res) => {
-            if (res && res.length) this.seleccionar(res[0]);
-          },
-          error: (err) => {
-            console.error('Error geolocalización backend:', err);
-            alert('No se pudo obtener la ciudad desde tu ubicación.');
-          }
-        });
+      this.ubicacionService.reverseGeocode(pos.coords.latitude, pos.coords.longitude).subscribe({
+        next: (res: UbicacionResultado) => {
+          this.direccionActual = res.direccion;
+          this.ciudadActual = res.ciudad;
+          this.query = res.direccion;
+          this.ciudadSeleccionada.emit(res.ciudad);
+          this.abierto = false;
+          this.predicciones = [];
+        },
+        error: (err) => {
+          console.error('Error geolocalización backend:', err);
+          alert('No se pudo obtener la ciudad desde tu ubicación.');
+        }
+      });
     } catch (err) {
       console.error('Error obteniendo ubicación del dispositivo:', err);
       alert('No se pudo acceder al GPS. Verificá permisos.');
@@ -85,6 +103,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   borrar() {
     this.ciudadActual = null;
+    this.direccionActual = null;
     this.query = '';
     this.predicciones = [];
     this.abierto = false;
