@@ -4,7 +4,7 @@ export interface Categoria {
   }
   
   export const CATEGORIAS: Categoria[] = [
-    { nombre: 'Todo', icono: 'assets/categorias/varita-magica.png' },
+    { nombre: 'Filtros', icono: 'assets/categorias/varita-magica.png' },
     { nombre: 'Fantasía', icono: 'assets/categorias/book.png' },
     { nombre: 'Aventuras', icono: 'assets/categorias/map.png' },
     { nombre: 'Terror', icono: 'assets/categorias/skull.png' },

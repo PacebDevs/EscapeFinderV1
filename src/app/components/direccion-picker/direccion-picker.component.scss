@@ -34,7 +34,8 @@
 }
 
 .search-container ion-searchbar {
-  --padding-end: 40px;
+    width: calc(100% - 40px); /* Espacio para el icono */
+  --padding-end: 8px; /* Ajuste del padding interno */
 }
 
 .geo-icon {

@@ -105,6 +105,7 @@ ngAfterViewInit() {
     this.reloadSalas();
   }
   onCiudadSeleccionada(ciudad: string | null) {
+    console.log(ciudad + 'Entra en onCiudadSeleccionada');
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
@@ -133,6 +134,7 @@ ngAfterViewInit() {
     this.todasCargadas = false;
     this.cargando = true;
     const filtros = { ...this.filters, offset: 0, limit: this.limit };
+    console.log(filtros)
     this.store.dispatch(new GetSalas(filtros)).subscribe(() => {
       this.offset = this.limit;
       this.cargando = false;

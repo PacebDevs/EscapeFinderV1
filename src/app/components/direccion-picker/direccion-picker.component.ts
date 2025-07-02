@@ -70,6 +70,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.ciudadSeleccionada.emit(res.ciudad);
         this.abierto = false;
         this.predicciones = [];
+        console.log(this.ciudadActual)
       },
       error: (err) => {
         console.error('Error geocodificando:', err);
@@ -89,6 +90,8 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.ciudadSeleccionada.emit(res.ciudad);
           this.abierto = false;
           this.predicciones = [];
+          console.log(this.ciudadActual)
+          
         },
         error: (err) => {
           console.error('Error geolocalización backend:', err);
