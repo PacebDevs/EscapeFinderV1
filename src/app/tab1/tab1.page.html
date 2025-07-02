@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
+   
     <ion-searchbar
       placeholder="Buscar sala o empresa..."
       [(ngModel)]="filters.query"
@@ -21,7 +21,7 @@
     </div>
   </ion-toolbar>
 </ion-header>
-
+ <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
 <ion-content #pageContent>
   <ng-container *ngIf="salas$ | async as salas">
     <app-sala-card
