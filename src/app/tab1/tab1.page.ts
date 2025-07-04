@@ -4,7 +4,7 @@ import { Store } from '@ngxs/store';
 import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
-import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
+//import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
@@ -79,7 +79,7 @@ ngAfterViewInit() {
   
   }
 
-  async openFilters() {
+ /* async openFilters() {
     const modal = await this.modalCtrl.create({
       component: FiltersModalComponent,
       componentProps: { filters: this.filters }
@@ -89,7 +89,7 @@ ngAfterViewInit() {
       this.filters = data;
       this.reloadSalas();
     }
-  }
+  }*/
 
   async selectCategoria(nombre: string) {
     const index = this.categoriasActivas.indexOf(nombre);
