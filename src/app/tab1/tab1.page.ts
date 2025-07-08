@@ -4,7 +4,7 @@ import { Store } from '@ngxs/store';
 import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
-//import { FiltersModalComponent } from '../components/filters-modal/filters-modal.component';
+import { FiltersModalComponent } from '../components/filter-modal/filters-modal.component';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
@@ -79,31 +79,50 @@ ngAfterViewInit() {
   
   }
 
- /* async openFilters() {
-    const modal = await this.modalCtrl.create({
-      component: FiltersModalComponent,
-      componentProps: { filters: this.filters }
-    });
-    const { data } = await modal.onDidDismiss();
-    if (data) {
-      this.filters = data;
-      this.reloadSalas();
-    }
-  }*/
 
   async selectCategoria(nombre: string) {
-    const index = this.categoriasActivas.indexOf(nombre);
-    if (index > -1) {
-      this.categoriasActivas.splice(index, 1);
-    } else {
-      this.categoriasActivas.push(nombre);
-    }
-    this.filters = this.categoriasActivas.length === 0
-      ? { ...this.filters, categorias: undefined }
-      : { ...this.filters, categorias: [...this.categoriasActivas] };
-    await Haptics.impact({ style: ImpactStyle.Light });
+  if (nombre === 'Filtros') {
+    await this.openFilters();
+    return;
+  }
+
+  const index = this.categoriasActivas.indexOf(nombre);
+  if (index > -1) {
+    this.categoriasActivas.splice(index, 1);
+  } else {
+    this.categoriasActivas.push(nombre);
+  }
+
+  this.filters = this.categoriasActivas.length === 0
+    ? { ...this.filters, categorias: undefined }
+    : { ...this.filters, categorias: [...this.categoriasActivas] };
+
+  await Haptics.impact({ style: ImpactStyle.Light });
+  this.reloadSalas();
+}
+
+async openFilters() {
+  const modal = await this.modalCtrl.create({
+    component: FiltersModalComponent,
+    componentProps: {
+      filtrosActuales: this.filters
+    },
+    showBackdrop: true,
+    cssClass: 'filters-modal-sheet',
+    breakpoints: [0, 0.5, 1],
+    initialBreakpoint: 0.85// porcenjage que ocupa la ventana de filtros al abrirse
+  });
+
+  await modal.present(); // 👈 Asegura que se presente
+
+  const { data } = await modal.onDidDismiss();
+
+  if (data) {
+    this.filters = { ...this.filters, ...data };
     this.reloadSalas();
   }
+}
+
   onCiudadSeleccionada(ciudad: string | null) {
     console.log(ciudad + 'Entra en onCiudadSeleccionada');
     if (ciudad) {

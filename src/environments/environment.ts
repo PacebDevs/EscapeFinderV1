@@ -7,9 +7,12 @@ export const environment = {
   //Piso y casa de padres
  // apiUrl: 'http://192.168.1.131:3000/api',
  // imageURL: 'http://192.168.1.131:3000/'
-//Parcela
-   apiUrl: 'http://192.168.1.242:3000/api',
-  imageURL: 'http://192.168.1.242:3000/'
+//Internet
+   //apiUrl: 'https://wrap-scroll-sn-fixes.trycloudflare.com/api',
+ // imageURL: 'https://wrap-scroll-sn-fixes.trycloudflare.com/'
+ //Parcela
+  apiUrl: 'http://localhost:3000/api',
+ imageURL: 'http://localhost:3000/'
 
 
 };
