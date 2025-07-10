@@ -9,6 +9,8 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
 import { IonInfiniteScroll } from '@ionic/angular';
+import { UsuarioState } from '../states/usuario.state';
+
 
 @Component({
   selector: 'app-tab1',
@@ -46,7 +48,22 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
         this.numeroSalas = salas.length;
       })
     );
-
+   this.subs.push(
+    this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+      const { lat, lng, distanciaKm } = ubicacion || {};
+      if (lat && lng) {
+        this.filters = {
+          ...this.filters,
+          lat,
+          lng,
+          distancia_km: distanciaKm ?? 10
+        };
+      } else {
+        const { lat: _l, lng: _g, distancia_km: _d, ...rest } = this.filters;
+        this.filters = { ...rest };
+      }
+    })
+  );
     this.socketService.connect();
     this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
     this.subs.push(

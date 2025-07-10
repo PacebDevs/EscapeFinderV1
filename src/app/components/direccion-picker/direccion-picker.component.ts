@@ -10,6 +10,10 @@ import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion
 import { Geolocation } from '@capacitor/geolocation';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Store } from '@ngxs/store';
+import { ClearUbicacionUsuario, SetUbicacionUsuario } from 'src/app/states/usuario.state';
+
+
 
 @Component({
   selector: 'app-direccion-picker',
@@ -30,7 +34,8 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   private queryChanged = new Subject<string>();
   private querySub?: Subscription;
 
-  constructor(private ubicacionService: UbicacionService) {}
+
+  constructor(private ubicacionService: UbicacionService, private store: Store) {}
 
   ngOnInit() {
     this.querySub = this.queryChanged
@@ -62,6 +67,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   }
 
   seleccionar(prediccion: string) {
+    
     this.ubicacionService.geocode(prediccion).subscribe({
       next: (res: UbicacionResultado) => {
         this.direccionActual = res.direccion;
@@ -70,7 +76,12 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.ciudadSeleccionada.emit(res.ciudad);
         this.abierto = false;
         this.predicciones = [];
-        console.log(this.ciudadActual)
+        this.store.dispatch(new SetUbicacionUsuario({
+            direccion: res.direccion,
+            ciudad: res.ciudad,
+            lat: res.lat,
+            lng: res.lng
+        }));
       },
       error: (err) => {
         console.error('Error geocodificando:', err);
@@ -90,7 +101,13 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.ciudadSeleccionada.emit(res.ciudad);
           this.abierto = false;
           this.predicciones = [];
-          console.log(this.ciudadActual)
+          this.store.dispatch(new SetUbicacionUsuario({
+            direccion: res.direccion,
+            ciudad: res.ciudad,
+            lat: res.lat,
+            lng: res.lng
+          }));
+
           
         },
         error: (err) => {
@@ -111,5 +128,6 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     this.predicciones = [];
     this.abierto = false;
     this.ciudadSeleccionada.emit(null);
+    this.store.dispatch(new ClearUbicacionUsuario());
   }
 }
