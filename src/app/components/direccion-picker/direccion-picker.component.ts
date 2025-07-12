@@ -82,6 +82,8 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
             lat: res.lat,
             lng: res.lng
         }));
+        console.log('Latitud -->'+ res.lat);
+        console.log('Longitud -->' +res.lng)
       },
       error: (err) => {
         console.error('Error geocodificando:', err);

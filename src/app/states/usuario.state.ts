@@ -16,6 +16,10 @@ export class SetDistanciaFiltro {
   constructor(public distanciaKm: number) {}
 }
 
+export class ClearDistanciaFiltro {
+  static readonly type = '[Usuario] Clear Distancia Filtro';
+}
+
 @State<UsuarioStateModel>({
   name: 'usuario',
   defaults: {

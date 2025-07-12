@@ -8,16 +8,21 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { SalaState } from './states/salas/salas.state';
-import { SalaCardComponent } from './components/sala-card/sala-card.component';
+import { UsuarioState } from './states/usuario.state';
+import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
     BrowserModule,
     IonicModule.forRoot(),
-    NgxsModule.forRoot([SalaState]),
+    HttpClientModule,
     AppRoutingModule,
-    HttpClientModule
+
+    NgxsModule.forRoot([SalaState, UsuarioState]),
+    NgxsStoragePluginModule.forRoot({
+      keys: ['usuario']
+    })
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent]
