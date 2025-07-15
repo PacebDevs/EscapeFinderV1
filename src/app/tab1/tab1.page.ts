@@ -145,7 +145,7 @@ async openFilters() {
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
-      const { ciudad: _c, ...rest } = this.filters;
+    const { ciudad: _c, lat: _l, lng: _g, distancia_km: _d, ...rest } = this.filters;
       this.filters = { ...rest };
     }
     this.reloadSalas();

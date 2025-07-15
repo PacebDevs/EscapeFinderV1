@@ -11,10 +11,10 @@ export class ClearUbicacionUsuario {
   static readonly type = '[Usuario] Clear Ubicacion';
 }
 
-export class SetDistanciaFiltro {
+/*export class SetDistanciaFiltro {
   static readonly type = '[Usuario] Set Distancia';
   constructor(public distanciaKm: number) {}
-}
+}*/
 
 export class ClearDistanciaFiltro {
   static readonly type = '[Usuario] Clear Distancia Filtro';
@@ -60,8 +60,8 @@ export class UsuarioState {
     });
   }
 
-  @Action(SetDistanciaFiltro)
+ /* @Action(SetDistanciaFiltro)
   setDistancia(ctx: StateContext<UsuarioStateModel>, action: SetDistanciaFiltro) {
     ctx.patchState({ distanciaKm: action.distanciaKm });
-  }
+  }*/
 }

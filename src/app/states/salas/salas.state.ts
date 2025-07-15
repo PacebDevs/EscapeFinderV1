@@ -70,14 +70,6 @@ appendSalas({ getState, patchState }: StateContext<SalaStateModel>, { filtros }:
   );
 }
 
-  // 🔧 Actualiza una sala concreta (por WebSocket)
-  /*@Action(UpdateSala)
-  updateSala({ getState, patchState }: StateContext<SalaStateModel>, { sala }: UpdateSala) {
-    const state = getState();
-    const nuevas = state.salas.map(s => s.id_sala === sala.id_sala ? sala : s);
-    patchState({ salas: nuevas });
-  }*/
-
     
 @Action(UpdateSala)
 updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: UpdateSala) {

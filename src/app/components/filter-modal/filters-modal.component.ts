@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
-import { ClearDistanciaFiltro, SetDistanciaFiltro, UsuarioState } from 'src/app/states/usuario.state';
+import { ClearDistanciaFiltro,  UsuarioState } from 'src/app/states/usuario.state';
 
 @Component({
   selector: 'app-filters-modal',
@@ -14,17 +14,17 @@ import { ClearDistanciaFiltro, SetDistanciaFiltro, UsuarioState } from 'src/app/
 })
 export class FiltersModalComponent implements OnInit {
   @Input() filtrosActuales: any = {};
-  distancia: number = 10;
+ // distancia: number = 10;
   filtros: any = {
-    jugadores: 1 // valor por defecto
+    jugadores: 4 // valor por defecto
   };
 
 
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
 ngOnInit() {
-  const distanciaState = this.store.selectSnapshot(UsuarioState.ubicacion)?.distanciaKm;
-  this.distancia = distanciaState ?? this.distancia;
+ // const distanciaState = this.store.selectSnapshot(UsuarioState.ubicacion)?.distanciaKm;
+ // this.distancia = distanciaState ?? this.distancia;
 
   this.filtros = {
     ...this.filtros,
@@ -37,16 +37,16 @@ ngOnInit() {
   }
 
   aplicarFiltros() {
-    this.store.dispatch(new SetDistanciaFiltro(this.distancia));
+    //this.store.dispatch(new SetDistanciaFiltro(this.distancia));
     this.modalCtrl.dismiss(this.filtros);
   }
 resetearFiltros() {
   this.filtros = {
-    jugadores: 1
+    jugadores: 4
     // cualquier otro filtro que quieras resetear aquí
   };
-  this.distancia = 10;
-  this.store.dispatch(new ClearDistanciaFiltro());
+ // this.distancia = 10;
+  //this.store.dispatch(new ClearDistanciaFiltro());
 }
 
 }

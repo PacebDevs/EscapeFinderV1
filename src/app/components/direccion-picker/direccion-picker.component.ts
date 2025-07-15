@@ -73,7 +73,6 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.direccionActual = res.direccion;
         this.ciudadActual = res.ciudad;
         this.query = res.direccion;
-        this.ciudadSeleccionada.emit(res.ciudad);
         this.abierto = false;
         this.predicciones = [];
         this.store.dispatch(new SetUbicacionUsuario({
@@ -82,6 +81,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
             lat: res.lat,
             lng: res.lng
         }));
+      this.ciudadSeleccionada.emit(res.ciudad);
         console.log('Latitud -->'+ res.lat);
         console.log('Longitud -->' +res.lng)
       },
