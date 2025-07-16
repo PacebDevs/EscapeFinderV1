@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
-import { ClearDistanciaFiltro,  UsuarioState } from 'src/app/states/usuario.state';
 
 @Component({
   selector: 'app-filters-modal',
@@ -23,9 +22,6 @@ export class FiltersModalComponent implements OnInit {
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
 ngOnInit() {
- // const distanciaState = this.store.selectSnapshot(UsuarioState.ubicacion)?.distanciaKm;
- // this.distancia = distanciaState ?? this.distancia;
-
   this.filtros = {
     ...this.filtros,
     ...this.filtrosActuales
@@ -46,7 +42,6 @@ resetearFiltros() {
     // cualquier otro filtro que quieras resetear aquí
   };
  // this.distancia = 10;
-  //this.store.dispatch(new ClearDistanciaFiltro());
 }
 
 }

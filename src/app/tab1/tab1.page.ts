@@ -28,6 +28,9 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
    @ViewChild(IonContent) pageContent!: IonContent;
 
+  private latUsuario: number | null = null;
+  private lngUsuario: number | null = null; 
+
   limit = 20;
   offset = 0;
   todasCargadas = false;
@@ -50,16 +53,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     );
    this.subs.push(
     this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
-      const { lat, lng, distanciaKm } = ubicacion || {};
-      if (lat && lng) {
-        this.filters = {
-          ...this.filters,
-          lat,
-          lng,
-          distancia_km: distanciaKm ?? 10
-        };
+      const { ciudad, lat, lng } = ubicacion || {};
+      this.latUsuario = lat ?? null;
+      this.lngUsuario = lng ?? null;
+      if (ciudad) {
+        this.filters = { ...this.filters, ciudad };
       } else {
-        const { lat: _l, lng: _g, distancia_km: _d, ...rest } = this.filters;
+        const { ciudad: _c, ...rest } = this.filters;
         this.filters = { ...rest };
       }
     })
@@ -145,7 +145,7 @@ async openFilters() {
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
-    const { ciudad: _c, lat: _l, lng: _g, distancia_km: _d, ...rest } = this.filters;
+     const { ciudad: _c, distancia_km: _d, ...rest } = this.filters;
       this.filters = { ...rest };
     }
     this.reloadSalas();
@@ -170,6 +170,13 @@ async openFilters() {
     this.todasCargadas = false;
     this.cargando = true;
     const filtros = { ...this.filters, offset: 0, limit: this.limit };
+    if (!filtros.distancia_km) {
+      delete filtros.lat;
+      delete filtros.lng;
+    } else {
+      filtros.lat = this.latUsuario;
+      filtros.lng = this.lngUsuario;
+    }
     console.log(filtros)
     this.store.dispatch(new GetSalas(filtros)).subscribe(() => {
       this.offset = this.limit;
@@ -188,6 +195,13 @@ loadMore(event?: any) {
 
   this.cargando = true;
   const filtros = { ...this.filters, offset: this.offset, limit: this.limit };
+    if (!filtros.distancia_km) {
+    delete filtros.lat;
+    delete filtros.lng;
+  } else {
+    filtros.lat = this.latUsuario;
+    filtros.lng = this.lngUsuario;
+  }
 
   this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
     const recibidas = res.sala?.cantidad || 0;

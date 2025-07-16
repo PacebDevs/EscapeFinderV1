@@ -11,14 +11,7 @@ export class ClearUbicacionUsuario {
   static readonly type = '[Usuario] Clear Ubicacion';
 }
 
-/*export class SetDistanciaFiltro {
-  static readonly type = '[Usuario] Set Distancia';
-  constructor(public distanciaKm: number) {}
-}*/
 
-export class ClearDistanciaFiltro {
-  static readonly type = '[Usuario] Clear Distancia Filtro';
-}
 
 @State<UsuarioStateModel>({
   name: 'usuario',
@@ -26,8 +19,7 @@ export class ClearDistanciaFiltro {
     direccion: null,
     ciudad: null,
     lat: null,
-    lng: null,
-    distanciaKm: null
+    lng: null
   }
 })
 export class UsuarioState {
@@ -37,8 +29,7 @@ export class UsuarioState {
       direccion: state.direccion,
       ciudad: state.ciudad,
       lat: state.lat,
-      lng: state.lng,
-      distanciaKm: state.distanciaKm
+      lng: state.lng
     };
   }
 
@@ -55,13 +46,8 @@ export class UsuarioState {
       direccion: null,
       ciudad: null,
       lat: null,
-      lng: null,
-      distanciaKm: null
+      lng: null
     });
   }
 
- /* @Action(SetDistanciaFiltro)
-  setDistancia(ctx: StateContext<UsuarioStateModel>, action: SetDistanciaFiltro) {
-    ctx.patchState({ distanciaKm: action.distanciaKm });
-  }*/
 }
