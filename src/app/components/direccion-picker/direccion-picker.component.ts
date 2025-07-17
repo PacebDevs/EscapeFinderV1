@@ -11,7 +11,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { ClearUbicacionUsuario, SetUbicacionUsuario } from 'src/app/states/usuario.state';
+import { ClearUbicacionUsuario, SetUbicacionUsuario, UsuarioState } from 'src/app/states/usuario.state';
 
 
 
@@ -38,6 +38,10 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   constructor(private ubicacionService: UbicacionService, private store: Store) {}
 
   ngOnInit() {
+     const ubicacion = this.store.selectSnapshot(UsuarioState.ubicacion);
+  if (ubicacion?.ciudad) {
+    this.ciudadActual = ubicacion.ciudad;
+  }
     this.querySub = this.queryChanged
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((texto) => {
