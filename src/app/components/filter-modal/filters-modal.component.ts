@@ -37,11 +37,12 @@ ngOnInit() {
     this.modalCtrl.dismiss(this.filtros);
   }
 resetearFiltros() {
+  const ciudad = this.filtros.ciudad; // preservamos ciudad
   this.filtros = {
-    jugadores: 4
-    // cualquier otro filtro que quieras resetear aquí
+    ciudad,      // mantenemos solo ciudad
+    jugadores: 4 // valores por defecto
+    // NO lat/lng, NO distancia, NO categorías
   };
- // this.distancia = 10;
 }
 
 }
