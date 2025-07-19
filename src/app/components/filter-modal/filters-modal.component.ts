@@ -15,9 +15,9 @@ export class FiltersModalComponent implements OnInit {
   @Input() filtrosActuales: any = {};
  // distancia: number = 10;
   filtros: any = {
-    jugadores: 4 // valor por defecto
+    jugadores: null // valor por defecto
   };
-
+jugadoresOpciones = [2, 3, 4, 5, 6, 7]; // refleja tus datos más frecuentes
 
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
@@ -40,9 +40,10 @@ resetearFiltros() {
   const ciudad = this.filtros.ciudad; // preservamos ciudad
   this.filtros = {
     ciudad,      // mantenemos solo ciudad
-    jugadores: 4 // valores por defecto
+    jugadores: null // valores por defecto
     // NO lat/lng, NO distancia, NO categorías
   };
+  
 }
 
 }

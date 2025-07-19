@@ -72,6 +72,13 @@
       font-weight: bold;
     }
   }
+  .jugadores-select {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 12px;
+  --background: #f1f1f1;
+  margin-top: 4px;
+}
 }
 
 .modal-footer {

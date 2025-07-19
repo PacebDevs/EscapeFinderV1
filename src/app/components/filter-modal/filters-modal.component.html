@@ -7,11 +7,20 @@
 </ion-header>
 
 <ion-content class="modal-content">
-  <div class="filtro-section">
-    <label class="section-label">Jugadores</label>
-    <ion-range min="1" max="100" [(ngModel)]="filtros.jugadores" dualKnobs="false" snaps="true" ticks="false"></ion-range>
-    <label class="section-label">Jugadores: {{ filtros.jugadores }}</label>
-  </div>
+ <div class="filtro-section">
+  <label class="section-label">Jugadores</label>
+  <ion-select
+    interface="popover"
+    [(ngModel)]="filtros.jugadores"
+    placeholder="Todos"
+    class="jugadores-select"
+  >
+    <ion-select-option [value]="null">Todos</ion-select-option>
+    <ion-select-option *ngFor="let num of jugadoresOpciones" [value]="num">
+      {{ num === 7 ? '7 o más' : num }}
+    </ion-select-option>
+  </ion-select>
+</div>
 
   <div class="filtro-section">
     <label class="section-label">Precio por persona (€)</label>

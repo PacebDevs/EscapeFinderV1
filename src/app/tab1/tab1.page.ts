@@ -170,6 +170,7 @@ async openFilters() {
     this.todasCargadas = false;
     this.cargando = true;
     const filtros = { ...this.filters, offset: 0, limit: this.limit };
+    
     if (!filtros.distancia_km) {
       delete filtros.lat;
       delete filtros.lng;
@@ -177,6 +178,8 @@ async openFilters() {
       filtros.lat = this.latUsuario;
       filtros.lng = this.lngUsuario;
     }
+
+    
     console.log(filtros)
     this.store.dispatch(new GetSalas(filtros)).subscribe(() => {
       this.offset = this.limit;
