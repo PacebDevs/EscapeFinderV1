@@ -17,7 +17,7 @@
   >
     <ion-select-option [value]="null">Todos</ion-select-option>
     <ion-select-option *ngFor="let num of jugadoresOpciones" [value]="num">
-      {{ num === 7 ? '7 o más' : num }}
+      {{ num === 10 ? '10 o más' : num }}
     </ion-select-option>
   </ion-select>
 </div>
@@ -41,6 +41,23 @@
       <div class="categoria-btn">Terror</div>
     </div>
   </div>
+
+<div class="filtro-section">
+  <label class="section-label" (click)="mostrarTiposSala = !mostrarTiposSala" style="cursor: pointer;">
+    Tipo de sala
+    <ion-icon [name]="mostrarTiposSala ? 'chevron-up-outline' : 'chevron-down-outline'" class="dropdown-icon"></ion-icon>
+  </label>
+
+  <div class="categorias-grid" *ngIf="mostrarTiposSala">
+    <div
+      class="categoria-btn"
+      *ngFor="let tipo of tiposSalaOpciones"
+      [class.selected]="filtros.tipo_sala.includes(tipo)"
+      (click)="toggleTipoSala(tipo)">
+      {{ tipo }}
+    </div>
+  </div>
+</div>
 </ion-content>
 
 <ion-footer class="modal-footer">

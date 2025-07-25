@@ -47,10 +47,12 @@ getSalas({ patchState }: StateContext<SalaStateModel>, { filtros }: GetSalas) {
   return this.salaService.getSalas(filtros).pipe(
     tap((salas) => {
       console.log('📥 GetSalas recibió del servicio:', salas.length);
+       //console.log('Filros antes de backend  ' + filtros.jugadores) 
       patchState({ salas });
     }),
     map((salas) => {
       console.log('📤 Devolviendo desde GetSalas a componente:', salas.length);
+      // console.log('Filros antes de backend  ' + filtros.jugadores) 
       return { salas };
     })
   );

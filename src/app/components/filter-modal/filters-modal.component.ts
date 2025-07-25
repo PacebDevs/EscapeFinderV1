@@ -15,10 +15,19 @@ export class FiltersModalComponent implements OnInit {
   @Input() filtrosActuales: any = {};
  // distancia: number = 10;
   filtros: any = {
-    jugadores: null // valor por defecto
+    jugadores: null,
+    tipo_sala: [] // nuevo filtro
   };
-jugadoresOpciones = [2, 3, 4, 5, 6, 7]; // refleja tus datos más frecuentes
-
+jugadoresOpciones = [2, 3, 4, 5, 6, 7, 8, 9, 10]; // ahora incluye hasta 10
+tiposSalaOpciones = [
+  'Al aire libre',
+  'Escape Room',
+  'Experiencia',
+  'Hall game',
+  'Juego portátil',
+  'Realidad Virtual'
+];
+mostrarTiposSala = false;
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
 ngOnInit() {
@@ -40,10 +49,19 @@ resetearFiltros() {
   const ciudad = this.filtros.ciudad; // preservamos ciudad
   this.filtros = {
     ciudad,      // mantenemos solo ciudad
-    jugadores: null // valores por defecto
-    // NO lat/lng, NO distancia, NO categorías
+    jugadores: null, // valores por defecto
+    tipo_sala: [] // reset tipo_sala
+   
   };
   
 }
 
+toggleTipoSala(tipo: string) {
+  const idx = this.filtros.tipo_sala.indexOf(tipo);
+  if (idx > -1) {
+    this.filtros.tipo_sala.splice(idx, 1);
+  } else {
+    this.filtros.tipo_sala.push(tipo);
+  }
+}
 }

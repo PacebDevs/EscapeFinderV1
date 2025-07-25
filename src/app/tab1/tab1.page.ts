@@ -127,13 +127,13 @@ async openFilters() {
     showBackdrop: true,
     cssClass: 'filters-modal-sheet',
     breakpoints: [0, 0.5, 1],
-    initialBreakpoint: 0.85// porcenjage que ocupa la ventana de filtros al abrirse
+    initialBreakpoint: 1// porcenjage que ocupa la ventana de filtros al abrirse
   });
 
   await modal.present(); // 👈 Asegura que se presente
 
   const { data } = await modal.onDidDismiss();
-
+console.log('data  -->'+  data )
   if (data) {
     this.filters = { ...this.filters, ...data };
     this.reloadSalas();
@@ -164,13 +164,8 @@ async openFilters() {
     return true;
   }
 
-  reloadSalas() {
-    this.pageContent?.scrollToTop(0);
-    this.offset = 0;
-    this.todasCargadas = false;
-    this.cargando = true;
-    const filtros = { ...this.filters, offset: 0, limit: this.limit };
-    
+  private getFiltros(offset: number): any {
+    const filtros = { ...this.filters, offset, limit: this.limit };
     if (!filtros.distancia_km) {
       delete filtros.lat;
       delete filtros.lng;
@@ -178,13 +173,29 @@ async openFilters() {
       filtros.lat = this.latUsuario;
       filtros.lng = this.lngUsuario;
     }
+    return filtros;
+  }
 
-    
+  reloadSalas() {
+    this.pageContent?.scrollToTop(0);
+    this.offset = 0;
+    this.todasCargadas = false;
+    this.cargando = true;
+    const filtros = this.getFiltros(0);
+
+    console.log('🧼 Filtros al resetear:', this.filters)
     console.log(filtros)
-    this.store.dispatch(new GetSalas(filtros)).subscribe(() => {
-      this.offset = this.limit;
-      this.cargando = false;
-
+      
+    this.store.dispatch(new GetSalas(filtros)).subscribe({
+      next: () => {
+        this.offset = this.limit;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.cargando = false;
+        // Aquí podrías mostrar un toast o alerta
+        console.error('Error al cargar salas', err);
+      }
     });
   }
 
@@ -197,14 +208,7 @@ loadMore(event?: any) {
   }
 
   this.cargando = true;
-  const filtros = { ...this.filters, offset: this.offset, limit: this.limit };
-    if (!filtros.distancia_km) {
-    delete filtros.lat;
-    delete filtros.lng;
-  } else {
-    filtros.lat = this.latUsuario;
-    filtros.lng = this.lngUsuario;
-  }
+  const filtros = this.getFiltros(this.offset);
 
   this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
     const recibidas = res.sala?.cantidad || 0;
