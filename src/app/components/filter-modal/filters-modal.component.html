@@ -36,9 +36,13 @@
   <div class="filtro-section">
     <label class="section-label">Categorías</label>
     <div class="categorias-grid">
-      <div class="categoria-btn">Fantasía</div>
-      <div class="categoria-btn">Misterio</div>
-      <div class="categoria-btn">Terror</div>
+      <div
+        class="categoria-btn"
+        *ngFor="let cat of categoriasOpciones"
+        [class.selected]="filtros.categorias.includes(cat)"
+        (click)="toggleCategoria(cat)">
+        {{ cat }}
+      </div>
     </div>
   </div>
 

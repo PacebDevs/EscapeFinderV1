@@ -86,7 +86,6 @@ ngAfterViewInit() {
     }
   });
 
-
 }
 
 
@@ -136,6 +135,9 @@ async openFilters() {
 console.log('data  -->'+  data )
   if (data) {
     this.filters = { ...this.filters, ...data };
+    this.categoriasActivas = this.filters.categorias
+      ? [...this.filters.categorias]
+      : [];
     this.reloadSalas();
   }
 }
