@@ -441,6 +441,229 @@ import 'zone.js';  // Included with Angular CLI.
  */
 
 
+  └── proyecto_dump.txt
+
+--- 📄 proyecto_dump.txt ---
+
+📁 /
+  └── dump_proyecto.py
+
+--- 📄 dump_proyecto.py ---
+import os
+
+EXCLUDED_DIRS = {'node_modules', 'dist', '.git', '__pycache__'}
+EXCLUDED_EXTENSIONS = {'.log', '.lock', '.png', '.jpg', '.jpeg', '.mp4', '.zip', '.exe'}
+MAX_FILE_SIZE_KB = 500
+
+output_lines = []
+env_included = False
+
+def is_text_file(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            f.read(1024)
+        return True
+    except:
+        return False
+
+def process_directory(root_dir):
+    global env_included
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDED_DIRS]
+        relative_dir = os.path.relpath(dirpath, root_dir)
+        output_lines.append(f"\n📁 {relative_dir}/" if relative_dir != '.' else "\n📁 /")
+
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            relpath = os.path.relpath(filepath, root_dir)
+
+            if any(filename.endswith(ext) for ext in EXCLUDED_EXTENSIONS):
+                continue
+            if os.path.getsize(filepath) > MAX_FILE_SIZE_KB * 1024:
+                continue
+            if not is_text_file(filepath):
+                continue
+
+            output_lines.append(f"  └── {filename}")
+            if filename == '.env':
+                env_included = True
+
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                output_lines.append(f"\n--- 📄 {relpath} ---\n{content}\n")
+            except Exception as e:
+                output_lines.append(f"\n--- 📄 {relpath} ---\n[Error leyendo archivo: {e}]\n")
+
+process_directory(".")
+
+if env_included:
+    output_lines.insert(0, "⚠️ AVISO: Este volcado incluye archivos `.env`.\n"
+                           "No lo compartas públicamente si contiene datos sensibles.\n"
+                           "============================================================\n")
+
+with open("proyecto_dump.txt", 'w', encoding='utf-8') as f:
+    f.write('\n'.join(output_lines))
+
+  └── global.scss
+
+--- 📄 global.scss ---
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+ion-header,
+ion-toolbar {
+  padding-top: var(--safe-area-inset-top, 0px);
+  background: #fff;
+}
+
+ion-content {
+  --padding-top: 0px;
+  --padding-bottom: calc(var(--safe-area-inset-bottom, 0px) + 80px); // 80px para la barra de tabs
+  background: #fff;
+}
+
+ion-footer {
+  padding-bottom: var(--safe-area-inset-bottom, 0px);
+}
+
+  └── index.html
+
+--- 📄 index.html ---
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Ionic App</title>
+
+  <base href="/" />
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+
+  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+
+  <!-- add to homescreen for ios -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+</head>
+
+<body>
+  <app-root></app-root>
+</body>
+
+</html>
+
+
+  └── main.ts
+
+--- 📄 main.ts ---
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+import { AppModule } from './app/app.module';
+
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .catch(err => console.log(err));
+
+
+  └── polyfills.ts
+
+--- 📄 polyfills.ts ---
+/**
+ * This file includes polyfills needed by Angular and is loaded before the app.
+ * You can add your own extra polyfills to this file.
+ *
+ * This file is divided into 2 sections:
+ *   1. Browser polyfills. These are applied before loading ZoneJS and are sorted by browsers.
+ *   2. Application imports. Files imported after ZoneJS that should be loaded before your main
+ *      file.
+ *
+ * The current setup is for so-called "evergreen" browsers; the last versions of browsers that
+ * automatically update themselves. This includes recent versions of Safari, Chrome (including
+ * Opera), Edge on the desktop, and iOS and Chrome on mobile.
+ *
+ * Learn more in https://angular.io/guide/browser-support
+ */
+
+/***************************************************************************************************
+ * BROWSER POLYFILLS
+ */
+
+/**
+ * By default, zone.js will patch all possible macroTask and DomEvents
+ * user can disable parts of macroTask/DomEvents patch by setting following flags
+ * because those flags need to be set before `zone.js` being loaded, and webpack
+ * will put import in the top of bundle, so user need to create a separate file
+ * in this directory (for example: zone-flags.ts), and put the following flags
+ * into that file, and then add the following code before importing zone.js.
+ * import './zone-flags';
+ *
+ * The flags allowed in zone-flags.ts are listed here.
+ *
+ * The following flags will work for all browsers.
+ *
+ * (window as any).__Zone_disable_requestAnimationFrame = true; // disable patch requestAnimationFrame
+ * (window as any).__Zone_disable_on_property = true; // disable patch onProperty such as onclick
+ * (window as any).__zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove']; // disable patch specified eventNames
+ *
+ *  in IE/Edge developer tools, the addEventListener will also be wrapped by zone.js
+ *  with the following flag, it will bypass `zone.js` patch for IE/Edge
+ *
+ *  (window as any).__Zone_enable_cross_context_check = true;
+ *
+ */
+ 
+import './zone-flags';
+
+/***************************************************************************************************
+ * Zone JS is required by default for Angular itself.
+ */
+import 'zone.js';  // Included with Angular CLI.
+
+
+/***************************************************************************************************
+ * APPLICATION IMPORTS
+ */
+
+
   └── test.ts
 
 --- 📄 test.ts ---
@@ -4923,6 +5146,2596 @@ async openFilters() {
 console.log('data  -->'+  data )
   if (data) {
     this.filters = { ...this.filters, ...data };
+    this.reloadSalas();
+  }
+}
+
+  onCiudadSeleccionada(ciudad: string | null) {
+    console.log(ciudad + 'Entra en onCiudadSeleccionada');
+    if (ciudad) {
+      this.filters = { ...this.filters, ciudad };
+    } else {
+     const { ciudad: _c, distancia_km: _d, ...rest } = this.filters;
+      this.filters = { ...rest };
+    }
+    this.reloadSalas();
+  }
+
+  aplicaFiltros(sala: any): boolean {
+    const q = this.filters.query?.toLowerCase() || '';
+    const nombre = sala.nombre?.toLowerCase() || '';
+    const empresa = sala.empresa?.toLowerCase() || '';
+    if (q && !nombre.includes(q) && !empresa.includes(q)) return false;
+    if (this.filters.categorias?.length > 0) {
+      const categorias = sala.categorias || [];
+      const intersecta = categorias.some(c => this.filters.categorias.includes(c));
+      if (!intersecta) return false;
+    }
+    return true;
+  }
+
+  private getFiltros(offset: number): any {
+    const filtros = { ...this.filters, offset, limit: this.limit };
+    if (!filtros.distancia_km) {
+      delete filtros.lat;
+      delete filtros.lng;
+    } else {
+      filtros.lat = this.latUsuario;
+      filtros.lng = this.lngUsuario;
+    }
+    return filtros;
+  }
+
+  reloadSalas() {
+    this.pageContent?.scrollToTop(0);
+    this.offset = 0;
+    this.todasCargadas = false;
+    this.cargando = true;
+    const filtros = this.getFiltros(0);
+
+    console.log('🧼 Filtros al resetear:', this.filters)
+    console.log(filtros)
+      
+    this.store.dispatch(new GetSalas(filtros)).subscribe({
+      next: () => {
+        this.offset = this.limit;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.cargando = false;
+        // Aquí podrías mostrar un toast o alerta
+        console.error('Error al cargar salas', err);
+      }
+    });
+  }
+
+
+
+loadMore(event?: any) {
+  if (this.cargando || this.todasCargadas) {
+    event?.target?.complete();
+    return;
+  }
+
+  this.cargando = true;
+  const filtros = this.getFiltros(this.offset);
+
+  this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
+    const recibidas = res.sala?.cantidad || 0;
+    
+    console.log(`🧾 Recibidas ${recibidas} salas, offset actual: ${this.offset}`);
+//console.log('🧾 Recibidas IDs:', res.sala.salas.map(s => s.id_sala));
+    this.offset += recibidas;
+
+    if (recibidas === 0 || recibidas < this.limit) {
+      this.todasCargadas = true;
+    }
+
+    event?.target?.complete();
+    this.cargando = false;
+  });
+}
+
+
+
+
+  trackBySalaId(_i: number, sala: any): any {
+    return sala.id_sala;
+  }
+}
+
+
+
+📁 app\tab2/
+  └── tab2-routing.module.ts
+
+--- 📄 app\tab2\tab2-routing.module.ts ---
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { Tab2Page } from './tab2.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: Tab2Page,
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class Tab2PageRoutingModule {}
+
+
+  └── tab2.module.ts
+
+--- 📄 app\tab2\tab2.module.ts ---
+import { IonicModule } from '@ionic/angular';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Tab2Page } from './tab2.page';
+import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+import { Tab2PageRoutingModule } from './tab2-routing.module';
+
+@NgModule({
+  imports: [
+    IonicModule,
+    CommonModule,
+    FormsModule,
+    ExploreContainerComponentModule,
+    Tab2PageRoutingModule
+  ],
+  declarations: [Tab2Page]
+})
+export class Tab2PageModule {}
+
+
+  └── tab2.page.html
+
+--- 📄 app\tab2\tab2.page.html ---
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Tab 2
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tab 2 Prueba2</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <app-explore-container name="Tab 2 page Prueba2"></app-explore-container>
+</ion-content>
+
+
+  └── tab2.page.scss
+
+--- 📄 app\tab2\tab2.page.scss ---
+
+
+  └── tab2.page.spec.ts
+
+--- 📄 app\tab2\tab2.page.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { IonicModule } from '@ionic/angular';
+
+import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+import { Tab2Page } from './tab2.page';
+
+describe('Tab2Page', () => {
+  let component: Tab2Page;
+  let fixture: ComponentFixture<Tab2Page>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [Tab2Page],
+      imports: [IonicModule.forRoot(), ExploreContainerComponentModule]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(Tab2Page);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── tab2.page.ts
+
+--- 📄 app\tab2\tab2.page.ts ---
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-tab2',
+  templateUrl: 'tab2.page.html',
+  styleUrls: ['tab2.page.scss'],
+  standalone: false,
+})
+export class Tab2Page {
+
+  constructor() {
+    console.log("Pagina2")
+  }
+
+}
+
+
+
+📁 app\tab3/
+  └── tab3-routing.module.ts
+
+--- 📄 app\tab3\tab3-routing.module.ts ---
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { Tab3Page } from './tab3.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: Tab3Page,
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class Tab3PageRoutingModule {}
+
+
+  └── tab3.module.ts
+
+--- 📄 app\tab3\tab3.module.ts ---
+import { IonicModule } from '@ionic/angular';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Tab3Page } from './tab3.page';
+import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+import { Tab3PageRoutingModule } from './tab3-routing.module';
+
+@NgModule({
+  imports: [
+    IonicModule,
+    CommonModule,
+    FormsModule,
+    ExploreContainerComponentModule,
+    Tab3PageRoutingModule
+  ],
+  declarations: [Tab3Page]
+})
+export class Tab3PageModule {}
+
+
+  └── tab3.page.html
+
+--- 📄 app\tab3\tab3.page.html ---
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Tab 3
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Tab 3</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <app-explore-container name="Tab 3 page"></app-explore-container>
+</ion-content>
+
+
+  └── tab3.page.scss
+
+--- 📄 app\tab3\tab3.page.scss ---
+
+
+  └── tab3.page.spec.ts
+
+--- 📄 app\tab3\tab3.page.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { IonicModule } from '@ionic/angular';
+
+import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+import { Tab3Page } from './tab3.page';
+
+describe('Tab3Page', () => {
+  let component: Tab3Page;
+  let fixture: ComponentFixture<Tab3Page>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [Tab3Page],
+      imports: [IonicModule.forRoot(), ExploreContainerComponentModule]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(Tab3Page);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── tab3.page.ts
+
+--- 📄 app\tab3\tab3.page.ts ---
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-tab3',
+  templateUrl: 'tab3.page.html',
+  styleUrls: ['tab3.page.scss'],
+  standalone: false,
+})
+export class Tab3Page {
+
+  constructor() {
+    console.log("Pagina3")
+  }
+
+}
+
+
+
+📁 app\tabs/
+  └── tabs-routing.module.ts
+
+--- 📄 app\tabs\tabs-routing.module.ts ---
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { TabsPage } from './tabs.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: TabsPage,
+    children: [
+      {
+        path: 'tab1',
+        loadChildren: () => import('../tab1/tab1.module').then(m => m.Tab1PageModule)
+      },
+      {
+        path: 'tab2',
+        loadChildren: () => import('../tab2/tab2.module').then(m => m.Tab2PageModule)
+      },
+      {
+        path: 'tab3',
+        loadChildren: () => import('../tab3/tab3.module').then(m => m.Tab3PageModule)
+      },
+      {
+        path: '',
+        redirectTo: '/tabs/tab1',
+        pathMatch: 'full'
+      }
+    ]
+  },
+  {
+    path: '',
+    redirectTo: '/tabs/tab1',
+    pathMatch: 'full'
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule] // <--- FALTA ESTO
+})
+export class TabsPageRoutingModule {}
+
+
+  └── tabs.module.ts
+
+--- 📄 app\tabs\tabs.module.ts ---
+import { IonicModule } from '@ionic/angular';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { TabsPageRoutingModule } from './tabs-routing.module';
+
+import { TabsPage } from './tabs.page';
+
+@NgModule({
+  imports: [
+    IonicModule,
+    CommonModule,
+    FormsModule,
+    TabsPageRoutingModule
+  ],
+  declarations: [TabsPage]
+})
+export class TabsPageModule {}
+
+
+  └── tabs.page.html
+
+--- 📄 app\tabs\tabs.page.html ---
+<ion-tabs>
+
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="tab1" href="/tabs/tab1">
+      <ion-icon name="key-outline"></ion-icon>
+      <ion-label>Salas</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="tab2" href="/tabs/tab2">
+      <ion-icon name="ellipse"></ion-icon>
+      <ion-label>Tab 2</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="tab3" href="/tabs/tab3">
+      <ion-icon name="square"></ion-icon>
+      <ion-label>Tab 3</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
+
+
+  └── tabs.page.scss
+
+--- 📄 app\tabs\tabs.page.scss ---
+
+
+
+  └── tabs.page.spec.ts
+
+--- 📄 app\tabs\tabs.page.spec.ts ---
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { TabsPage } from './tabs.page';
+
+describe('TabsPage', () => {
+  let component: TabsPage;
+  let fixture: ComponentFixture<TabsPage>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [TabsPage],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TabsPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── tabs.page.ts
+
+--- 📄 app\tabs\tabs.page.ts ---
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-tabs',
+  templateUrl: 'tabs.page.html',
+  styleUrls: ['tabs.page.scss'],
+  standalone: false,
+})
+export class TabsPage {
+
+  constructor() {}
+
+}
+
+
+
+📁 app\utils/
+  └── sala.utils.ts
+
+--- 📄 app\utils\sala.utils.ts ---
+import { Sala } from '../models/sala.model';
+
+/**
+ * Enriches a Sala with a formatted jugadores string
+ * combining jugadores_min and jugadores_max.
+ */
+export function enrichSala(sala: Sala): Sala {
+  return {
+    ...sala,
+    jugadores: `${sala.jugadores_min} - ${sala.jugadores_max}`
+  };
+}
+
+
+📁 assets/
+  └── shapes.svg
+
+--- 📄 assets\shapes.svg ---
+<svg width="350" height="140" xmlns="http://www.w3.org/2000/svg" style="background:#f6f7f9"><g fill="none" fill-rule="evenodd"><path fill="#F04141" style="mix-blend-mode:multiply" d="M61.905-34.23l96.194 54.51-66.982 54.512L22 34.887z"/><circle fill="#10DC60" style="mix-blend-mode:multiply" cx="155.5" cy="135.5" r="57.5"/><path fill="#3880FF" style="mix-blend-mode:multiply" d="M208.538 9.513l84.417 15.392L223.93 93.93z"/><path fill="#FFCE00" style="mix-blend-mode:multiply" d="M268.625 106.557l46.332-26.75 46.332 26.75v53.5l-46.332 26.75-46.332-26.75z"/><circle fill="#7044FF" style="mix-blend-mode:multiply" cx="299.5" cy="9.5" r="38.5"/><rect fill="#11D3EA" style="mix-blend-mode:multiply" transform="rotate(-60 148.47 37.886)" x="143.372" y="-7.056" width="10.196" height="89.884" rx="5.098"/><path d="M-25.389 74.253l84.86 8.107c5.498.525 9.53 5.407 9.004 10.905a10 10 0 0 1-.057.477l-12.36 85.671a10.002 10.002 0 0 1-11.634 8.42l-86.351-15.226c-5.44-.959-9.07-6.145-8.112-11.584l13.851-78.551a10 10 0 0 1 10.799-8.219z" fill="#7044FF" style="mix-blend-mode:multiply"/><circle fill="#0CD1E8" style="mix-blend-mode:multiply" cx="273.5" cy="106.5" r="20.5"/></g></svg>
+
+
+
+📁 assets\categorias/
+
+📁 assets\icon/
+
+📁 environments/
+  └── environment.prod.ts
+
+--- 📄 environments\environment.prod.ts ---
+export const environment = {
+  production: true,
+  //apiUrl: 'http://192.168.1.131:3000/api',
+ // imageURL: 'http://192.168.1.131:3000/'
+ //apiUrl: 'http://10.0.2.2:3000/api'
+ //Internet
+   apiUrl: 'https://wrap-scroll-sn-fixes.trycloudflare.com/api',
+  imageURL: 'https://wrap-scroll-sn-fixes.trycloudflare.com/'
+
+};
+
+
+  └── environment.ts
+
+--- 📄 environments\environment.ts ---
+// This file can be replaced during build by using the `fileReplacements` array.
+// `ng build` replaces `environment.ts` with `environment.prod.ts`.
+// The list of file replacements can be found in `angular.json`.
+
+export const environment = {
+  production: false,
+  //Piso y casa de padres
+ // apiUrl: 'http://192.168.1.131:3000/api',
+ // imageURL: 'http://192.168.1.131:3000/'
+//Internet
+   //apiUrl: 'https://wrap-scroll-sn-fixes.trycloudflare.com/api',
+ // imageURL: 'https://wrap-scroll-sn-fixes.trycloudflare.com/'
+ //Parcela
+  apiUrl: 'http://localhost:3000/api',
+ imageURL: 'http://localhost:3000/'
+
+
+};
+
+/*
+ * For easier debugging in development mode, you can import the following file
+ * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
+ *
+ * This import should be commented out in production mode because it will have a negative impact
+ * on performance if an error is thrown.
+ */
+// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+
+
+
+📁 theme/
+  └── variables.scss
+
+--- 📄 theme\variables.scss ---
+// For information on how to create your own theme, please see:
+// http://ionicframework.com/docs/theming/
+
+
+
+  └── test.ts
+
+--- 📄 test.ts ---
+// This file is required by karma.conf.js and loads recursively all the .spec and framework files
+
+import 'zone.js/testing';
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting
+} from '@angular/platform-browser-dynamic/testing';
+
+// First, initialize the Angular testing environment.
+getTestBed().initTestEnvironment(
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting(),
+);
+
+
+  └── zone-flags.ts
+
+--- 📄 zone-flags.ts ---
+/**
+ * Prevents Angular change detection from
+ * running with certain Web Component callbacks
+ */
+// eslint-disable-next-line no-underscore-dangle
+(window as any).__Zone_disable_customElements = true;
+
+
+
+📁 app/
+  └── app-routing.module.ts
+
+--- 📄 app\app-routing.module.ts ---
+import { NgModule } from '@angular/core';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+
+const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'tabs/tab2',
+    pathMatch: 'full'
+  },
+  {
+    path: 'tabs',
+    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })],
+  exports: [RouterModule]
+})
+export class AppRoutingModule {}
+
+
+  └── app.component.html
+
+--- 📄 app\app.component.html ---
+<ion-app>
+  <ion-router-outlet></ion-router-outlet>
+</ion-app>
+
+
+  └── app.component.scss
+
+--- 📄 app\app.component.scss ---
+
+
+  └── app.component.spec.ts
+
+--- 📄 app\app.component.spec.ts ---
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [AppComponent],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+});
+
+
+  └── app.component.ts
+
+--- 📄 app\app.component.ts ---
+import { Component } from '@angular/core';
+import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
+import { StatusBar, Style } from '@capacitor/status-bar';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  styleUrls: ['app.component.scss'],
+  standalone: false
+})
+export class AppComponent {
+  constructor() {
+    this.initializeApp();
+  }
+
+  async initializeApp() {
+    await EdgeToEdge.enable();
+    await EdgeToEdge.setBackgroundColor({ color: '#ffffff' });
+    await StatusBar.setOverlaysWebView({ overlay: false });
+    await StatusBar.setStyle({ style: Style.Dark });
+  }
+}
+
+
+  └── app.module.ts
+
+--- 📄 app\app.module.ts ---
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { RouteReuseStrategy } from '@angular/router';
+
+import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { HttpClientModule } from '@angular/common/http';
+import { NgxsModule } from '@ngxs/store';
+import { SalaState } from './states/salas/salas.state';
+import { UsuarioState } from './states/usuario.state';
+import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(),
+    HttpClientModule,
+    AppRoutingModule,
+
+    NgxsModule.forRoot([SalaState, UsuarioState]),
+    NgxsStoragePluginModule.forRoot({
+      keys: ['usuario']
+    })
+  ],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  bootstrap: [AppComponent]
+})
+export class AppModule {}
+
+
+📁 app\components/
+
+📁 app\components\direccion-picker/
+  └── direccion-picker.component.html
+
+--- 📄 app\components\direccion-picker\direccion-picker.component.html ---
+<div class="direccion-picker">
+  <div class="trigger" (click)="togglePanel()">
+    <span [class.seleccionada]="ciudadActual">{{ ciudadActual || 'Dirección' }} ▼</span>
+  </div>
+
+  <div class="panel" *ngIf="abierto">
+    <div class="search-container">
+      <ion-icon
+        name="locate"
+        class="geo-icon"
+        (click)="usarMiUbicacion()">
+      </ion-icon>
+      <ion-searchbar
+        [(ngModel)]="query"
+        (ionInput)="buscar()"
+        showCancelButton="never"
+        placeholder="Buscar ciudad o dirección">
+      </ion-searchbar>
+    </div>
+
+    <ion-list *ngIf="predicciones.length > 0">
+      <ion-item button *ngFor="let p of predicciones" (click)="seleccionar(p)">
+        {{ p }}
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" fill="clear" color="medium" (click)="borrar()">
+      ❌ Borrar ubicación
+    </ion-button>
+  </div>
+</div>
+
+
+  └── direccion-picker.component.scss
+
+--- 📄 app\components\direccion-picker\direccion-picker.component.scss ---
+.direccion-picker {
+  position: relative;
+}
+
+.trigger {
+  cursor: pointer;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.trigger .seleccionada {
+  color: var(--ion-color-success);
+  font-weight: 500;
+}
+
+.panel {
+  position: fixed; /* 🟢 Se sale del flujo normal */
+  top: 56px; /* 🧩 Altura estimada del header (ajustable si tienes otra) */
+  left: 0;
+  width: 100%;
+  max-height: 50vh; /* 🟢 No más de la mitad de la pantalla */
+  background: var(--ion-background-color, #fff);
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); /* 🧠 Más sombra */
+  z-index: 9999; /* 🧱 Encima de todo, incluso las salas */
+  overflow-y: auto;
+  border-radius: 0 0 10px 10px;
+  padding: 8px 0;
+}
+
+
+.search-container {
+  position: relative;
+}
+
+.search-container ion-searchbar {
+    width: calc(100% - 40px); /* Espacio para el icono */
+  --padding-end: 8px; /* Ajuste del padding interno */
+}
+
+.geo-icon {
+  position: absolute;
+  right: 20px;
+  top: 40%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--ion-color-primary, #3880ff);
+  cursor: pointer;
+  z-index: 5;
+}
+
+
+  └── direccion-picker.component.spec.ts
+
+--- 📄 app\components\direccion-picker\direccion-picker.component.spec.ts ---
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { IonicModule } from '@ionic/angular';
+
+import { DireccionPickerComponent } from './direccion-picker.component';
+
+describe('DireccionPickerComponent', () => {
+  let component: DireccionPickerComponent;
+  let fixture: ComponentFixture<DireccionPickerComponent>;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [ DireccionPickerComponent ],
+      imports: [IonicModule.forRoot()]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DireccionPickerComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }));
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── direccion-picker.component.ts
+
+--- 📄 app\components\direccion-picker\direccion-picker.component.ts ---
+// ==============================
+// 🧭 DireccionPickerComponent.ts
+// ==============================
+
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion.service';
+import { Geolocation } from '@capacitor/geolocation';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Store } from '@ngxs/store';
+import { ClearUbicacionUsuario, SetUbicacionUsuario, UsuarioState } from 'src/app/states/usuario.state';
+
+
+
+@Component({
+  selector: 'app-direccion-picker',
+  templateUrl: './direccion-picker.component.html',
+  styleUrls: ['./direccion-picker.component.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule]
+})
+export class DireccionPickerComponent implements OnInit, OnDestroy {
+  @Output() ciudadSeleccionada = new EventEmitter<string | null>();
+
+  abierto = false;
+  query = '';
+  predicciones: string[] = [];
+  ciudadActual: string | null = null;
+  direccionActual: string | null = null;
+
+  private queryChanged = new Subject<string>();
+  private querySub?: Subscription;
+
+
+  constructor(private ubicacionService: UbicacionService, private store: Store) {}
+
+  ngOnInit() {
+     const ubicacion = this.store.selectSnapshot(UsuarioState.ubicacion);
+  if (ubicacion?.ciudad) {
+    this.ciudadActual = ubicacion.ciudad;
+  }
+    this.querySub = this.queryChanged
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((texto) => {
+        if (!texto.trim()) {
+          this.predicciones = [];
+          return;
+        }
+        this.ubicacionService.autocomplete(texto.trim()).subscribe((res) => {
+          this.predicciones = res || [];
+        });
+      });
+  }
+
+  ngOnDestroy() {
+    this.querySub?.unsubscribe();
+  }
+
+  togglePanel() {
+    this.abierto = !this.abierto;
+    if (!this.abierto) {
+      this.predicciones = [];
+    }
+  }
+
+  buscar() {
+    this.queryChanged.next(this.query);
+  }
+
+  seleccionar(prediccion: string) {
+    
+    this.ubicacionService.geocode(prediccion).subscribe({
+      next: (res: UbicacionResultado) => {
+        this.direccionActual = res.direccion;
+        this.ciudadActual = res.ciudad;
+        this.query = res.direccion;
+        this.abierto = false;
+        this.predicciones = [];
+        this.store.dispatch(new SetUbicacionUsuario({
+            direccion: res.direccion,
+            ciudad: res.ciudad,
+            lat: res.lat,
+            lng: res.lng
+        }));
+      this.ciudadSeleccionada.emit(res.ciudad);
+        console.log('Latitud -->'+ res.lat);
+        console.log('Longitud -->' +res.lng)
+      },
+      error: (err) => {
+        console.error('Error geocodificando:', err);
+        alert('No se pudo obtener la ciudad desde la dirección.');
+      }
+    });
+  }
+
+  async usarMiUbicacion() {
+    try {
+      const pos = await Geolocation.getCurrentPosition();
+      this.ubicacionService.reverseGeocode(pos.coords.latitude, pos.coords.longitude).subscribe({
+        next: (res: UbicacionResultado) => {
+          this.direccionActual = res.direccion;
+          this.ciudadActual = res.ciudad;
+          this.query = res.direccion;
+          this.ciudadSeleccionada.emit(res.ciudad);
+          this.abierto = false;
+          this.predicciones = [];
+          this.store.dispatch(new SetUbicacionUsuario({
+            direccion: res.direccion,
+            ciudad: res.ciudad,
+            lat: res.lat,
+            lng: res.lng
+          }));
+
+          
+        },
+        error: (err) => {
+          console.error('Error geolocalización backend:', err);
+          alert('No se pudo obtener la ciudad desde tu ubicación.');
+        }
+      });
+    } catch (err) {
+      console.error('Error obteniendo ubicación del dispositivo:', err);
+      alert('No se pudo acceder al GPS. Verificá permisos.');
+    }
+  }
+
+  borrar() {
+    this.ciudadActual = null;
+    this.direccionActual = null;
+    this.query = '';
+    this.predicciones = [];
+    this.abierto = false;
+    this.ciudadSeleccionada.emit(null);
+    this.store.dispatch(new ClearUbicacionUsuario());
+  }
+}
+
+
+
+📁 app\components\filter-modal/
+  └── filters-modal.component.html
+
+--- 📄 app\components\filter-modal\filters-modal.component.html ---
+<ion-header class="modal-header">
+  <div class="header-content">
+    <ion-icon name="trash-outline" class="reset-icon" (click)="resetearFiltros()"></ion-icon>
+    <h2>Filtros</h2>
+    <ion-icon name="close-outline" class="close-icon" (click)="dismiss()"></ion-icon>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+ <div class="filtro-section">
+  <label class="section-label">Jugadores</label>
+  <ion-select
+    interface="popover"
+    [(ngModel)]="filtros.jugadores"
+    placeholder="Todos"
+    class="jugadores-select"
+  >
+    <ion-select-option [value]="null">Todos</ion-select-option>
+    <ion-select-option *ngFor="let num of jugadoresOpciones" [value]="num">
+      {{ num === 10 ? '10 o más' : num }}
+    </ion-select-option>
+  </ion-select>
+</div>
+
+  <div class="filtro-section">
+    <label class="section-label">Precio por persona (€)</label>
+    <ion-range min="0" max="100" dualKnobs="true" snaps="false" ticks="false"></ion-range>
+  </div>
+
+ <div class="filtro-section">
+  <label class="section-label">Distancia (km)</label>
+  <ion-range min="1" max="50" [(ngModel)]="filtros.distancia_km" snaps="true" step="1"></ion-range>
+  <label class="section-label">Distancia: {{ filtros.distancia_km }} km</label>
+</div>
+
+  <div class="filtro-section">
+    <label class="section-label">Categorías</label>
+    <div class="categorias-grid">
+      <div
+        class="categoria-btn"
+        *ngFor="let cat of categoriasOpciones"
+        [class.selected]="filtros.categorias.includes(cat)"
+        (click)="toggleCategoria(cat)">
+        {{ cat }}
+      </div>
+    </div>
+  </div>
+
+<div class="filtro-section">
+  <label class="section-label" (click)="mostrarTiposSala = !mostrarTiposSala" style="cursor: pointer;">
+    Tipo de sala
+    <ion-icon [name]="mostrarTiposSala ? 'chevron-up-outline' : 'chevron-down-outline'" class="dropdown-icon"></ion-icon>
+  </label>
+
+  <div class="categorias-grid" *ngIf="mostrarTiposSala">
+    <div
+      class="categoria-btn"
+      *ngFor="let tipo of tiposSalaOpciones"
+      [class.selected]="filtros.tipo_sala.includes(tipo)"
+      (click)="toggleTipoSala(tipo)">
+      {{ tipo }}
+    </div>
+  </div>
+</div>
+</ion-content>
+
+<ion-footer class="modal-footer">
+  <ion-button expand="block" class="apply-btn" (click)="aplicarFiltros()">Aplicar filtros</ion-button>
+</ion-footer>
+
+
+  └── filters-modal.component.scss
+
+--- 📄 app\components\filter-modal\filters-modal.component.scss ---
+.modal-header {
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+      color: #222;
+    }
+
+    .close-icon {
+      font-size: 24px;
+      color: #555;
+      cursor: pointer;
+    }
+   .reset-icon {
+      font-size: 22px;
+      color: #a2e3b1;
+      cursor: pointer;
+      margin-right: 16px;
+    }
+  }
+}
+
+.modal-content {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  padding-bottom: 20px;
+
+.filtro-section {
+  margin-top: 20px;
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #444;
+
+    .dropdown-icon {
+      font-size: 18px;
+      color: #666;
+      margin-left: 8px;
+    }
+  }
+
+  ion-range {
+    --bar-background-active: var(--ion-color-success);
+  }
+}
+
+  .categorias-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+
+    .categoria-btn {
+      padding: 8px;
+      text-align: center;
+      background: #f1f1f1;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .categoria-btn.selected {
+      background: #a2e3b1;
+      font-weight: bold;
+    }
+  }
+  .jugadores-select {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 12px;
+  --background: #f1f1f1;
+  margin-top: 4px;
+}
+}
+
+.modal-footer {
+  padding: 16px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+
+  .apply-btn {
+    --background: var(--ion-color-success);
+    --border-radius: 12px;
+    font-weight: 600;
+  }
+
+  
+}
+
+
+  └── filters-modal.component.ts
+
+--- 📄 app\components\filter-modal\filters-modal.component.ts ---
+import { Component, Input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule, ModalController } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { Store } from '@ngxs/store';
+import { CATEGORIAS } from '../../constants/categorias.const';
+@Component({
+  selector: 'app-filters-modal',
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule ],
+  templateUrl: './filters-modal.component.html',
+  styleUrls: ['./filters-modal.component.scss']
+})
+export class FiltersModalComponent implements OnInit {
+  @Input() filtrosActuales: any = {};
+ // distancia: number = 10;
+  filtros: any = {
+    jugadores: null,
+    tipo_sala: [], // nuevo filtro
+    categorias: []
+  };
+jugadoresOpciones = [2, 3, 4, 5, 6, 7, 8, 9, 10]; // ahora incluye hasta 10
+tiposSalaOpciones = [
+  'Al aire libre',
+  'Escape Room',
+  'Experiencia',
+  'Hall game',
+  'Juego portátil',
+  'Realidad Virtual'
+];
+categoriasOpciones = CATEGORIAS.slice(1).map(c => c.nombre);
+mostrarTiposSala = false;
+  constructor(private modalCtrl: ModalController, private store: Store) {}
+
+ngOnInit() {
+  this.filtros = {
+    ...this.filtros,
+    ...this.filtrosActuales,
+    categorias: Array.isArray(this.filtrosActuales.categorias)
+      ? [...this.filtrosActuales.categorias]
+      : []
+  };
+}
+
+  dismiss() {
+    this.modalCtrl.dismiss(); // sin cambios
+  }
+
+  aplicarFiltros() {
+    //this.store.dispatch(new SetDistanciaFiltro(this.distancia));
+    this.modalCtrl.dismiss(this.filtros);
+  }
+resetearFiltros() {
+  const ciudad = this.filtros.ciudad; // preservamos ciudad
+  this.filtros = {
+    ciudad,      // mantenemos solo ciudad
+    jugadores: null, // valores por defecto
+    tipo_sala: [],   // reset tipo_sala
+    categorias: []   // reset categorías
+  };
+  
+}
+
+toggleTipoSala(tipo: string) {
+  const idx = this.filtros.tipo_sala.indexOf(tipo);
+  if (idx > -1) {
+    this.filtros.tipo_sala.splice(idx, 1);
+  } else {
+    this.filtros.tipo_sala.push(tipo);
+  }
+}
+toggleCategoria(cat: string) {
+  const idx = this.filtros.categorias.indexOf(cat);
+  if (idx > -1) {
+    this.filtros.categorias.splice(idx, 1);
+  } else {
+    this.filtros.categorias.push(cat);
+  }
+}
+
+}
+
+
+📁 app\components\sala-card/
+  └── sala-card.component.html
+
+--- 📄 app\components\sala-card\sala-card.component.html ---
+<ion-card class="sala-card">
+  <!-- Mostrar el contenido real solo cuando la imagen se ha cargado completamente -->
+  <ng-container *ngIf="!loadingImage; else skeletonTemplate">
+    
+    <!-- Imagen principal de la sala -->
+    <div class="img-wrapper">
+      <div class="image-container">
+        <img
+          [src]="currentImage"
+          [attr.loading]="'lazy'"
+          (load)="onImageLoad()"
+          (error)="onImageError()"
+          [class.loaded]="!loadingImage"
+          alt="Imagen de la sala"
+        />
+      </div>
+
+      <!-- Icono de favorito (verde si activo) -->
+      <ion-icon
+        #favoriteIcon
+        [name]="isFavorito ? 'heart' : 'heart-outline'"
+        class="favorite-icon"
+        (click)="toggleFavorito($event)">
+      </ion-icon>
+
+      <!-- Nombre de la sala y ciudad -->
+      <div class="nombre-overlay">
+        <h2>{{ sala.nombre }}</h2>
+        <small>{{ sala.ciudad }}</small>
+      </div>
+
+      <!-- Chips de información: jugadores, tiempo, dificultad, categoría -->
+      <div class="info-overlay">
+        <div class="chip">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ sala.jugadores }}</span>
+        </div>
+        <div class="chip">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ sala.tiempo || 60 }} min</span>
+        </div>
+        <div class="chip">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>{{ sala.dificultad }}</span>
+        </div>
+        <div class="chip" *ngIf="sala.categorias.length">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          <span>{{ sala.categorias[0] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Descripción de la sala -->
+    <ion-card-content>
+      <p class="descripcion-limitada">
+        {{ sala.descripcion || 'Sin descripción disponible.' }}
+      </p>
+    </ion-card-content>
+  </ng-container>
+
+  <!-- 💀 SKELETON (sólo se muestra mientras loadingImage === true) -->
+  <ng-template #skeletonTemplate>
+    <div class="skeleton-wrapper">
+      <div class="skeleton-image shimmer"></div>
+      <div class="skeleton-lines">
+        <div class="shimmer skeleton-line short"></div>
+        <div class="shimmer skeleton-line medium"></div>
+        <div class="shimmer skeleton-line long"></div>
+      </div>
+    </div>
+  </ng-template>
+</ion-card>
+
+
+  └── sala-card.component.scss
+
+--- 📄 app\components\sala-card\sala-card.component.scss ---
+/* ========================================
+   Estilos del componente SalaCard
+   ======================================== */
+
+.sala-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+
+  .img-wrapper {
+    position: relative;
+
+    .image-container {
+      width: 100%;
+      height: 180px;
+      position: relative;
+    }
+
+    /* Imagen principal con fade-in cuando se ha cargado */
+    img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.4s ease-in;
+    }
+
+    img.loaded {
+      opacity: 1;
+    }
+
+    /* Icono de favorito (verde en caso activo) */
+    .favorite-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      color: #32db64;
+      z-index: 2;
+      border-radius: 50%;
+      padding: 4px;
+      background: transparent;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .favorite-icon.pulse-animation {
+      animation: pulse 0.3s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+
+    /* Overlay con nombre y ciudad */
+    .nombre-overlay {
+      position: absolute;
+      bottom: 60px;
+      left: 12px;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+      z-index: 2;
+
+      h2 {
+        font-size: 16px;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      small {
+        font-size: 13px;
+        opacity: 0.85;
+      }
+    }
+
+    /* Overlay con chips informativos */
+    .info-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 14px;
+      padding: 10px 20px;
+      border-radius: 28px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      max-width: 95%;
+      overflow-x: auto;
+      white-space: nowrap;
+      justify-content: center;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        font-size: 13px;
+        padding: 4px 6px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  ion-card-content {
+    padding: 12px 16px;
+
+    .descripcion-limitada {
+      font-size: 14px;
+      color: #444;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+/* ========================================
+   Skeleton de carga
+   ======================================== */
+
+.skeleton-wrapper {
+  padding: 16px;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 180px;
+  background: #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .skeleton-line {
+    height: 14px;
+    background: #ddd;
+    border-radius: 8px;
+
+    &.short { width: 40%; }
+    &.medium { width: 60%; }
+    &.long { width: 80%; }
+  }
+}
+
+/* Efecto shimmer (brillo animado) */
+.shimmer {
+  background: linear-gradient(
+    to right,
+    #e0e0e0 0%,
+    #f8f8f8 50%,
+    #e0e0e0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+
+  └── sala-card.component.spec.ts
+
+--- 📄 app\components\sala-card\sala-card.component.spec.ts ---
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { IonicModule } from '@ionic/angular';
+
+import { SalaCardComponent } from './sala-card.component';
+
+describe('SalaCardComponent', () => {
+  let component: SalaCardComponent;
+  let fixture: ComponentFixture<SalaCardComponent>;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [ SalaCardComponent ],
+      imports: [IonicModule.forRoot()]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SalaCardComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }));
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── sala-card.component.ts
+
+--- 📄 app\components\sala-card\sala-card.component.ts ---
+import {
+  Component,
+  Input,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+  OnDestroy,
+  OnInit,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
+import { Sala } from 'src/app/models/sala.model';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { FavoritosService } from 'src/app/services/favoritos.service';
+import { Subscription } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
+/**
+ * SalaCardComponent
+ *
+ * Componente que representa visualmente una sala de escape.
+ * Muestra skeleton mientras se carga la imagen, incluyendo retardo mínimo visual.
+ * Resetea el estado visual cuando la sala cambia (Input muta sin destruir el componente).
+ */
+@Component({
+  selector: 'app-sala-card',
+  standalone: true,
+  templateUrl: './sala-card.component.html',
+  styleUrls: ['./sala-card.component.scss'],
+  imports: [CommonModule, IonicModule]
+})
+export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() sala!: Sala;
+  @ViewChild('favoriteIcon') favoriteIconRef!: ElementRef;
+
+  isFavorito = false;
+  loadingImage = true;
+
+  // Tiempo mínimo que el skeleton debe estar visible, en milisegundos.
+  private skeletonDelay = 400;
+  private imageLoadStart = 0;
+
+  private favoritoSub?: Subscription;
+  private animationFrameId: number | null = null;
+
+  fallbackImage = 'assets/escapeImagen.png';
+  currentImage = '';
+  private urlImage = environment.imageURL;
+
+  constructor(
+    private favoritosService: FavoritosService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  /**
+   * Se llama cuando el componente se inicializa por primera vez.
+   */
+  ngOnInit() {
+    this.resetCard(); // inicialización de imagen y skeleton
+
+    this.favoritoSub = this.favoritosService
+      .getFavoritoStatusStream(this.sala.id_sala)
+      .subscribe(isFav => {
+        this.isFavorito = isFav;
+        this.cdr.markForCheck();
+      });
+  }
+
+  /**
+   * Detecta cambios en el input `sala` (cuando Angular reutiliza la card).
+   * Esto es necesario porque Angular NO destruye el componente si se usa `trackBy`.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sala'] && !changes['sala'].firstChange) {
+      this.resetCard(); // reiniciar imagen y skeleton al recibir nueva sala
+    }
+  }
+
+  ngOnDestroy() {
+    this.favoritoSub?.unsubscribe();
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+  }
+
+  /**
+   * Inicializa la imagen y fuerza la visualización del skeleton con retardo mínimo.
+   */
+  private resetCard() {
+    this.loadingImage = true;
+    this.imageLoadStart = performance.now();
+
+    this.currentImage = this.sala.cover_url
+      ? this.urlImage + this.sala.cover_url
+      : this.fallbackImage;
+
+    const img = new Image();
+    img.src = this.currentImage;
+    img.onload = () => this.onImageLoad();
+    img.onerror = () => this.onImageError();
+  }
+
+  /**
+   * Evento lanzado cuando la imagen se ha cargado (o el fallback).
+   * Asegura un mínimo de tiempo para que el skeleton sea visible.
+   */
+  onImageLoad() {
+    const elapsed = performance.now() - this.imageLoadStart;
+    const remaining = Math.max(this.skeletonDelay - elapsed, 0);
+
+    setTimeout(() => {
+      this.loadingImage = false;
+      this.cdr.markForCheck(); // forzar redibujo en caso de imagen rápida
+    }, remaining);
+  }
+
+  /**
+   * Si la imagen falla, se usa una imagen por defecto.
+   * También se asegura que se dispare `onImageLoad()` aunque falle la carga original.
+   */
+  onImageError() {
+    if (this.currentImage !== this.fallbackImage) {
+      this.currentImage = this.fallbackImage;
+
+      const fallback = new Image();
+      fallback.src = this.fallbackImage;
+      fallback.onload = () => this.onImageLoad();
+    } else {
+      this.loadingImage = false;
+    }
+  }
+
+  /**
+   * Marca o desmarca una sala como favorita, con feedback háptico y animación.
+   */
+  async toggleFavorito(event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const target = event.target as HTMLElement;
+    if (!target) return;
+
+    target.style.transform = 'scale(1)';
+    await Haptics.impact({ style: ImpactStyle.Light });
+
+    this.animationFrameId = requestAnimationFrame(() => {
+      target.classList.add('pulse-animation');
+      this.favoritosService.toggleFavorito(this.sala.id_sala);
+      setTimeout(() => {
+        target.classList.remove('pulse-animation');
+        this.animationFrameId = null;
+      }, 300);
+    });
+  }
+}
+
+
+
+📁 app\constants/
+  └── categorias.const.ts
+
+--- 📄 app\constants\categorias.const.ts ---
+export interface Categoria {
+    nombre: string;
+    icono: string;
+  }
+  
+  export const CATEGORIAS: Categoria[] = [
+    { nombre: 'Filtros', icono: 'assets/categorias/varita-magica.png' },
+    { nombre: 'Fantasía', icono: 'assets/categorias/book.png' },
+    { nombre: 'Aventuras', icono: 'assets/categorias/map.png' },
+    { nombre: 'Terror', icono: 'assets/categorias/skull.png' },
+    { nombre: 'Ciencia Ficción', icono: 'assets/categorias/ufo.png' },
+    { nombre: 'Historia', icono: 'assets/categorias/greek-pillars.png' },
+    { nombre: 'Apocalíptico', icono: 'assets/categorias/nuclear-bomb.png' },
+    { nombre: 'Misterio', icono: 'assets/categorias/footprint.png' },
+    { nombre: 'Policíaca', icono: 'assets/categorias/police-car.png' },
+    { nombre: 'Criminal', icono: 'assets/categorias/money-bag_02.png' },
+    { nombre: 'Adultos', icono: 'assets/categorias/wine.png' },
+    { nombre: 'Niños', icono: 'assets/categorias/cubes.png' },
+  ];
+  
+
+  └── storage.keys.ts
+
+--- 📄 app\constants\storage.keys.ts ---
+// src/app/constants/storage.keys.ts
+export const STORAGE_KEYS = {
+  FAVORITOS_SALAS: 'favoritos_salas',
+  TOKEN: 'auth_token',
+  USER_DATA: 'user_data'
+};
+
+
+
+📁 app\explore-container/
+  └── explore-container.component.html
+
+--- 📄 app\explore-container\explore-container.component.html ---
+<div id="container">
+  <strong>{{ name }}</strong>
+  <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+</div>
+
+  └── explore-container.component.scss
+
+--- 📄 app\explore-container\explore-container.component.scss ---
+#container {
+  text-align: center;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#container strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+#container p {
+  font-size: 16px;
+  line-height: 22px;
+
+  color: #8c8c8c;
+
+  margin: 0;
+}
+
+#container a {
+  text-decoration: none;
+}
+
+  └── explore-container.component.spec.ts
+
+--- 📄 app\explore-container\explore-container.component.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { IonicModule } from '@ionic/angular';
+
+import { ExploreContainerComponent } from './explore-container.component';
+
+describe('ExploreContainerComponent', () => {
+  let component: ExploreContainerComponent;
+  let fixture: ComponentFixture<ExploreContainerComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ExploreContainerComponent],
+      imports: [IonicModule.forRoot()]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ExploreContainerComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+  └── explore-container.component.ts
+
+--- 📄 app\explore-container\explore-container.component.ts ---
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-explore-container',
+  templateUrl: './explore-container.component.html',
+  styleUrls: ['./explore-container.component.scss'],
+  standalone: false,
+})
+export class ExploreContainerComponent {
+
+  @Input() name?: string;
+
+}
+
+
+  └── explore-container.module.ts
+
+--- 📄 app\explore-container\explore-container.module.ts ---
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+import { IonicModule } from '@ionic/angular';
+
+import { ExploreContainerComponent } from './explore-container.component';
+
+@NgModule({
+  imports: [ CommonModule, FormsModule, IonicModule],
+  declarations: [ExploreContainerComponent],
+  exports: [ExploreContainerComponent]
+})
+export class ExploreContainerComponentModule {}
+
+
+
+📁 app\models/
+  └── sala.model.ts
+
+--- 📄 app\models\sala.model.ts ---
+export interface Sala {
+  id_sala: number;
+  nombre: string;
+  ciudad: string;
+  dificultad: string;
+  jugadores: string; // se mantiene
+  jugadores_min?: number; // nuevo
+  jugadores_max?: number; // nuevo
+  tiempo?: number; // nuevo
+  descripcion?: string; // nuevo
+  categorias: string[];
+  idiomas: string[];
+  cover_url?: string;
+  favorito?: boolean; // visual (local)
+}
+
+
+  └── usuario.model.ts
+
+--- 📄 app\models\usuario.model.ts ---
+export interface UsuarioStateModel {
+  direccion: string | null;
+  ciudad: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+
+📁 app\services/
+  └── favoritos.service.ts
+
+--- 📄 app\services\favoritos.service.ts ---
+// src/app/services/favoritos.service.ts
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, map } from 'rxjs';
+import { Preferences } from '@capacitor/preferences';
+import { STORAGE_KEYS } from '../constants/storage.keys';
+
+@Injectable({ providedIn: 'root' })
+export class FavoritosService {
+  private favoritosSubject = new BehaviorSubject<number[]>([]);
+  favoritos$ = this.favoritosSubject.asObservable(); // expone solo lectura
+
+  constructor() {
+    this.loadFavoritos(); // cuando se crea el servicio
+  }
+
+  private async loadFavoritos() {
+    const { value } = await Preferences.get({ key: STORAGE_KEYS.FAVORITOS_SALAS });
+    const ids = value ? JSON.parse(value) : [];
+    this.favoritosSubject.next(ids);
+  }
+
+  async toggleFavorito(id: number) {
+    const current = this.favoritosSubject.value;
+    const updated = current.includes(id)
+      ? current.filter(favId => favId !== id)
+      : [...current, id];
+
+    this.favoritosSubject.next(updated);
+    await Preferences.set({
+      key: STORAGE_KEYS.FAVORITOS_SALAS,
+      value: JSON.stringify(updated)
+    });
+  }
+
+  isFavorito(id: number): boolean {
+    return this.favoritosSubject.value.includes(id);
+  }
+
+  getFavoritoStatusStream(id: number) {
+    return this.favoritos$.pipe(
+      map(favoritos => favoritos.includes(id))
+    );
+  }
+}
+
+
+  └── sala.service.ts
+
+--- 📄 app\services\sala.service.ts ---
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Sala } from '../models/sala.model';
+import { Observable, map } from 'rxjs';
+import { enrichSala } from '../utils/sala.utils';
+
+@Injectable({ providedIn: 'root' })
+export class SalaService {
+  private baseUrl = `${environment.apiUrl}/salas`;
+
+  constructor(private http: HttpClient) {}
+
+  getSalas(filters: any = {}): Observable<Sala[]> {
+    let params = new HttpParams();
+    for (const key in filters) {
+      if (filters[key]) {
+        params = params.set(key, filters[key]);
+      }
+    }
+    console.log(this.http.get<Sala[]>(this.baseUrl, { params }));
+     return this.http.get<Sala[]>(this.baseUrl, { params }).pipe(
+      map((salas) => salas.map(enrichSala))
+    );
+  }
+}
+
+
+  └── socket.service.ts
+
+--- 📄 app\services\socket.service.ts ---
+import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { io, Socket } from 'socket.io-client';
+import { fromEvent, Observable } from 'rxjs';
+
+@Injectable({ providedIn: 'root' })
+export class SocketService {
+  private socket: Socket;
+
+  connect(): void {
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    this.socket = io(baseUrl, {
+      transports: ['websocket'],
+      autoConnect: true
+    });
+  }
+
+  listenSalasUpdated(): Observable<any> {
+console.log('listenSalasUpdated CLIENT');
+    return fromEvent(this.socket, 'salasUpdated');
+  }
+  listenSalaModificada(): Observable<any> {
+    console.log('listenSalaModificada CLIENT');
+  return fromEvent(this.socket, 'salaActualizada');
+  }
+  disconnect(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+}
+
+
+  └── ubicacion.service.ts
+
+--- 📄 app\services\ubicacion.service.ts ---
+// ==============================
+// 🌐 src/app/services/ubicacion.service.ts
+// ==============================
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
+
+export interface UbicacionResultado {
+  direccion: string;
+  ciudad: string;
+  lat: number;
+  lng: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class UbicacionService {
+  private baseUrl = `${environment.apiUrl}/ubicacion`;
+
+  constructor(private http: HttpClient) {}
+
+  /** Autocompleta mientras se escribe */
+  autocomplete(input: string): Observable<string[]> {
+    const params = new HttpParams().set('input', input);
+    return this.http.get<string[]>(`${this.baseUrl}/autocomplete`, { params });
+  }
+
+  /** Geocodifica una dirección seleccionada */
+  geocode(description: string): Observable<UbicacionResultado> {
+    const params = new HttpParams().set('description', description);
+    return this.http.get<UbicacionResultado>(`${this.baseUrl}/geocode`, { params });
+  }
+
+  /** Desde coordenadas GPS */
+  reverseGeocode(lat: number, lng: number): Observable<UbicacionResultado> {
+    const params = new HttpParams().set('lat', lat.toString()).set('lng', lng.toString());
+    return this.http.get<UbicacionResultado>(`${this.baseUrl}/reverse`, { params });
+  }
+}
+
+
+
+📁 app\states/
+  └── usuario.state.ts
+
+--- 📄 app\states\usuario.state.ts ---
+// src/app/states/usuario/usuario.state.ts
+import { State, Action, StateContext, Selector } from '@ngxs/store';
+import { UsuarioStateModel } from '../models/usuario.model';
+
+export class SetUbicacionUsuario {
+  static readonly type = '[Usuario] Set Ubicacion';
+  constructor(public payload: { direccion: string, ciudad: string, lat: number, lng: number }) {}
+}
+
+export class ClearUbicacionUsuario {
+  static readonly type = '[Usuario] Clear Ubicacion';
+}
+
+
+
+@State<UsuarioStateModel>({
+  name: 'usuario',
+  defaults: {
+    direccion: null,
+    ciudad: null,
+    lat: null,
+    lng: null
+  }
+})
+export class UsuarioState {
+  @Selector()
+  static ubicacion(state: UsuarioStateModel) {
+    return {
+      direccion: state.direccion,
+      ciudad: state.ciudad,
+      lat: state.lat,
+      lng: state.lng
+    };
+  }
+
+  @Action(SetUbicacionUsuario)
+  setUbicacion(ctx: StateContext<UsuarioStateModel>, action: SetUbicacionUsuario) {
+    ctx.patchState({
+      ...action.payload
+    });
+  }
+
+  @Action(ClearUbicacionUsuario)
+  clearUbicacion(ctx: StateContext<UsuarioStateModel>) {
+    ctx.setState({
+      direccion: null,
+      ciudad: null,
+      lat: null,
+      lng: null
+    });
+  }
+
+}
+
+
+📁 app\states\salas/
+  └── salas.actions.ts
+
+--- 📄 app\states\salas\salas.actions.ts ---
+export class GetSalas {
+  static readonly type = '[Sala] Get';
+  constructor(public filters: any = {}) {}
+}
+
+  └── salas.state.ts
+
+--- 📄 app\states\salas\salas.state.ts ---
+import { State, Action, StateContext, Selector } from '@ngxs/store';
+import { Injectable } from '@angular/core';
+import { SalaService } from 'src/app/services/sala.service';
+import { Sala } from 'src/app/models/sala.model';
+import { map, tap } from 'rxjs/operators';
+import { enrichSala } from 'src/app/utils/sala.utils';
+
+export class GetSalas {
+  static readonly type = '[Sala] Get';
+  constructor(public filtros?: any) {}
+}
+
+export class AppendSalas {
+  static readonly type = '[Sala] Append';
+  constructor(public filtros?: any) {}
+}
+
+export class UpdateSala {
+  static readonly type = '[Sala] Update';
+  constructor(public sala: Sala) {}
+}
+
+export interface SalaStateModel {
+  salas: Sala[];
+  cantidad: number;
+}
+
+@State<SalaStateModel>({
+  name: 'sala',
+  defaults: {
+    salas: [],
+    cantidad: 30
+  }
+})
+@Injectable()
+export class SalaState {
+  constructor(private salaService: SalaService) {}
+
+  @Selector()
+  static salas(state: SalaStateModel) {
+    return state.salas;
+  }
+
+  // 🔄 Acción normal: sobrescribe salas
+@Action(GetSalas)
+getSalas({ patchState }: StateContext<SalaStateModel>, { filtros }: GetSalas) {
+  return this.salaService.getSalas(filtros).pipe(
+    tap((salas) => {
+      console.log('📥 GetSalas recibió del servicio:', salas.length);
+       //console.log('Filros antes de backend  ' + filtros.jugadores) 
+      patchState({ salas });
+    }),
+    map((salas) => {
+      console.log('📤 Devolviendo desde GetSalas a componente:', salas.length);
+      // console.log('Filros antes de backend  ' + filtros.jugadores) 
+      return { salas };
+    })
+  );
+}
+
+  // ➕ Acción nueva: añade salas al final (scroll infinito)
+@Action(AppendSalas)
+appendSalas({ getState, patchState }: StateContext<SalaStateModel>, { filtros }: AppendSalas) {
+  return this.salaService.getSalas(filtros).pipe(
+    tap((salas) => {
+      const state = getState();
+      patchState({ salas: [...state.salas, ...salas], cantidad: salas.length  });
+    }),
+    map((salas) => {
+      return { cantidad: getState().cantidad};
+    })
+  );
+}
+
+    
+@Action(UpdateSala)
+updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: UpdateSala) {
+  const enriched = enrichSala(sala);
+  const salas = getState().salas.map(s =>
+    s.id_sala === enriched.id_sala ? enriched : s
+  );
+  patchState({ salas });
+}
+}
+
+
+
+📁 app\tab1/
+  └── tab1-routing.module.ts
+
+--- 📄 app\tab1\tab1-routing.module.ts ---
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { Tab1Page } from './tab1.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: Tab1Page,
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class Tab1PageRoutingModule {}
+
+
+  └── tab1.module.ts
+
+--- 📄 app\tab1\tab1.module.ts ---
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { Tab1Page } from './tab1.page';
+import { Tab1PageRoutingModule } from './tab1-routing.module';
+
+import { HttpClientModule } from '@angular/common/http'; // 🔥 IMPORTANTE
+import { SalaCardComponent } from '../components/sala-card/sala-card.component';
+import { DireccionPickerComponent } from '../components/direccion-picker/direccion-picker.component';
+import { FiltersModalComponent } from '../components/filter-modal/filters-modal.component';
+
+@NgModule({
+  declarations: [Tab1Page],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    Tab1PageRoutingModule,
+    FiltersModalComponent ,
+    HttpClientModule, // 💥 Añade esto si no estaba
+    SalaCardComponent,
+    DireccionPickerComponent
+
+  ]
+})
+export class Tab1PageModule {}
+
+
+  └── tab1.page.html
+
+--- 📄 app\tab1\tab1.page.html ---
+
+<ion-header class="ion-no-border">
+   <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
+  <ion-toolbar>
+   
+    <ion-searchbar
+      placeholder="Buscar sala o empresa..."
+      [(ngModel)]="filters.query"
+      (ionInput)="reloadSalas()"
+      debounce="300"
+      showCancelButton="never"
+      animated>
+    </ion-searchbar>
+    <div class="categorias-scroll">
+      <div
+        class="categoria-item"
+        *ngFor="let cat of categorias"
+        [class.active]="categoriasActivas.includes(cat.nombre)"
+        (click)="selectCategoria(cat.nombre)">
+        <img [src]="cat.icono" alt="{{ cat.nombre }}" />
+        <div class="nombre">{{ cat.nombre }}</div>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content #pageContent>
+  <ng-container *ngIf="salas$ | async as salas">
+    <app-sala-card
+      *ngFor="let sala of salas; trackBy: trackBySalaId"
+      [sala]="sala">
+    </app-sala-card>
+  </ng-container>
+
+  <!-- Scroll infinito -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" *ngIf="!todasCargadas">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Cargando más salas...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>
+
+
+  └── tab1.page.scss
+
+--- 📄 app\tab1\tab1.page.scss ---
+/*ion-content {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px; // espacio visual opcional
+  --padding-bottom: 200px; // para evitar que se monte el último item
+  background: #fff;
+}*/
+
+ion-searchbar {
+  --background: #f1f1f1;
+  --border-radius: 16px;
+  --box-shadow: none;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --placeholder-color: #999;
+
+  margin: 12px auto 0 auto;
+  max-width: 92%;
+  height: 40px;
+  --height: 40px;
+
+  input {
+    font-size: 14px;
+  }
+}
+
+/* 🚀 Scroll de categorías horizontal */
+.categorias-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 0;
+  gap: 14px;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 🎯 Ítems de categoría */
+.categoria-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  cursor: pointer;
+  opacity: 0.6;
+  scroll-snap-align: start;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+
+  &.active {
+    opacity: 1;
+    transform: rotate(5deg) scale(1.05);
+  }
+
+  &.active::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 6px;
+    width: 70px;
+    height: 70px;
+    background: #a2e3b1;
+    border-radius: 50% 40% 50% 60% / 60% 50% 40% 50%;
+    z-index: 1;
+    filter: blur(2px);
+    opacity: 0.6;
+    transition: all 0.3s ease;
+  }
+
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: box-shadow 0.3s ease;
+    z-index: 2;
+  }
+
+  .nombre {
+    margin-top: 4px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+    color: #333;
+    z-index: 2;
+  }
+}
+
+.spinner-global {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+}
+
+.oculto {
+  display: none;
+}
+
+
+  └── tab1.page.ts
+
+--- 📄 app\tab1\tab1.page.ts ---
+// tab1.page.ts
+import { Component, OnInit, OnDestroy, ViewChild,  AfterViewInit } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { ModalController, IonContent } from '@ionic/angular';
+import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
+import { SocketService } from '../services/socket.service';
+import { FiltersModalComponent } from '../components/filter-modal/filters-modal.component';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { CATEGORIAS } from '../constants/categorias.const';
+import { Subscription } from 'rxjs';
+import { IonInfiniteScroll } from '@ionic/angular';
+import { UsuarioState } from '../states/usuario.state';
+
+
+@Component({
+  selector: 'app-tab1',
+  templateUrl: './tab1.page.html',
+  styleUrls: ['./tab1.page.scss'],
+  standalone: false
+})
+export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
+  categorias = CATEGORIAS;
+  salas$ = this.store.select(SalaState.salas);
+  filters: any = {};
+  categoriasActivas: string[] = [];
+  numeroSalas = 0;
+  private subs: Subscription[] = [];
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
+   @ViewChild(IonContent) pageContent!: IonContent;
+
+  private latUsuario: number | null = null;
+  private lngUsuario: number | null = null; 
+
+  limit = 20;
+  offset = 0;
+  todasCargadas = false;
+  cargando = false;
+  observer!: IntersectionObserver;
+
+
+
+  constructor(
+    private store: Store,
+    private socketService: SocketService,
+    private modalCtrl: ModalController
+  ) {}
+
+  ngOnInit() {
+    this.subs.push(
+      this.salas$.subscribe(salas => {
+        this.numeroSalas = salas.length;
+      })
+    );
+   this.subs.push(
+    this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+      const { ciudad, lat, lng } = ubicacion || {};
+      this.latUsuario = lat ?? null;
+      this.lngUsuario = lng ?? null;
+      if (ciudad) {
+        this.filters = { ...this.filters, ciudad };
+      } else {
+        const { ciudad: _c, ...rest } = this.filters;
+        this.filters = { ...rest };
+      }
+    })
+  );
+    this.socketService.connect();
+    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
+    this.subs.push(
+      this.socketService.listenSalaModificada().subscribe(sala => {
+        if (this.aplicaFiltros(sala)) {
+          this.store.dispatch(new UpdateSala(sala));
+        }
+      })
+    );
+
+    this.reloadSalas();
+  }
+
+ngAfterViewInit() {
+  this.observer = new IntersectionObserver(entries => {
+    const entry = entries[0];
+    console.log('🎯 Observando intersección:', entry);
+    if (entry.isIntersecting && !this.cargando && !this.todasCargadas) {
+      this.loadMore();
+    }
+  });
+
+}
+
+
+  ngOnDestroy() {
+    this.subs.forEach(s => s.unsubscribe());
+    this.socketService.disconnect();
+  
+  }
+
+
+  async selectCategoria(nombre: string) {
+  if (nombre === 'Filtros') {
+    await this.openFilters();
+    return;
+  }
+
+  const index = this.categoriasActivas.indexOf(nombre);
+  if (index > -1) {
+    this.categoriasActivas.splice(index, 1);
+  } else {
+    this.categoriasActivas.push(nombre);
+  }
+
+  this.filters = this.categoriasActivas.length === 0
+    ? { ...this.filters, categorias: undefined }
+    : { ...this.filters, categorias: [...this.categoriasActivas] };
+
+  await Haptics.impact({ style: ImpactStyle.Light });
+  this.reloadSalas();
+}
+
+async openFilters() {
+  const modal = await this.modalCtrl.create({
+    component: FiltersModalComponent,
+    componentProps: {
+      filtrosActuales: this.filters
+    },
+    showBackdrop: true,
+    cssClass: 'filters-modal-sheet',
+    breakpoints: [0, 0.5, 1],
+    initialBreakpoint: 1// porcenjage que ocupa la ventana de filtros al abrirse
+  });
+
+  await modal.present(); // 👈 Asegura que se presente
+
+  const { data } = await modal.onDidDismiss();
+console.log('data  -->'+  data )
+  if (data) {
+    this.filters = { ...this.filters, ...data };
+    this.categoriasActivas = this.filters.categorias
+      ? [...this.filters.categorias]
+      : [];
     this.reloadSalas();
   }
 }

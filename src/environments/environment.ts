@@ -8,11 +8,11 @@ export const environment = {
  // apiUrl: 'http://192.168.1.131:3000/api',
  // imageURL: 'http://192.168.1.131:3000/'
 //Internet
-   //apiUrl: 'https://wrap-scroll-sn-fixes.trycloudflare.com/api',
- // imageURL: 'https://wrap-scroll-sn-fixes.trycloudflare.com/'
+   apiUrl: 'https://ranging-correct-cultural-detail.trycloudflare.com/api',
+   imageURL: 'https://ranging-correct-cultural-detail.trycloudflare.com/'
  //Parcela
-  apiUrl: 'http://localhost:3000/api',
- imageURL: 'http://localhost:3000/'
+  //apiUrl: 'http://localhost:3000/api',
+ //imageURL: 'http://localhost:3000/'
 
 
 };

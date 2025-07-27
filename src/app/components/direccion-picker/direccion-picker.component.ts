@@ -98,6 +98,11 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   async usarMiUbicacion() {
     try {
+        const perm = await Geolocation.requestPermissions();
+    if (perm.location !== 'granted') {
+      alert('Se necesita permiso de geolocalización para usar esta función.');
+      return;
+    }
       const pos = await Geolocation.getCurrentPosition();
       this.ubicacionService.reverseGeocode(pos.coords.latitude, pos.coords.longitude).subscribe({
         next: (res: UbicacionResultado) => {

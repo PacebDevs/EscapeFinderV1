@@ -29,8 +29,26 @@
 
  <div class="filtro-section">
   <label class="section-label">Distancia (km)</label>
-  <ion-range min="1" max="50" [(ngModel)]="filtros.distancia_km" snaps="true" step="1"></ion-range>
-  <label class="section-label">Distancia: {{ filtros.distancia_km }} km</label>
+  
+  <div *ngIf="!tieneUbicacion()" class="ubicacion-warning">
+    <ion-text color="warning">
+      <ion-icon name="warning-outline"></ion-icon>
+      Selecciona una ubicación para usar este filtro
+    </ion-text>
+  </div>
+
+  <ion-range 
+    min="1" 
+    max="50" 
+    [(ngModel)]="filtros.distancia_km" 
+    snaps="true" 
+    step="1"
+    [disabled]="!tieneUbicacion()">
+  </ion-range>
+  
+  <label class="section-label" *ngIf="tieneUbicacion()">
+    Distancia: {{ filtros.distancia_km }} km
+  </label>
 </div>
 
   <div class="filtro-section">
@@ -39,9 +57,10 @@
       <div
         class="categoria-btn"
         *ngFor="let cat of categoriasOpciones"
-        [class.selected]="filtros.categorias.includes(cat)"
-        (click)="toggleCategoria(cat)">
-        {{ cat }}
+        [class.selected]="filtros.categorias.includes(cat.nombre)"
+        (click)="toggleCategoria(cat.nombre)">
+        <img [src]="cat.icono" alt="{{cat.nombre}} icono" class="categoria-icon" />
+        <span>{{ cat.nombre }}</span>
       </div>
     </div>
   </div>

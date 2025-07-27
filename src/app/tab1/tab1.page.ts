@@ -147,7 +147,13 @@ console.log('data  -->'+  data )
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
-     const { ciudad: _c, distancia_km: _d, ...rest } = this.filters;
+      // Elimina la ciudad, coordenadas y cualquier otro dato relacionado con la ubicación
+      const { 
+        ciudad: _c, 
+        distancia_km: _d, 
+        coordenadas: _coords,  // eliminamos coordenadas
+        ...rest 
+      } = this.filters;
       this.filters = { ...rest };
     }
     this.reloadSalas();

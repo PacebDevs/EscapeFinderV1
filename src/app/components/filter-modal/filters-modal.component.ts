@@ -28,8 +28,9 @@ tiposSalaOpciones = [
   'Juego portátil',
   'Realidad Virtual'
 ];
-categoriasOpciones = CATEGORIAS.slice(1).map(c => c.nombre);
+categoriasOpciones = CATEGORIAS.slice(1); // Cada elemento tiene {nombre, icono}
 mostrarTiposSala = false;
+
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
 ngOnInit() {
@@ -38,7 +39,8 @@ ngOnInit() {
     ...this.filtrosActuales,
     categorias: Array.isArray(this.filtrosActuales.categorias)
       ? [...this.filtrosActuales.categorias]
-      : []
+      : [],
+    distancia_km: this.tieneUbicacion() ? (this.filtrosActuales.distancia_km || 10) : null
   };
 }
 
@@ -77,5 +79,7 @@ toggleCategoria(cat: string) {
     this.filtros.categorias.push(cat);
   }
 }
-
+tieneUbicacion(): boolean {
+  return !!(this.filtrosActuales.lat && this.filtrosActuales.lng);
+}
 }

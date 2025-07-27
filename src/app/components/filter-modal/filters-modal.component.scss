@@ -105,3 +105,27 @@
 
   
 }
+
+.categoria-icon {
+  width: 1.5em;
+  height: 1.5em;
+  margin-right: 6px;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+.ubicacion-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin: 8px 0;
+  background-color: rgba(255, 196, 9, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-warning);
+  }
+}
