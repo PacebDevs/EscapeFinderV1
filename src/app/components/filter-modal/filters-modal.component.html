@@ -30,7 +30,7 @@
  <div class="filtro-section">
   <label class="section-label">Distancia (km)</label>
   
-  <div *ngIf="!tieneUbicacion()" class="ubicacion-warning">
+  <div *ngIf="!_tieneUbicacion" class="ubicacion-warning">
     <ion-text color="warning">
       <ion-icon name="warning-outline"></ion-icon>
       Selecciona una ubicación para usar este filtro
@@ -43,14 +43,25 @@
     [(ngModel)]="filtros.distancia_km" 
     snaps="true" 
     step="1"
-    [disabled]="!tieneUbicacion()">
+    [disabled]="!_tieneUbicacion">
   </ion-range>
   
-  <label class="section-label" *ngIf="tieneUbicacion()">
+  <label class="section-label" *ngIf="_tieneUbicacion">
     Distancia: {{ filtros.distancia_km }} km
   </label>
 </div>
-
+  <div class="filtro-section">
+    <label class="section-label">Dificultad</label>
+    <div class="categorias-grid">
+      <div
+        class="categoria-btn"
+        *ngFor="let dif of dificultadOpciones"
+        [class.selected]="filtros.dificultad.includes(dif)"
+        (click)="toggleDificultad(dif)">
+        {{ dif }}
+      </div>
+    </div>
+  </div>
   <div class="filtro-section">
     <label class="section-label">Categorías</label>
     <div class="categorias-grid">
@@ -66,21 +77,92 @@
   </div>
 
 <div class="filtro-section">
-  <label class="section-label" (click)="mostrarTiposSala = !mostrarTiposSala" style="cursor: pointer;">
-    Tipo de sala
-    <ion-icon [name]="mostrarTiposSala ? 'chevron-up-outline' : 'chevron-down-outline'" class="dropdown-icon"></ion-icon>
-  </label>
+  <ion-item lines="none" (click)="toggleTipoSala()" detail="false" class="collapsible-header">
+    <ion-label class="section-label">Tipo de sala</ion-label>
+    <ion-icon [name]="isTipoSalaOpen ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
+  </ion-item>
 
-  <div class="categorias-grid" *ngIf="mostrarTiposSala">
-    <div
-      class="categoria-btn"
-      *ngFor="let tipo of tiposSalaOpciones"
-      [class.selected]="filtros.tipo_sala.includes(tipo)"
-      (click)="toggleTipoSala(tipo)">
-      {{ tipo }}
-    </div>
+  <div *ngIf="isTipoSalaOpen" class="checkbox-grid">
+    <ion-item *ngFor="let tipo of tiposSalaOpciones" lines="none" class="checkbox-item">
+      <ion-checkbox slot="start"
+                    [(ngModel)]="tipo.checked"
+                    (ionChange)="onToggleTipo()"
+                    class="modern-checkbox" 
+                     color="success">
+      </ion-checkbox>
+      <ion-label>{{ tipo.nombre }}</ion-label>
+    </ion-item>
   </div>
 </div>
+
+<!-- ========================================
+     NUEVO FILTRO DE ACCESIBILIDAD
+     ======================================== -->
+<div class="filtro-section">
+  <ion-item lines="none" (click)="toggleAccesibilidad()" detail="false" class="collapsible-header">
+    <ion-label class="section-label">Accesibilidad</ion-label>
+    <ion-icon [name]="isAccesibilidadOpen ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
+  </ion-item>
+
+  <div *ngIf="isAccesibilidadOpen" class="checkbox-list">
+    <ion-item *ngFor="let opcion of accesibilidadOpciones" lines="none" class="checkbox-item">
+      <ion-checkbox slot="start"
+                    [(ngModel)]="opcion.checked"
+                    (ionChange)="onToggleAccesibilidad()"
+                    class="modern-checkbox"
+                    color="success">
+      </ion-checkbox>
+      <ion-icon [name]="opcion.icono" slot="start" class="checkbox-icon"></ion-icon>
+      <ion-label>{{ opcion.texto }}</ion-label>
+    </ion-item>
+  </div>
+</div>
+
+<!-- ========================================
+     NUEVO FILTRO DE RESTRICCIONES
+     ======================================== -->
+<div class="filtro-section">
+  <ion-item lines="none" (click)="toggleRestricciones()" detail="false" class="collapsible-header">
+    <ion-label class="section-label">Restricciones</ion-label>
+    <ion-icon [name]="isRestriccionesOpen ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
+  </ion-item>
+
+  <div *ngIf="isRestriccionesOpen" class="checkbox-list">
+    <ion-item *ngFor="let opcion of restriccionesOpciones" lines="none" class="checkbox-item">
+      <ion-checkbox slot="start"
+                    [(ngModel)]="opcion.checked"
+                    (ionChange)="onToggleRestricciones()"
+                    class="modern-checkbox"
+                    color="success">
+      </ion-checkbox>
+      <ion-icon [name]="opcion.icono" slot="start" class="checkbox-icon"></ion-icon>
+      <ion-label>{{ opcion.texto }}</ion-label>
+    </ion-item>
+  </div>
+</div>
+
+<!-- ========================================
+     NUEVO FILTRO DE PÚBLICO OBJETIVO
+     ======================================== -->
+<div class="filtro-section">
+  <ion-item lines="none" (click)="togglePublicoObjetivo()" detail="false" class="collapsible-header">
+    <ion-label class="section-label">Público objetivo</ion-label>
+    <ion-icon [name]="isPublicoObjetivoOpen ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
+  </ion-item>
+
+  <div *ngIf="isPublicoObjetivoOpen" class="checkbox-grid">
+    <ion-item *ngFor="let opcion of publicoObjetivoOpciones" lines="none" class="checkbox-item">
+      <ion-checkbox slot="start"
+                    [(ngModel)]="opcion.checked"
+                    (ionChange)="onTogglePublicoObjetivo()"
+                    class="modern-checkbox"
+                    color="success">
+      </ion-checkbox>
+      <ion-label>{{ opcion.texto }}</ion-label>
+    </ion-item>
+  </div>
+</div>
+
 </ion-content>
 
 <ion-footer class="modal-footer">

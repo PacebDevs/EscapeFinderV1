@@ -129,3 +129,55 @@
     color: var(--ion-color-warning);
   }
 }
+
+.collapsible-header {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  cursor: pointer;
+  .section-label {
+    margin-bottom: 0;
+  }
+}
+
+// Para "Tipo de sala" (2 columnas)
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+}
+
+// NUEVO: Para "Accesibilidad" (1 columna)
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.checkbox-item {
+  --background: #f7f7f7;
+  --inner-padding-end: 8px;
+  --padding-start: 8px;
+  border-radius: 12px;
+  /* El 'gap' de la rejilla se encarga del espaciado vertical */
+}
+
+.checkbox-item ion-icon.checkbox-icon {
+  margin-left: 8px;
+  margin-right: 8px;
+  font-size: 20px;
+  color: #555;
+}
+
+ion-checkbox.modern-checkbox {
+  --size: 28px;
+  --border-radius: 8px;
+  --border-color-checked: #a2e3b1;
+  --background-checked: #a2e3b1;
+  --checkmark-color: white;
+}
+
+
+

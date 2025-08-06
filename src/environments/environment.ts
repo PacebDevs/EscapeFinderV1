@@ -5,14 +5,14 @@
 export const environment = {
   production: false,
   //Piso y casa de padres
- // apiUrl: 'http://192.168.1.131:3000/api',
- // imageURL: 'http://192.168.1.131:3000/'
+  //apiUrl: 'http://192.168.1.131:3000/api',
+  //imageURL: 'http://192.168.1.131:3000/'
 //Internet
-   apiUrl: 'https://ranging-correct-cultural-detail.trycloudflare.com/api',
-   imageURL: 'https://ranging-correct-cultural-detail.trycloudflare.com/'
+  //apiUrl: 'https://wellness-average-ms-votes.trycloudflare.com/api',
+  //imageURL: 'https://wellness-average-ms-votes.trycloudflare.com/'
  //Parcela
-  //apiUrl: 'http://localhost:3000/api',
- //imageURL: 'http://localhost:3000/'
+ apiUrl: 'http://localhost:3000/api',
+ imageURL: 'http://localhost:3000/'
 
 
 };
