@@ -21,7 +21,9 @@ export class FiltersModalComponent implements OnInit {
     dificultad: [],
     accesibilidad: [],
     restricciones_aptas: [],
-    publico_objetivo: [] // 👈 Nuevo filtro
+    publico_objetivo: [],
+    actores: false, // 👈 Nuevo filtro para Actores
+    idioma: null    // 👈 Nuevo filtro para Idioma
   };
 jugadoresOpciones = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 tiposSalaOpciones: any[] = [ // 👈 CAMBIO: Especificar el tipo como any[]
@@ -33,6 +35,8 @@ tiposSalaOpciones: any[] = [ // 👈 CAMBIO: Especificar el tipo como any[]
   'Realidad Virtual'
 ];
 dificultadOpciones = ['Fácil', 'Media', 'Alta'];
+// 👇 Nuevas opciones para el desplegable de Idioma
+idiomaOpciones: string[] = ['Español', 'Inglés', 'Catalán', 'Francés'];
 accesibilidadOpciones: any[] = [
   { texto: 'Apto Discapacidad motora', valor: 'Apto Discapacidad motora', icono: 'walk-outline' },
   { texto: 'Apto Discapacidad visual', valor: 'Apto Discapacidad visual', icono: 'eye-off-outline' },
@@ -71,7 +75,9 @@ _tieneUbicacion: boolean = false;
       tipo_sala: Array.isArray(this.filtrosActuales.tipo_sala) ? [...this.filtrosActuales.tipo_sala] : [],
       accesibilidad: Array.isArray(this.filtrosActuales.accesibilidad) ? [...this.filtrosActuales.accesibilidad] : [],
       restricciones_aptas: Array.isArray(this.filtrosActuales.restricciones_aptas) ? [...this.filtrosActuales.restricciones_aptas] : [],
-      publico_objetivo: Array.isArray(this.filtrosActuales.publico_objetivo) ? [...this.filtrosActuales.publico_objetivo] : [], // 👈 Inicializar
+      publico_objetivo: Array.isArray(this.filtrosActuales.publico_objetivo) ? [...this.filtrosActuales.publico_objetivo] : [],
+      actores: this.filtrosActuales.actores === true,
+      idioma: this.filtrosActuales.idioma || null
     };
     this._tieneUbicacion = !!this.filtrosActuales.ciudad;
 
@@ -79,54 +85,71 @@ _tieneUbicacion: boolean = false;
       nombre,
       checked: this.filtros.tipo_sala.includes(nombre)
     }));
-
     this.accesibilidadOpciones = this.accesibilidadOpciones.map(opcion => ({
       ...opcion,
       checked: this.filtros.accesibilidad.includes(opcion.valor)
     }));
-
-    // 👈 Mapear opciones de restricciones para incluir el estado 'checked'
     this.restriccionesOpciones = this.restriccionesOpciones.map(opcion => ({
       ...opcion,
       checked: this.filtros.restricciones_aptas.includes(opcion.valor)
     }));
-
-    // 👈 Mapear opciones de público objetivo para incluir el estado 'checked'
     this.publicoObjetivoOpciones = this.publicoObjetivoOpciones.map(opcion => ({
       ...opcion,
       checked: this.filtros.publico_objetivo.includes(opcion.valor)
     }));
+
+    // 👇 Abrir automáticamente las secciones con selecciones previas
+    this.isTipoSalaOpen = this.filtros.tipo_sala.length > 0;
+    this.isAccesibilidadOpen = this.filtros.accesibilidad.length > 0;
+    this.isRestriccionesOpen = this.filtros.restricciones_aptas.length > 0;
+    this.isPublicoObjetivoOpen = this.filtros.publico_objetivo.length > 0;
   }
 
   dismiss() {
     this.modalCtrl.dismiss();
   }
 
-  aplicarFiltros() {
-    const filtrosParaEnviar = { ...this.filtros };
+aplicarFiltros() {
+  const filtrosParaEnviar = { ...this.filtros };
 
-    if (filtrosParaEnviar.categorias?.length === 0) delete filtrosParaEnviar.categorias;
-    if (filtrosParaEnviar.dificultad?.length === 0) delete filtrosParaEnviar.dificultad;
-    if (filtrosParaEnviar.tipo_sala?.length === 0) delete filtrosParaEnviar.tipo_sala;
-    if (filtrosParaEnviar.accesibilidad?.length === 0) delete filtrosParaEnviar.accesibilidad;
-    if (filtrosParaEnviar.restricciones_aptas?.length === 0) delete filtrosParaEnviar.restricciones_aptas;
-    if (filtrosParaEnviar.publico_objetivo?.length === 0) delete filtrosParaEnviar.publico_objetivo; // 👈 Limpiar si está vacío
+  // Booleanos: si es false, que vaya como undefined
+  if (!filtrosParaEnviar.actores) filtrosParaEnviar.actores = undefined;
 
-    this.modalCtrl.dismiss(filtrosParaEnviar);
-  }
+  // Listas: si quedan vacías, NO delete -> undefined (pisa el valor anterior en el padre)
+  if (!filtrosParaEnviar.categorias?.length) filtrosParaEnviar.categorias = undefined;
+  if (!filtrosParaEnviar.dificultad?.length) filtrosParaEnviar.dificultad = undefined;
+  if (!filtrosParaEnviar.tipo_sala?.length) filtrosParaEnviar.tipo_sala = undefined;
+  if (!filtrosParaEnviar.accesibilidad?.length) filtrosParaEnviar.accesibilidad = undefined;
+  if (!filtrosParaEnviar.restricciones_aptas?.length) filtrosParaEnviar.restricciones_aptas = undefined;
+  if (!filtrosParaEnviar.publico_objetivo?.length) filtrosParaEnviar.publico_objetivo = undefined;
+
+  // Selects: si no hay idioma
+  if (!filtrosParaEnviar.idioma) filtrosParaEnviar.idioma = undefined;
+
+  this.modalCtrl.dismiss(filtrosParaEnviar);
+}
 resetearFiltros() {
   const ciudad = this.filtros.ciudad;
+
   this.filtros = {
     ciudad,
     jugadores: null,
+    distancia_km: undefined, // si quieres resetear también la distancia
     tipo_sala: [],
     categorias: [],
     dificultad: [],
     accesibilidad: [],
     restricciones_aptas: [],
-    publico_objetivo: [] // 👈 Resetear
+    publico_objetivo: [],
+    actores: false,
+    idioma: null
   };
-  
+
+  // Desmarcar visualmente todos los checkboxes (nuevas refs -> change detection)
+  this.tiposSalaOpciones = this.tiposSalaOpciones.map(t => ({ ...t, checked: false }));
+  this.accesibilidadOpciones = this.accesibilidadOpciones.map(o => ({ ...o, checked: false }));
+  this.restriccionesOpciones = this.restriccionesOpciones.map(o => ({ ...o, checked: false }));
+  this.publicoObjetivoOpciones = this.publicoObjetivoOpciones.map(o => ({ ...o, checked: false }));
 }
 
 toggleTipoSala() {
@@ -189,4 +212,60 @@ toggleDificultad(dificultad: string) {
       this.filtros.dificultad.push(dificultad);
     }
   }
+
+
+  get hasActiveFilters(): boolean {
+  const f = this.filtros || {};
+  // ❌ No cuenta 'ciudad'
+  return !!(
+    f.jugadores ||
+    f.distancia_km ||
+    (Array.isArray(f.tipo_sala) && f.tipo_sala.length) ||
+    (Array.isArray(f.categorias) && f.categorias.length) ||
+    (Array.isArray(f.dificultad) && f.dificultad.length) ||
+    (Array.isArray(f.accesibilidad) && f.accesibilidad.length) ||
+    (Array.isArray(f.restricciones_aptas) && f.restricciones_aptas.length) ||
+    (Array.isArray(f.publico_objetivo) && f.publico_objetivo.length) ||
+    f.actores === true ||
+    !!f.idioma
+  );
+}
+
+get activeFilterCount(): number {
+  const f = this.filtros || {};
+  let count = 0;
+
+  // Jugadores
+  if (f.jugadores) count++;
+  // Distancia
+  if (f.distancia_km) count++;
+  // Arrays
+  const arrays = [
+    f.tipo_sala,
+    f.categorias,
+    f.dificultad,
+    f.accesibilidad,
+    f.restricciones_aptas,
+    f.publico_objetivo
+  ];
+  arrays.forEach(arr => {
+    if (Array.isArray(arr) && arr.length) count += arr.length;
+  });
+  // Booleanos
+  if (f.actores === true) count++;
+  // Select idioma
+  if (f.idioma) count++;
+
+  return count;
+}
+
+onResetClick(ev: Event) {
+  const el = ev.currentTarget as HTMLElement;
+  el.classList.remove('reset-anim');
+  // Reinicia animaciones si clicas varias veces
+  void el.offsetWidth;
+  el.classList.add('reset-anim');
+
+  this.resetearFiltros();
+}
 }

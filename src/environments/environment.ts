@@ -3,13 +3,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
+  production: true,
   //Piso y casa de padres
   //apiUrl: 'http://192.168.1.131:3000/api',
   //imageURL: 'http://192.168.1.131:3000/'
 //Internet
-  //apiUrl: 'https://wellness-average-ms-votes.trycloudflare.com/api',
-  //imageURL: 'https://wellness-average-ms-votes.trycloudflare.com/'
+  //apiUrl: ' https://confused-shelter-modern-space.trycloudflare.com/api',
+  //imageURL: ' https://confused-shelter-modern-space.trycloudflare.com/'
  //Parcela
  apiUrl: 'http://localhost:3000/api',
  imageURL: 'http://localhost:3000/'

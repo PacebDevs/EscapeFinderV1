@@ -1,6 +1,26 @@
 <ion-header class="modal-header">
   <div class="header-content">
-    <ion-icon name="trash-outline" class="reset-icon" (click)="resetearFiltros()"></ion-icon>
+<button
+  type="button"
+  class="reset-btn"
+  [class.active]="hasActiveFilters"
+  (click)="onResetClick($event)"
+  aria-label="Borrar filtros"
+>
+  <ion-icon name="trash-outline" class="reset-btn__icon"></ion-icon>
+
+  <!-- Anillo de realce (solo visible cuando hay filtros) -->
+  <span class="reset-btn__ring" aria-hidden="true"></span>
+
+  <!-- Chispas al clic -->
+  <span class="reset-btn__sparkles" aria-hidden="true"></span>
+    <!-- Badge con el número de filtros activos -->
+  <span
+    class="reset-btn__badge"
+    *ngIf="activeFilterCount > 0"
+    >{{ activeFilterCount }}</span
+  >
+</button>
     <h2>Filtros</h2>
     <ion-icon name="close-outline" class="close-icon" (click)="dismiss()"></ion-icon>
   </div>
@@ -75,6 +95,38 @@
       </div>
     </div>
   </div>
+
+<!-- ========================================
+     NUEVOS FILTROS DE ACTORES E IDIOMA (EN LÍNEA)
+     ======================================== -->
+<div class="filtro-section">
+  <div class="inline-filters-container">
+    <!-- Filtro de Actores -->
+    <div class="inline-filter-item">
+      <ion-item lines="none" class="toggle-item">
+        <ion-label class="section-label">Con Actores</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="filtros.actores" color="success"></ion-toggle>
+      </ion-item>
+    </div>
+
+    <!-- Filtro de Idioma -->
+    <div class="inline-filter-item">
+      <label class="section-label">Idioma</label>
+      <ion-select
+        interface="popover"
+        [(ngModel)]="filtros.idioma"
+        placeholder="Cualquier idioma"
+        class="jugadores-select"
+      >
+        <ion-select-option [value]="null">Cualquier idioma</ion-select-option>
+        <ion-select-option *ngFor="let idioma of idiomaOpciones" [value]="idioma">
+          {{ idioma }}
+        </ion-select-option>
+      </ion-select>
+    </div>
+  </div>
+</div>
+
 
 <div class="filtro-section">
   <ion-item lines="none" (click)="toggleTipoSala()" detail="false" class="collapsible-header">
