@@ -56,18 +56,19 @@
       Selecciona una ubicación para usar este filtro
     </ion-text>
   </div>
-
-  <ion-range 
-    min="1" 
-    max="50" 
-    [(ngModel)]="filtros.distancia_km" 
-    snaps="true" 
+  <ion-range
+    min="0"
+    max="50"
+    [(ngModel)]="filtros.distancia_km"
+    snaps="true"
     step="1"
-    [disabled]="!_tieneUbicacion">
+    [disabled]="!_tieneUbicacion"
+    (ionChange)="onDistanciaChange($event)">
   </ion-range>
-  
+
   <label class="section-label" *ngIf="_tieneUbicacion">
-    Distancia: {{ filtros.distancia_km }} km
+    Distancia:
+    {{ filtros.distancia_km ? filtros.distancia_km + ' km' : 'Sin límite' }}
   </label>
 </div>
   <div class="filtro-section">

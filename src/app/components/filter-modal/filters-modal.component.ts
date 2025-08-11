@@ -212,6 +212,10 @@ toggleDificultad(dificultad: string) {
       this.filtros.dificultad.push(dificultad);
     }
   }
+onDistanciaChange(event: any) {
+  const value = event.detail.value;
+  this.filtros.distancia_km = value === 0 ? undefined : value;
+}
 
 
   get hasActiveFilters(): boolean {

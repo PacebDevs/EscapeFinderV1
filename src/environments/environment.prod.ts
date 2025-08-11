@@ -4,7 +4,7 @@ export const environment = {
  // imageURL: 'http://192.168.1.131:3000/'
 //apiUrl: 'http://10.0.2.2:3000/api'
 //Internet
-  apiUrl: 'https://confused-shelter-modern-space.trycloudflare.com/api',
-  imageURL: ' https://confused-shelter-modern-space.trycloudflare.com/'
+  apiUrl: 'https://clinics-invision-bios-miller.trycloudflare.com/api',
+  imageURL: 'https://clinics-invision-bios-miller.trycloudflare.com/'
 
 };
