@@ -27,57 +27,82 @@
 </ion-header>
 
 <ion-content class="modal-content">
- <div class="filtro-section">
-  <label class="section-label">Jugadores</label>
+<ion-item lines="none" class="filter-row jugadores-row">
+  <ion-label class="filter-label">Jugadores</ion-label>
   <ion-select
+    slot="end"
     interface="popover"
     [(ngModel)]="filtros.jugadores"
     placeholder="Todos"
-    class="jugadores-select"
-  >
+    class="jugadores-select">
     <ion-select-option [value]="null">Todos</ion-select-option>
     <ion-select-option *ngFor="let num of jugadoresOpciones" [value]="num">
       {{ num === 10 ? '10 o más' : num }}
     </ion-select-option>
   </ion-select>
-</div>
+</ion-item>
+
 
   <div class="filtro-section">
-    <label class="section-label">Precio por persona (€)</label>
-      <ion-range
-      min="0"
-      max="100"
-      step="1"
-      snaps="true"
-      [(ngModel)]="filtros.precio">
-    </ion-range>
-    <label class="section-label">Hasta {{ filtros.precio || 0 }} € por persona</label>
+  <label class="section-label">Precio por persona (€)</label>
+
+  <div *ngIf="!filtros.jugadores">
+    <ion-text color="medium" class="precio-info-text">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      Seleccione el número de jugadores para mayor precisión
+    </ion-text>
   </div>
 
- <div class="filtro-section">
+  <ion-range
+    min="0"
+    max="100"
+    step="5"
+    snaps="true"
+    [(ngModel)]="filtros.precio">
+  </ion-range>
+
+<div class="precio-limites-con-texto">
+  <span>0 €</span>
+  <span class="precio-label">
+    {{ filtros.precio ? ('Hasta ' + filtros.precio + ' € por persona') : 'Sin definir' }}
+  </span>
+  <span>100+ €</span>
+</div>
+</div>
+
+<div class="filtro-section">
   <label class="section-label">Distancia (km)</label>
-  
+
   <div *ngIf="!_tieneUbicacion" class="ubicacion-warning">
     <ion-text color="warning">
       <ion-icon name="warning-outline"></ion-icon>
       Selecciona una ubicación para usar este filtro
     </ion-text>
   </div>
+
   <ion-range
     min="0"
-    max="50"
-    [(ngModel)]="filtros.distancia_km"
+    max="150"
+    step="5"
     snaps="true"
-    step="1"
+    [(ngModel)]="filtros.distancia_km"
     [disabled]="!_tieneUbicacion"
     (ionChange)="onDistanciaChange($event)">
   </ion-range>
 
-  <label class="section-label" *ngIf="_tieneUbicacion">
-    Distancia:
-    {{ filtros.distancia_km ? filtros.distancia_km + ' km' : 'Sin límite' }}
-  </label>
+  <div *ngIf="_tieneUbicacion" class="precio-limites-con-texto">
+    <span>0 KM</span>
+    <span class="precio-label">
+      {{
+        filtros.distancia_km
+          ? filtros.distancia_km + ' km de radio'
+          : 'Todas las salas de ' + filtros.ciudad
+      }}
+    </span>
+    <span>150 KM</span>
+  </div>
 </div>
+
   <div class="filtro-section">
     <label class="section-label">Dificultad</label>
     <div class="categorias-grid">
@@ -107,33 +132,28 @@
 <!-- ========================================
      NUEVOS FILTROS DE ACTORES E IDIOMA (EN LÍNEA)
      ======================================== -->
-<div class="filtro-section">
-  <div class="inline-filters-container">
-    <!-- Filtro de Actores -->
-    <div class="inline-filter-item">
-      <ion-item lines="none" class="toggle-item">
-        <ion-label class="section-label">Con Actores</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="filtros.actores" color="success"></ion-toggle>
-      </ion-item>
-    </div>
+<!-- FILTROS DE ACTORES E IDIOMA (UNO DEBAJO DEL OTRO) -->
+<!-- Con Actores -->
+<ion-item lines="none" class="filter-row">
+  <ion-label class="filter-label">Con Actores</ion-label>
+  <ion-toggle slot="end" [(ngModel)]="filtros.actores" color="success"></ion-toggle>
+</ion-item>
 
-    <!-- Filtro de Idioma -->
-    <div class="inline-filter-item">
-      <label class="section-label">Idioma</label>
-      <ion-select
-        interface="popover"
-        [(ngModel)]="filtros.idioma"
-        placeholder="Cualquier idioma"
-        class="jugadores-select"
-      >
-        <ion-select-option [value]="null">Cualquier idioma</ion-select-option>
-        <ion-select-option *ngFor="let idioma of idiomaOpciones" [value]="idioma">
-          {{ idioma }}
-        </ion-select-option>
-      </ion-select>
-    </div>
-  </div>
-</div>
+<!-- Idioma -->
+<ion-item lines="none" class="filter-row">
+  <ion-label class="filter-label">Idioma</ion-label>
+  <ion-select
+    slot="end"
+    interface="popover"
+    [(ngModel)]="filtros.idioma"
+    placeholder="Cualquier idioma"
+    class="idioma-select">
+    <ion-select-option [value]="null">Cualquier idioma</ion-select-option>
+    <ion-select-option *ngFor="let idioma of idiomaOpciones" [value]="idioma">
+      {{ idioma }}
+    </ion-select-option>
+  </ion-select>
+</ion-item>
 
 
 <div class="filtro-section">
