@@ -16,6 +16,8 @@ export class FiltersModalComponent implements OnInit {
  // distancia: number = 10;
   filtros: any = {
     jugadores: null,
+    distancia_km: undefined,
+    precio: null,
     tipo_sala: [],
     categorias: [],
     dificultad: [],
@@ -77,7 +79,9 @@ _tieneUbicacion: boolean = false;
       restricciones_aptas: Array.isArray(this.filtrosActuales.restricciones_aptas) ? [...this.filtrosActuales.restricciones_aptas] : [],
       publico_objetivo: Array.isArray(this.filtrosActuales.publico_objetivo) ? [...this.filtrosActuales.publico_objetivo] : [],
       actores: this.filtrosActuales.actores === true,
-      idioma: this.filtrosActuales.idioma || null
+     idioma: this.filtrosActuales.idioma || null,
+      precio: this.filtrosActuales.precio ?? null,
+      distancia_km: this.filtrosActuales.distancia_km ?? undefined
     };
     this._tieneUbicacion = !!this.filtrosActuales.ciudad;
 
@@ -122,9 +126,9 @@ aplicarFiltros() {
   if (!filtrosParaEnviar.accesibilidad?.length) filtrosParaEnviar.accesibilidad = undefined;
   if (!filtrosParaEnviar.restricciones_aptas?.length) filtrosParaEnviar.restricciones_aptas = undefined;
   if (!filtrosParaEnviar.publico_objetivo?.length) filtrosParaEnviar.publico_objetivo = undefined;
-
-  // Selects: si no hay idioma
   if (!filtrosParaEnviar.idioma) filtrosParaEnviar.idioma = undefined;
+  if (!filtrosParaEnviar.precio) filtrosParaEnviar.precio = undefined;
+  if (!filtrosParaEnviar.distancia_km) filtrosParaEnviar.distancia_km = undefined;
 
   this.modalCtrl.dismiss(filtrosParaEnviar);
 }
@@ -134,7 +138,8 @@ resetearFiltros() {
   this.filtros = {
     ciudad,
     jugadores: null,
-    distancia_km: undefined, // si quieres resetear también la distancia
+    distancia_km: null, // si quieres resetear también la distancia
+    precio: null,
     tipo_sala: [],
     categorias: [],
     dificultad: [],
@@ -223,6 +228,7 @@ onDistanciaChange(event: any) {
   // ❌ No cuenta 'ciudad'
   return !!(
     f.jugadores ||
+    f.precio ||
     f.distancia_km ||
     (Array.isArray(f.tipo_sala) && f.tipo_sala.length) ||
     (Array.isArray(f.categorias) && f.categorias.length) ||
@@ -241,6 +247,8 @@ get activeFilterCount(): number {
 
   // Jugadores
   if (f.jugadores) count++;
+  // Precio
+  if (f.precio) count++;
   // Distancia
   if (f.distancia_km) count++;
   // Arrays

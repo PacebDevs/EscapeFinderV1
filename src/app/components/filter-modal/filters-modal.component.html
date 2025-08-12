@@ -44,7 +44,14 @@
 
   <div class="filtro-section">
     <label class="section-label">Precio por persona (€)</label>
-    <ion-range min="0" max="100" dualKnobs="true" snaps="false" ticks="false"></ion-range>
+      <ion-range
+      min="0"
+      max="100"
+      step="1"
+      snaps="true"
+      [(ngModel)]="filtros.precio">
+    </ion-range>
+    <label class="section-label">Hasta {{ filtros.precio || 0 }} € por persona</label>
   </div>
 
  <div class="filtro-section">
