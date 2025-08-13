@@ -235,9 +235,17 @@ loadMore(event?: any) {
 }
 
 
-
-
   trackBySalaId(_i: number, sala: any): any {
     return sala.id_sala;
   }
+
+  onMapaClick() {
+  console.log('🗺️ Click en botón de mapa (a implementar)');
+}
+
+onNotificacionesClick() {
+  // abrir modal, redirigir, mostrar alert, etc.
+  console.log('🔔 Notificaciones clickeadas');
+}
+
 }

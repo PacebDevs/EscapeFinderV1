@@ -1,27 +1,42 @@
 
 <ion-header class="ion-no-border">
    <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
-  <ion-toolbar>
-   
+
+<ion-toolbar>
+  
+  <div class="searchbar-con-boton">
     <ion-searchbar
-      placeholder="Buscar sala o empresa..."
-      [(ngModel)]="filters.query"
-      (ionInput)="reloadSalas()"
-      debounce="300"
-      showCancelButton="never"
-      animated>
-    </ion-searchbar>
-    <div class="categorias-scroll">
-      <div
-        class="categoria-item"
-        *ngFor="let cat of categorias"
-        [class.active]="categoriasActivas.includes(cat.valor)"
-        (click)="selectCategoria(cat.valor)">
-        <img [src]="cat.icono" alt="{{ cat.nombre }}" />
-        <div class="nombre">{{ cat.nombre }}</div>
-      </div>
-    </div>
-  </ion-toolbar>
+    placeholder="Buscar sala o empresa..."
+    [(ngModel)]="filters.query"
+    (ionInput)="reloadSalas()"
+    debounce="300"
+    showCancelButton="never"
+    animated>
+  </ion-searchbar>
+
+  <ion-button fill="clear" size="small" class="btn-filtros" (click)="openFilters()">
+    <ion-icon name="options-outline"></ion-icon>
+  </ion-button>
+
+  <ion-button fill="clear" size="small" class="btn-mapa" (click)="onMapaClick()">
+    <ion-icon name="map-outline"></ion-icon>
+  </ion-button>
+
+    
+  </div>
+
+  <div class="categorias-scroll">
+  <div
+    class="categoria-item"
+    *ngFor="let cat of categorias"
+    [class.active]="categoriasActivas.includes(cat.valor)"
+    (click)="selectCategoria(cat.valor)">
+    
+    <img [src]="cat.icono" alt="{{ cat.nombre }}" />
+    <div class="nombre">{{ cat.nombre }}</div>
+  </div>
+</div>
+</ion-toolbar>
 </ion-header>
 
 <ion-content #pageContent>
