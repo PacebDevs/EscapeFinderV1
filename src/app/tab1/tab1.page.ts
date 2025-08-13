@@ -96,17 +96,17 @@ ngAfterViewInit() {
   }
 
 
-  async selectCategoria(nombre: string) {
-  if (nombre === 'Filtros') {
+  async selectCategoria(valor: string) {
+  if (valor === 'Filtros') {
     await this.openFilters();
     return;
   }
 
-  const index = this.categoriasActivas.indexOf(nombre);
+  const index = this.categoriasActivas.indexOf(valor);
   if (index > -1) {
     this.categoriasActivas.splice(index, 1);
   } else {
-    this.categoriasActivas.push(nombre);
+    this.categoriasActivas.push(valor);
   }
 
   this.filters = this.categoriasActivas.length === 0

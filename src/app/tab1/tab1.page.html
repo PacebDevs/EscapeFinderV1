@@ -15,8 +15,8 @@
       <div
         class="categoria-item"
         *ngFor="let cat of categorias"
-        [class.active]="categoriasActivas.includes(cat.nombre)"
-        (click)="selectCategoria(cat.nombre)">
+        [class.active]="categoriasActivas.includes(cat.valor)"
+        (click)="selectCategoria(cat.valor)">
         <img [src]="cat.icono" alt="{{ cat.nombre }}" />
         <div class="nombre">{{ cat.nombre }}</div>
       </div>

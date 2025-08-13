@@ -40,13 +40,13 @@ dificultadOpciones = ['Fácil', 'Media', 'Alta'];
 // 👇 Nuevas opciones para el desplegable de Idioma
 idiomaOpciones: string[] = ['Español', 'Inglés', 'Catalán', 'Francés'];
 accesibilidadOpciones: any[] = [
-  { texto: 'Apto Discapacidad motora', valor: 'Apto Discapacidad motora', icono: 'walk-outline' },
+  { texto: 'Apto Discapacidad motora', valor: 'Apto Discapacidad motora', icono: 'accessibility-outline' },
   { texto: 'Apto Discapacidad visual', valor: 'Apto Discapacidad visual', icono: 'eye-off-outline' },
   { texto: 'Apto Discapacidad auditiva', valor: 'Apto Discapacidad auditiva', icono: 'ear-outline' }
 ];
 // 👇 Nuevas opciones de restricciones
 restriccionesOpciones: any[] = [
-  { texto: 'Apto para embarazadas', valor: 'Mujeres embarazadas', icono: 'body-outline' },
+  { texto: 'Apto para embarazadas', valor: 'Mujeres embarazadas', icono: 'female-outline' },
   { texto: 'Apto para claustrofobia', valor: 'Claustrofobia', icono: 'lock-open-outline' }
 ];
 // 👇 Nuevas opciones de público objetivo

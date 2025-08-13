@@ -121,8 +121,8 @@
       <div
         class="categoria-btn"
         *ngFor="let cat of categoriasOpciones"
-        [class.selected]="filtros.categorias.includes(cat.nombre)"
-        (click)="toggleCategoria(cat.nombre)">
+        [class.selected]="filtros.categorias.includes(cat.valor)"
+        (click)="toggleCategoria(cat.valor)">
         <img [src]="cat.icono" alt="{{cat.nombre}} icono" class="categoria-icon" />
         <span>{{ cat.nombre }}</span>
       </div>
