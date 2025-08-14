@@ -1,51 +1,76 @@
-
 <ion-header class="ion-no-border">
-   <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
-
-<ion-toolbar>
-  
-  <div class="searchbar-con-boton">
-    <ion-searchbar
-    placeholder="Buscar sala o empresa..."
-    [(ngModel)]="filters.query"
-    (ionInput)="reloadSalas()"
-    debounce="300"
-    showCancelButton="never"
-    animated>
-  </ion-searchbar>
-
-  <ion-button fill="clear" size="small" class="btn-filtros" (click)="openFilters()">
-    <ion-icon name="options-outline"></ion-icon>
-  </ion-button>
-
-  <ion-button fill="clear" size="small" class="btn-mapa" (click)="onMapaClick()">
-    <ion-icon name="map-outline"></ion-icon>
-  </ion-button>
-
-    
+  <div class="top-actions">
+    <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
+    <ion-button
+      fill="clear"
+      size="small"
+      class="btn-notificaciones"
+      (click)="onNotificacionesClick()">
+      <ion-icon name="notifications-outline"></ion-icon>
+    </ion-button>
   </div>
 
-  <div class="categorias-scroll">
-  <div
-    class="categoria-item"
-    *ngFor="let cat of categorias"
-    [class.active]="categoriasActivas.includes(cat.valor)"
-    (click)="selectCategoria(cat.valor)">
-    
-    <img [src]="cat.icono" alt="{{ cat.nombre }}" />
-    <div class="nombre">{{ cat.nombre }}</div>
-  </div>
-</div>
-</ion-toolbar>
+  <ion-toolbar>
+    <div class="searchbar-con-boton">
+      <ion-searchbar
+        placeholder="Buscar sala o empresa..."
+        [(ngModel)]="filters.query"
+        (ionInput)="reloadSalas()"
+        debounce="300"
+        showCancelButton="never"
+        animated>
+      </ion-searchbar>
+
+      <ion-button fill="clear" size="small" class="btn-filtros" (click)="openFilters()">
+        <ion-icon name="options-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button fill="clear" size="small" class="btn-mapa" (click)="onMapaClick()">
+        <ion-icon name="map-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="categorias-scroll">
+      <div
+        class="categoria-item"
+        *ngFor="let cat of categorias"
+        [class.active]="categoriasActivas.includes(cat.valor)"
+        (click)="selectCategoria(cat.valor)">
+        <img [src]="cat.icono" alt="{{ cat.nombre }}" />
+        <div class="nombre">{{ cat.nombre }}</div>
+      </div>
+    </div>
+  </ion-toolbar>
 </ion-header>
 
+<!-- 🔧 TODO esto debe ir dentro del ion-content -->
 <ion-content #pageContent>
+
   <ng-container *ngIf="salas$ | async as salas">
-    <app-sala-card
-      *ngFor="let sala of salas; trackBy: trackBySalaId"
-      [sala]="sala">
-    </app-sala-card>
+    <ng-container *ngIf="salas.length > 0; else noResultados">
+      <app-sala-card
+        *ngFor="let sala of salas; trackBy: trackBySalaId"
+        [sala]="sala">
+      </app-sala-card>
+    </ng-container>
   </ng-container>
+
+<ng-template #noResultados>
+  <div class="no-resultados-wrapper">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 24 24"
+         fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round"
+         class="no-resultados-icono">
+      <path d="m13.5 8.5-5 5" />
+      <path d="m8.5 8.5 5 5" />
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  </div>
+</ng-template>
+
 
   <!-- Scroll infinito -->
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" *ngIf="!todasCargadas">
@@ -54,5 +79,5 @@
       loadingText="Cargando más salas...">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
-
 </ion-content>
+

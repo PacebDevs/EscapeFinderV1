@@ -1,10 +1,4 @@
-/*ion-content {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 8px; // espacio visual opcional
-  --padding-bottom: 200px; // para evitar que se monte el último item
-  background: #fff;
-}*/
+
 
 ion-searchbar {
   --background: #f1f1f1;
@@ -136,4 +130,47 @@ ion-searchbar {
   }
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
 
+  app-direccion-picker {
+    flex: 1;
+  }
+
+  .btn-notificaciones {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    margin: 0;
+    --padding-start: 0;
+    --padding-end: 0;
+    --border-radius: 12px;
+    font-size: 20px;
+  }
+}
+.no-resultados-wrapper {
+  height: 100%;
+  width: 100%;
+  background-color: #e5f9e7; // Verde muy clarito
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  flex: 1;
+}
+
+.no-resultados-icono {
+  width: 50vw;
+  height: auto;
+  max-width: 280px;
+  stroke: #34a853; // Verde Google
+}
+
+ion-content {
+  --padding-bottom: 0;
+  --padding-top: 0;
+  height: 100%;
+}
