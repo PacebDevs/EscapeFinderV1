@@ -248,4 +248,21 @@ onNotificacionesClick() {
   console.log('🔔 Notificaciones clickeadas');
 }
 
+get filtrosActivos(): number {
+  const { ciudad, query, ...rest } = this.filters;
+
+  let total = 0;
+
+  Object.values(rest).forEach(value => {
+    if (Array.isArray(value)) {
+      total += value.length;
+    } else if (value !== undefined && value !== null && value !== '' && value !== false) {
+      total += 1;
+    }
+  });
+
+  return total;
+}
+
+
 }

@@ -121,8 +121,33 @@ ion-searchbar {
     --color: var(--ion-color-success);
     --border-radius: 12px;
     font-size: 20px;
+   position: relative;
   }
 
+.reset-btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+ --background: var(--ion-color-danger); /* 🔴 rojo */
+  color: #fff;                         /* blanco */
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  transform: scale(1); /* aparece por defecto */
+  opacity: 1;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+.reset-btn.active .reset-btn__badge {
+  transform: scale(1);
+  opacity: 1;
+}
   .btn-mapa {
     --color: #3399ff;
     --border-radius: 12px;
@@ -174,3 +199,4 @@ ion-content {
   --padding-top: 0;
   height: 100%;
 }
+
