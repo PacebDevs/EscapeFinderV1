@@ -8,6 +8,8 @@ export interface Sala {
   jugadores_max?: number; // nuevo
   tiempo?: number; // nuevo
   descripcion?: string; // nuevo
+  empresa: string; // empresa
+  puntuacion?: number; // nuevo
   categorias: string[];
   idiomas: string[];
   cover_url?: string;

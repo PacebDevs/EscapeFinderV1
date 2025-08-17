@@ -24,10 +24,11 @@
       </ion-icon>
 
       <!-- Nombre de la sala y ciudad -->
-      <div class="nombre-overlay">
-        <h2>{{ sala.nombre }}</h2>
-        <small>{{ sala.ciudad }}</small>
-      </div>
+  <div class="nombre-overlay">
+    <h2>{{ sala.nombre }}</h2>
+    <p class="empresa">{{ sala.empresa }}</p>
+    <small>{{ sala.ciudad }}</small>
+  </div>
 
       <!-- Chips de información: jugadores, tiempo, dificultad, categoría -->
       <div class="info-overlay">
@@ -35,10 +36,7 @@
           <ion-icon name="people-outline"></ion-icon>
           <span>{{ sala.jugadores }}</span>
         </div>
-        <div class="chip">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>{{ sala.tiempo || 60 }} min</span>
-        </div>
+       
         <div class="chip">
           <ion-icon name="bar-chart-outline"></ion-icon>
           <span>{{ sala.dificultad }}</span>

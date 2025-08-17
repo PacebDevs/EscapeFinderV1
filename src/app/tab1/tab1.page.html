@@ -23,7 +23,9 @@
 
       <ion-button fill="clear" size="small" class="btn-filtros" (click)="openFilters()">
         <ion-icon name="options-outline"></ion-icon>
-        <ion-badge *ngIf="filtrosActivos > 0" color="primary" class="filter-badge">{{ filtrosActivos }}</ion-badge>
+         <span
+         *ngIf="filtrosActivos > 0"
+    class="reset-btn__badge">{{ filtrosActivos }}</span>
       </ion-button>
 
       <ion-button fill="clear" size="small" class="btn-mapa" (click)="onMapaClick()">
