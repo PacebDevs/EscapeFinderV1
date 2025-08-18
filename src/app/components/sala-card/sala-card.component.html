@@ -14,7 +14,6 @@
           alt="Imagen de la sala"
         />
       </div>
-
       <!-- Icono de favorito (verde si activo) -->
       <ion-icon
         #favoriteIcon
@@ -22,40 +21,57 @@
         class="favorite-icon"
         (click)="toggleFavorito($event)">
       </ion-icon>
-
       <!-- Nombre de la sala y ciudad -->
   <div class="nombre-overlay">
     <h2>{{ sala.nombre }}</h2>
-    <p class="empresa">{{ sala.empresa }}</p>
-    <small>{{ sala.ciudad }}</small>
+    <p class="empresa">{{ sala.empresa }} - <small>{{ sala.ciudad }}</small></p>
+    </div>
   </div>
-
-      <!-- Chips de información: jugadores, tiempo, dificultad, categoría -->
-      <div class="info-overlay">
-        <div class="chip">
-          <ion-icon name="people-outline"></ion-icon>
-          <span>{{ sala.jugadores }}</span>
-        </div>
-       
-        <div class="chip">
-          <ion-icon name="bar-chart-outline"></ion-icon>
-          <span>{{ sala.dificultad }}</span>
-        </div>
-        <div class="chip" *ngIf="sala.categorias.length">
-          <ion-icon name="pricetag-outline"></ion-icon>
-          <span>{{ sala.categorias[0] }}</span>
-        </div>
-      </div>
+  <!-- Chips informativos (movidos fuera del wrapper de la imagen) -->
+  <div class="info-chips">
+    <!-- Chip de Precio (modificado para mostrar "Desde X€") -->
+    <div class="chip chip-precio" *ngIf="sala.precio_min_pp">
+      <ion-icon name="cash-outline"></ion-icon>
+      <span>Desde {{ sala.precio_min_pp }}€ por persona</span>
     </div>
 
-    <!-- Descripción de la sala -->
-    <ion-card-content>
+    <!-- Chip de Distancia (NUEVO) -->
+    <div class="chip" *ngIf="sala.distancia_km !== null && sala.distancia_km !== undefined">
+      <ion-icon name="navigate-circle-outline"></ion-icon>
+      <span>{{ formatDistancia(sala.distancia_km) }}</span>
+    </div>
+
+    <div class="chip">
+      <ion-icon name="people-outline"></ion-icon>
+      <span>{{ sala.jugadores_min }}-{{ sala.jugadores_max }}</span>
+    </div>
+    <!--div class="chip">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ sala.tiempo }} min</span>
+    </div-->
+      <!-- Chip de Dificultad (NUEVO) -->
+       <div class="chip">
+      <ion-icon name="extension-puzzle-outline"></ion-icon>
+      <span>{{ sala.dificultad }}</span>
+    </div>
+   <!-- <div class="chip">
+      <ion-icon name="star-outline"></ion-icon>
+      <span>{{ sala.puntuacion }}</span>
+    </div>-->
+    <!-- Chip de Categorías (modificado para mostrar todas en uno) -->
+    <div class="chip" *ngIf="sala.categorias && sala.categorias.length > 0">
+      <ion-icon name="pricetag-outline"></ion-icon>
+      <span>{{ sala.categorias.join(', ') }}</span>
+    </div>
+  </div>
+
+  <!-- Contenido de la tarjeta -->
+  <ion-card-content>
       <p class="descripcion-limitada">
         {{ sala.descripcion || 'Sin descripción disponible.' }}
       </p>
     </ion-card-content>
   </ng-container>
-
   <!-- 💀 SKELETON (sólo se muestra mientras loadingImage === true) -->
   <ng-template #skeletonTemplate>
     <div class="skeleton-wrapper">
@@ -68,3 +84,4 @@
     </div>
   </ng-template>
 </ion-card>
+

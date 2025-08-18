@@ -1,36 +1,47 @@
 /* ========================================
    Estilos del componente SalaCard
    ======================================== */
-
 .sala-card {
   border-radius: 16px;
   overflow: hidden;
   background: #fff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   margin-bottom: 16px;
-
   .img-wrapper {
     position: relative;
+    border-radius: 12px;
+    overflow: hidden;
 
     .image-container {
       width: 100%;
-      height: 180px;
+      height: 240px;
       position: relative;
+
+      /* Gradiente oscuro para mejorar la legibilidad del texto */
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60%; // Cubre el 60% inferior de la imagen
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+        z-index: 1; // Se asegura que el gradiente esté sobre la imagen
+        border-radius: 0 0 12px 12px; // Redondea las esquinas inferiores
+      }
     }
 
     /* Imagen principal con fade-in cuando se ha cargado */
     img {
       width: 100%;
-      height: 180px;
+      height: 240px; // Aumentamos la altura de la imagen
       object-fit: cover;
       opacity: 0;
       transition: opacity 0.4s ease-in;
     }
-
     img.loaded {
       opacity: 1;
     }
-
     /* Icono de favorito (verde en caso activo) */
     .favorite-icon {
       position: absolute;
@@ -44,86 +55,84 @@
       background: transparent;
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
-
     .favorite-icon.pulse-animation {
       animation: pulse 0.3s ease;
     }
-
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.4); }
       100% { transform: scale(1); }
     }
-
     /* Overlay con nombre y ciudad */
-.nombre-overlay {
-  position: absolute;
-  bottom: 72px; // subimos un poco para hacer espacio al texto extra
-  left: 12px;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-  z-index: 2;
-
-  h2 {
-    font-size: 18px;
-    margin: 0;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .empresa {
-    font-size: 14px;
-    margin: 0;
-    opacity: 0.9;
-  }
-
-  small {
-    font-size: 13px;
-    opacity: 0.75;
-  }
-}
-
-
-    /* Overlay con chips informativos */
-    .info-overlay {
+    .nombre-overlay {
       position: absolute;
       bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 14px;
-      padding: 10px 20px;
-      border-radius: 28px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(6px);
-      align-items: center;
-      max-width: 95%;
-      overflow-x: auto;
-      white-space: nowrap;
-      justify-content: center;
+      left: 12px;
+      right: 12px; // Añadido para evitar que el texto largo se salga
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+      z-index: 2; // Se asegura que el texto esté sobre el gradiente
 
-      &::-webkit-scrollbar {
-        display: none;
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.2;
       }
-
-      .chip {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: white;
+      .empresa {
+        font-size: 14px;
+        margin: 0;
+        opacity: 0.9;
+      }
+      small {
         font-size: 13px;
-        padding: 4px 6px;
-
-        ion-icon {
-          font-size: 16px;
-        }
+        opacity: 0.75;
       }
+    }
+
+    /* Eliminamos el overlay de información de la imagen */
+    .info-overlay {
+      display: none;
+    }
+  }
+  /* Nueva sección para los chips de información */
+  .info-chips {
+    display: flex;
+    flex-wrap: wrap; // Permite que los chips pasen a la siguiente línea si no caben
+    gap: 8px;
+    padding: 12px 16px 0; // Añadimos padding, pero no en la parte inferior
+    justify-content: flex-start; // Alineamos al inicio
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 16px;
+      background: #f0f0f0; // Color de fondo para los chips
+      color: #333; // Color de texto para los chips
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+
+    /* Estilo específico para el chip de precio (NUEVO) */
+    .chip-precio {
+      background-color: #e8f5e9; // Un verde claro
+      color: #2e7d32;
+      font-weight: 500;
+    }
+
+    /* Estilo específico para el chip de distancia */
+    .chip-distancia {
+      background-color: #e6f3ff;
+      color: #0066cc;
+      font-weight: 500;
     }
   }
 
   ion-card-content {
     padding: 12px 16px;
-
     .descripcion-limitada {
       font-size: 14px;
       color: #444;
@@ -135,39 +144,32 @@
     }
   }
 }
-
 /* ========================================
    Skeleton de carga
    ======================================== */
-
 .skeleton-wrapper {
   padding: 16px;
 }
-
 .skeleton-image {
   width: 100%;
-  height: 180px;
+  height: 240px; // Aumentamos la altura del esqueleto
   background: #e0e0e0;
   border-radius: 12px;
   margin-bottom: 12px;
 }
-
 .skeleton-lines {
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   .skeleton-line {
     height: 14px;
     background: #ddd;
     border-radius: 8px;
-
     &.short { width: 40%; }
     &.medium { width: 60%; }
     &.long { width: 80%; }
   }
 }
-
 /* Efecto shimmer (brillo animado) */
 .shimmer {
   background: linear-gradient(
@@ -179,7 +181,6 @@
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite linear;
 }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

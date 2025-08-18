@@ -14,4 +14,7 @@ export interface Sala {
   idiomas: string[];
   cover_url?: string;
   favorito?: boolean; // visual (local)
+  distancia_km?: number; // NUEVO: Distancia en km desde la ubicación del usuario
+  precio_min_pp?: number; // NUEVO: Precio mínimo por persona
+  precio_max_pp?: number; // NUEVO: Precio máximo por persona
 }

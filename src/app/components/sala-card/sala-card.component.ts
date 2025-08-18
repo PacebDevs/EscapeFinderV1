@@ -152,4 +152,33 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
       }, 300);
     });
   }
+
+  /**
+   * Formatea la distancia para mostrarla en la tarjeta de la sala.
+   * Si la distancia es menor a 1 km, se muestra en metros.
+   * Si es 1 km o más, se muestra con un decimal.
+   */
+  formatDistancia(km: number): string {
+    if (km < 1) {
+      return `${Math.round(km * 1000)} m`;
+    }
+    return `${km.toFixed(1)} km`;
+  }
+
+  // NUEVA FUNCIÓN para formatear el rango de precios
+  formatPrecio(min?: number, max?: number): string {
+    if (min && max) {
+      if (min === max) {
+        return `${min}€`;
+      }
+      return `${min}€ - ${max}€`;
+    }
+    if (min) {
+      return `${min}€`;
+    }
+    if (max) {
+      return `${max}€`;
+    }
+    return 'N/A';
+  }
 }

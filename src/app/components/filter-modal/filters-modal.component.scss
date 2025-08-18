@@ -440,6 +440,8 @@ ion-checkbox.modern-checkbox {
     font-size: 16px;
     font-weight: 600;
     color: #444;
+    flex-shrink: 0; /* Evita que la etiqueta se encoja */
+    margin-right: 16px; /* Añade un espacio de seguridad */
   }
 
   ion-select.idioma-select {
@@ -455,8 +457,8 @@ ion-checkbox.modern-checkbox {
 
 .filter-row.jugadores-row {
   ion-select.jugadores-select {
-    min-width: 220px; // 👈 más ancho que idioma
-    flex: 1;           // 👈 se expande si hay espacio
+    min-width: 0; // Permite que el select se encoja por debajo de su ancho base
+    flex: 1;           // se expande si hay espacio
   }
 }
 
