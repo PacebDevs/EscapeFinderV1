@@ -7,6 +7,7 @@
   background: #fff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   margin-bottom: 16px;
+
   .img-wrapper {
     position: relative;
     border-radius: 12px;
@@ -17,24 +18,22 @@
       height: 240px;
       position: relative;
 
-      /* Gradiente oscuro para mejorar la legibilidad del texto */
       &::after {
         content: '';
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
-        height: 60%; // Cubre el 60% inferior de la imagen
+        height: 60%;
         background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
-        z-index: 1; // Se asegura que el gradiente esté sobre la imagen
-        border-radius: 0 0 12px 12px; // Redondea las esquinas inferiores
+        z-index: 1;
+        border-radius: 0 0 12px 12px;
       }
     }
 
-    /* Imagen principal con fade-in cuando se ha cargado */
     img {
       width: 100%;
-      height: 240px; // Aumentamos la altura de la imagen
+      height: 240px;
       object-fit: cover;
       opacity: 0;
       transition: opacity 0.4s ease-in;
@@ -42,7 +41,7 @@
     img.loaded {
       opacity: 1;
     }
-    /* Icono de favorito (verde en caso activo) */
+
     .favorite-icon {
       position: absolute;
       top: 10px;
@@ -63,15 +62,15 @@
       50% { transform: scale(1.4); }
       100% { transform: scale(1); }
     }
-    /* Overlay con nombre y ciudad */
+
     .nombre-overlay {
       position: absolute;
       bottom: 12px;
       left: 12px;
-      right: 12px; // Añadido para evitar que el texto largo se salga
+      right: 12px;
       color: white;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-      z-index: 2; // Se asegura que el texto esté sobre el gradiente
+      z-index: 2;
 
       h2 {
         margin: 0;
@@ -90,35 +89,27 @@
       }
     }
 
-    /* Eliminamos el overlay de información de la imagen */
     .info-overlay {
       display: none;
     }
   }
 
-  /* Contenedor principal para las dos filas de chips */
   .info-chips-container {
     display: flex;
     flex-direction: column;
-    gap: 8px; // Espacio entre las dos filas
+    gap: 8px;
     padding: 12px 16px 0;
   }
 
-  /* Estilo para cada fila de chips */
   .chip-row {
     display: flex;
     align-items: center;
     gap: 8px;
 
-    /*
-     * MODIFICACIÓN CLAVE:
-     * flex-basis: auto respeta el tamaño del contenido primero.
-     * flex-grow: 1 permite que TODOS los chips crezcan para llenar el espacio sobrante.
-    */
     .chip {
       flex-grow: 1;
       flex-shrink: 1;
-      flex-basis: auto; // <-- CAMBIO PRINCIPAL: respeta el tamaño del contenido
+      flex-basis: auto;
       min-width: 0;
       justify-content: center;
       text-align: center;
@@ -128,21 +119,14 @@
     }
   }
 
-  /* Fila superior: los chips se distribuyen equitativamente */
   .chip-row-top {
     justify-content: space-between;
 
-    /*
-     * PRIORIDAD DE ESPACIO INTELIGENTE:
-     * Le damos un factor de crecimiento ligeramente mayor.
-     * Ahora solo afectará al reparto del ESPACIO SOBRANTE.
-    */
     .chip-categorias {
-      flex-grow: 1.5; // Crecerá un 50% más que los otros chips al repartir el espacio extra.
+      flex-grow: 1.5;
     }
   }
 
-  /* Fila inferior: se adapta como la superior */
   .chip-row-bottom {
     justify-content: center;
 
@@ -150,41 +134,80 @@
       justify-content: space-between;
     }
 
-    /* Aplicamos la misma lógica de prioridad al chip de precio */
     .chip-precio {
-      flex-grow: 1.5; // También tiene prioridad para el espacio extra.
+      flex-grow: 1.5;
     }
   }
 
-
-  /* Estilos generales de los chips (movidos desde .info-chips) */
   .chip {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font-size: 13px;
     padding: 6px 10px;
     border-radius: 16px;
-    background: #f0f0f0;
+    font-weight: 500;
+    background: #f7f7f7;
     color: #333;
+    border: 1px solid #e0e0e0;
+    transition: background 0.2s ease;
+    animation: chipFadeIn 0.3s ease;
+
+    &:hover {
+      background: #eeeeee;
+    }
 
     ion-icon {
       font-size: 16px;
-      flex-shrink: 0; // Evita que el icono se encoja
+      flex-shrink: 0;
     }
   }
 
-  /* Estilo específico para el chip de precio */
-  .chip-precio {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    font-weight: 500;
+  .chip-row-top .chip:nth-child(1) {
+    background: #e3f2fd;
+    color: #0d47a1;
+    border-color: #bbdefb;
   }
 
-  /* Media query para pantallas muy estrechas */
+  .chip-row-top .chip:nth-child(2) {
+    background: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffe0b2;
+  }
+
+  .chip-categorias {
+    background: #ede7f6;
+    color: #5e35b1;
+    border-color: #d1c4e9;
+  }
+
+  .chip-precio {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-color: #c8e6c9;
+  }
+
+  .chip-row-bottom .chip:not(.chip-precio) {
+    background: #fce4ec;
+    color: #ad1457;
+    border-color: #f8bbd0;
+  }
+
+  @keyframes chipFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
   @media (max-width: 360px) {
     .chip-row-top .chip {
-      font-size: 11px; // Reduce el tamaño de la fuente
+      font-size: 11px;
       padding: 5px 8px;
 
       ion-icon {
@@ -192,7 +215,6 @@
       }
     }
   }
-
 
   ion-card-content {
     padding: 12px 16px;
@@ -207,6 +229,7 @@
     }
   }
 }
+
 /* ========================================
    Skeleton de carga
    ======================================== */
@@ -215,7 +238,7 @@
 }
 .skeleton-image {
   width: 100%;
-  height: 240px; // Aumentamos la altura del esqueleto
+  height: 240px;
   background: #e0e0e0;
   border-radius: 12px;
   margin-bottom: 12px;
@@ -233,7 +256,6 @@
     &.long { width: 80%; }
   }
 }
-/* Efecto shimmer (brillo animado) */
 .shimmer {
   background: linear-gradient(
     to right,
