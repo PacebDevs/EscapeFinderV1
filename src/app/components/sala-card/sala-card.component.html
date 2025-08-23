@@ -27,41 +27,36 @@
     <p class="empresa">{{ sala.empresa }} - <small>{{ sala.ciudad }}</small></p>
     </div>
   </div>
-  <!-- Chips informativos (movidos fuera del wrapper de la imagen) -->
-  <div class="info-chips">
-    <!-- Chip de Precio (modificado para mostrar "Desde X€") -->
-    <div class="chip chip-precio" *ngIf="sala.precio_min_pp">
-      <ion-icon name="cash-outline"></ion-icon>
-      <span>Desde {{ sala.precio_min_pp }}€ por persona</span>
+  <!-- Chips informativos agrupados en dos filas -->
+  <div class="info-chips-container">
+    <!-- Fila Superior: Jugadores, Dificultad, Categorías -->
+    <div class="chip-row chip-row-top">
+      <div class="chip">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>{{ sala.jugadores_min }}-{{ sala.jugadores_max }}</span>
+      </div>
+      <div class="chip">
+        <ion-icon name="extension-puzzle-outline"></ion-icon>
+        <span>{{ sala.dificultad }}</span>
+      </div>
+      <div class="chip chip-categorias" *ngIf="sala.categorias && sala.categorias.length > 0">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <span>{{ sala.categorias.join(', ') }}</span>
+      </div>
     </div>
 
-    <!-- Chip de Distancia (NUEVO) -->
-    <div class="chip" *ngIf="sala.distancia_km !== null && sala.distancia_km !== undefined">
-      <ion-icon name="navigate-circle-outline"></ion-icon>
-      <span>{{ formatDistancia(sala.distancia_km) }}</span>
-    </div>
-
-    <div class="chip">
-      <ion-icon name="people-outline"></ion-icon>
-      <span>{{ sala.jugadores_min }}-{{ sala.jugadores_max }}</span>
-    </div>
-    <!--div class="chip">
-      <ion-icon name="time-outline"></ion-icon>
-      <span>{{ sala.tiempo }} min</span>
-    </div-->
-      <!-- Chip de Dificultad (NUEVO) -->
-       <div class="chip">
-      <ion-icon name="extension-puzzle-outline"></ion-icon>
-      <span>{{ sala.dificultad }}</span>
-    </div>
-   <!-- <div class="chip">
-      <ion-icon name="star-outline"></ion-icon>
-      <span>{{ sala.puntuacion }}</span>
-    </div>-->
-    <!-- Chip de Categorías (modificado para mostrar todas en uno) -->
-    <div class="chip" *ngIf="sala.categorias && sala.categorias.length > 0">
-      <ion-icon name="pricetag-outline"></ion-icon>
-      <span>{{ sala.categorias.join(', ') }}</span>
+    <!-- Fila Inferior: Precio y Distancia -->
+    <div class="chip-row chip-row-bottom">
+      <!-- Chip de Precio -->
+      <div class="chip chip-precio" *ngIf="sala.precio_min_pp">
+        <ion-icon name="cash-outline"></ion-icon>
+        <span>Desde {{ sala.precio_min_pp }}€ por persona</span>
+      </div>
+      <!-- Chip de Distancia -->
+      <div class="chip" *ngIf="sala.distancia_km !== null && sala.distancia_km !== undefined">
+        <ion-icon name="navigate-circle-outline"></ion-icon>
+        <span>{{ formatDistancia(sala.distancia_km) }}</span>
+      </div>
     </div>
   </div>
 
