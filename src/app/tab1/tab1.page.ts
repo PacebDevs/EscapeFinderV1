@@ -37,7 +37,8 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   cargando = false;
   observer!: IntersectionObserver;
 
-
+  toolbarHidden = false;
+  private lastScrollTop = 0;
 
   constructor(
     private store: Store,
@@ -233,6 +234,15 @@ loadMore(event?: any) {
     this.cargando = false;
   });
 }
+onScroll(ev: any) {
+    const scrollTop = ev.detail?.scrollTop || 0;
+    if (scrollTop > this.lastScrollTop && scrollTop > 100) {
+      this.toolbarHidden = true;
+    } else if (scrollTop < this.lastScrollTop - 10) {
+      this.toolbarHidden = false;
+    }
+    this.lastScrollTop = scrollTop;
+  }
 
 
   trackBySalaId(_i: number, sala: any): any {

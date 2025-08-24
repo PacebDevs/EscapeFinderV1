@@ -1,3 +1,17 @@
+ion-header {
+  .header-toolbar {
+    overflow: hidden;
+    max-height: 300px;
+    transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  &.toolbar-hidden .header-toolbar {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
 ion-searchbar {
   --background: #f1f1f1;
   --border-radius: 16px;

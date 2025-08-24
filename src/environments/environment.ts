@@ -8,14 +8,14 @@ export const environment = {
   //apiUrl: 'http://192.168.1.131:3000/api',
   //imageURL: 'http://192.168.1.131:3000/'
 //Internet
-  //apiUrl: 'https://clinics-invision-bios-miller.trycloudflare.com/api',
-  //imageURL: 'https://clinics-invision-bios-miller.trycloudflare.com/'
+  //apiUrl: 'https://soil-gabriel-violation-structured.trycloudflare.com/api',
+  //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'
 /*PARCELA*/
-apiUrl: 'http://192.168.1.207:3000/api',
-imageURL: 'http://192.168.1.207:3000/'
+apiUrl: 'http://192.168.1.205:3000/api',
+imageURL: 'http://192.168.1.205:3000/'
 
 };
 

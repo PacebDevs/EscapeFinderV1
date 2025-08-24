@@ -1,4 +1,4 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border" [class.toolbar-hidden]="toolbarHidden">
   <div class="top-actions">
     <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
     <ion-button
@@ -9,7 +9,7 @@
       <ion-icon name="notifications-outline"></ion-icon>
     </ion-button>
   </div>
-
+  <div class="header-toolbar">
   <ion-toolbar>
     <div class="searchbar-con-boton">
       <ion-searchbar
@@ -44,10 +44,11 @@
       </div>
     </div>
   </ion-toolbar>
+  </div>
 </ion-header>
 
 <!-- 🔧 TODO esto debe ir dentro del ion-content -->
-<ion-content #pageContent>
+<ion-content #pageContent scrollEvents="true" (ionScroll)="onScroll($event)">
 
   <ng-container *ngIf="salas$ | async as salas">
     <ng-container *ngIf="salas.length > 0; else noResultados">
