@@ -1,5 +1,5 @@
 // tab1.page.ts
-import { Component, OnInit, OnDestroy, ViewChild,  AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
@@ -10,7 +10,6 @@ import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
 import { IonInfiniteScroll } from '@ionic/angular';
 import { UsuarioState } from '../states/usuario.state';
-
 
 @Component({
   selector: 'app-tab1',
@@ -25,11 +24,18 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   categoriasActivas: string[] = [];
   numeroSalas = 0;
   private subs: Subscription[] = [];
-  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
-   @ViewChild(IonContent) pageContent!: IonContent;
 
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
+  @ViewChild(IonContent) pageContent!: IonContent;
+
+  // Header movible (sticky) dentro del ion-content
+  @ViewChild('collapsible', { static: false }) collapsibleRef!: ElementRef<HTMLDivElement>;
+
+
+
+  
   private latUsuario: number | null = null;
-  private lngUsuario: number | null = null; 
+  private lngUsuario: number | null = null;
 
   limit = 20;
   offset = 0;
@@ -37,8 +43,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   cargando = false;
   observer!: IntersectionObserver;
 
-  toolbarHidden = false;
-  private lastScrollTop = 0;
+  // Estado del colapso/movimiento
+  private maxCollapse = 0;     // altura natural del bloque colapsable
+  private headerOffset = 0;    // desplazamiento consumido (0..maxCollapse)
+  private lastY = 0;           // último scrollTop para Δ
+  private ticking = false;
+  private ro?: ResizeObserver;
+  
 
   constructor(
     private store: Store,
@@ -47,114 +58,163 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
+    this.subs.push(this.salas$.subscribe(salas => (this.numeroSalas = salas.length)));
+
     this.subs.push(
-      this.salas$.subscribe(salas => {
-        this.numeroSalas = salas.length;
-      })
-    );
-   this.subs.push(
-    this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
-      const { ciudad, lat, lng } = ubicacion || {};
-      this.latUsuario = lat ?? null;
-      this.lngUsuario = lng ?? null;
-      if (ciudad) {
-        this.filters = { ...this.filters, ciudad };
-      } else {
-        const { ciudad: _c, ...rest } = this.filters;
-        this.filters = { ...rest };
-      }
-    })
-  );
-    this.socketService.connect();
-    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
-    this.subs.push(
-      this.socketService.listenSalaModificada().subscribe(sala => {
-        if (this.aplicaFiltros(sala)) {
-          this.store.dispatch(new UpdateSala(sala));
+      this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+        const { ciudad, lat, lng } = ubicacion || {};
+        this.latUsuario = lat ?? null;
+        this.lngUsuario = lng ?? null;
+        if (ciudad) {
+          this.filters = { ...this.filters, ciudad };
+        } else {
+          const { ciudad: _c, ...rest } = this.filters;
+          this.filters = { ...rest };
         }
       })
     );
 
+    this.socketService.connect();
+    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
+    this.subs.push(
+      this.socketService.listenSalaModificada().subscribe(sala => {
+        if (this.aplicaFiltros(sala)) this.store.dispatch(new UpdateSala(sala));
+      })
+    );
+
     this.reloadSalas();
   }
 
-ngAfterViewInit() {
-  this.observer = new IntersectionObserver(entries => {
-    const entry = entries[0];
-    console.log('🎯 Observando intersección:', entry);
-    if (entry.isIntersecting && !this.cargando && !this.todasCargadas) {
-      this.loadMore();
+  async ngAfterViewInit() {
+    // (opcional) infinito manual
+    this.observer = new IntersectionObserver(entries => {
+      const entry = entries[0];
+      if (entry.isIntersecting && !this.cargando && !this.todasCargadas) this.loadMore();
+    });
+
+    // Asegura que el toolbar está listo y mide alturas
+    await this.waitForToolbarReady();
+    this.measureAndFixHeaderHeight(); // fija maxCollapse y deja el contenedor sticky con altura FIJA
+
+    // Estado inicial del movimiento
+    this.headerOffset = 0;
+    this.lastY = 0;
+    this.setHeaderOffsetVar(0); // inner sin desplazar
+
+    // Observa cambios de tamaño dinámicos (chips, etc.) y mantiene la proporción visible
+    const el = this.collapsibleRef?.nativeElement;
+    if (el && 'ResizeObserver' in window) {
+      this.ro = new ResizeObserver(() => {
+        const visibleAntes = Math.max(0, this.maxCollapse - this.headerOffset);
+        this.measureAndFixHeaderHeight(); // recalcula maxCollapse y actualiza altura fija del contenedor
+        const visibleDespues = Math.max(0, Math.min(visibleAntes, this.maxCollapse));
+        this.headerOffset = Math.max(0, this.maxCollapse - visibleDespues);
+        this.setHeaderOffsetVar(Math.round(this.headerOffset));
+      });
+      this.ro.observe(el);
     }
-  });
-
-}
-
+  }
 
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
-  
+    if (this.ro) { try { this.ro.disconnect(); } catch {} this.ro = undefined; }
   }
 
+  // ======== Arrastre 1:1 por DELTAS — solo transform, sin cambiar alturas en scroll ========
+  onScroll(ev: any) {
+    const y = ev?.detail?.scrollTop ?? 0;
+    if (!this.maxCollapse) return;
 
+    const dy = y - this.lastY;
+    this.lastY = y;
+
+    // Ignora micro-deltas para evitar ruido (sensores / inercia)
+    if (Math.abs(dy) < 0.25) return;
+
+    this.headerOffset = Math.max(0, Math.min(this.headerOffset + dy, this.maxCollapse));
+
+    if (!this.ticking) {
+      this.ticking = true;
+      requestAnimationFrame(() => {
+        // Redondear a píxel evita vibraciones por subpíxel
+        const offset = Math.round(this.headerOffset);
+        this.setHeaderOffsetVar(offset); // SOLO movemos el inner (translate3d)
+        this.ticking = false;
+      });
+    }
+  }
+
+  // ========== Utilidades de medición / estilo ==========
+  private async waitForToolbarReady() {
+    if ('customElements' in window && (customElements as any).whenDefined) {
+      try { await (customElements as any).whenDefined('ion-toolbar'); } catch {}
+    }
+    const toolbar = this.collapsibleRef?.nativeElement?.querySelector('ion-toolbar') as any;
+    if (toolbar?.componentOnReady) { try { await toolbar.componentOnReady(); } catch {} }
+    await new Promise<void>(r => requestAnimationFrame(() => r()));
+  }
+
+  private measureAndFixHeaderHeight() {
+    const el = this.collapsibleRef?.nativeElement;
+    if (!el) return;
+
+    // medir altura natural del header
+    const prev = el.style.height;
+    el.style.height = 'auto';
+    let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
+    if (h < 1) h = 120;
+    this.maxCollapse = Math.ceil(h);
+
+    // dejar ALTURA FIJA (constante) del contenedor sticky
+    el.style.height = `${this.maxCollapse}px`;
+  }
+
+  private setHeaderOffsetVar(px: number) {
+    const el = this.collapsibleRef?.nativeElement;
+    if (!el) return;
+    el.style.setProperty('--header-offset', `${px}`);
+  }
+
+  // ========= Lógica existente =========
   async selectCategoria(valor: string) {
-  if (valor === 'Filtros') {
-    await this.openFilters();
-    return;
-  }
+    if (valor === 'Filtros') { await this.openFilters(); return; }
+    const index = this.categoriasActivas.indexOf(valor);
+    if (index > -1) this.categoriasActivas.splice(index, 1);
+    else this.categoriasActivas.push(valor);
 
-  const index = this.categoriasActivas.indexOf(valor);
-  if (index > -1) {
-    this.categoriasActivas.splice(index, 1);
-  } else {
-    this.categoriasActivas.push(valor);
-  }
+    this.filters = this.categoriasActivas.length === 0
+      ? { ...this.filters, categorias: undefined }
+      : { ...this.filters, categorias: [...this.categoriasActivas] };
 
-  this.filters = this.categoriasActivas.length === 0
-    ? { ...this.filters, categorias: undefined }
-    : { ...this.filters, categorias: [...this.categoriasActivas] };
-
-  await Haptics.impact({ style: ImpactStyle.Light });
-  this.reloadSalas();
-}
-
-async openFilters() {
-  const modal = await this.modalCtrl.create({
-    component: FiltersModalComponent,
-    componentProps: {
-      filtrosActuales: this.filters
-    },
-    showBackdrop: true,
-    cssClass: 'filters-modal-sheet',
-    breakpoints: [0, 0.5, 1],
-    initialBreakpoint: 1// porcenjage que ocupa la ventana de filtros al abrirse
-  });
-
-  await modal.present(); // 👈 Asegura que se presente
-
-  const { data } = await modal.onDidDismiss();
-console.log('data  -->'+  data )
-  if (data) {
-    this.filters = { ...this.filters, ...data };
-    this.categoriasActivas = this.filters.categorias
-      ? [...this.filters.categorias]
-      : [];
+    await Haptics.impact({ style: ImpactStyle.Light });
     this.reloadSalas();
   }
-}
+
+  async openFilters() {
+    const modal = await this.modalCtrl.create({
+      component: FiltersModalComponent,
+      componentProps: { filtrosActuales: this.filters },
+      showBackdrop: true,
+      cssClass: 'filters-modal-sheet',
+      breakpoints: [0, 0.5, 1],
+      initialBreakpoint: 1
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      this.filters = { ...this.filters, ...data };
+      this.categoriasActivas = this.filters.categorias ? [...this.filters.categorias] : [];
+      this.reloadSalas();
+    }
+  }
 
   onCiudadSeleccionada(ciudad: string | null) {
-    console.log(ciudad + 'Entra en onCiudadSeleccionada');
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
-      // Elimina la ciudad, coordenadas y cualquier otro dato relacionado con la ubicación
-      const { 
-        ciudad: _c, 
-        distancia_km: _d, 
-        coordenadas: _coords,  // eliminamos coordenadas
-        ...rest 
-      } = this.filters;
+      const { ciudad: _c, distancia_km: _d, coordenadas: _coords, ...rest } = this.filters;
       this.filters = { ...rest };
     }
     this.reloadSalas();
@@ -176,8 +236,7 @@ console.log('data  -->'+  data )
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
     if (!filtros.distancia_km) {
-      delete filtros.lat;
-      delete filtros.lng;
+      delete filtros.lat; delete filtros.lng;
     } else {
       filtros.lat = this.latUsuario;
       filtros.lng = this.lngUsuario;
@@ -187,92 +246,48 @@ console.log('data  -->'+  data )
 
   reloadSalas() {
     this.pageContent?.scrollToTop(0);
+
+    // Reset visual del header (totalmente visible)
+    this.headerOffset = 0;
+    this.lastY = 0;
+    this.setHeaderOffsetVar(0);
+
     this.offset = 0;
     this.todasCargadas = false;
     this.cargando = true;
-    const filtros = this.getFiltros(0);
 
-    console.log('🧼 Filtros al resetear:', this.filters)
-    console.log(filtros)
-      
+    const filtros = this.getFiltros(0);
     this.store.dispatch(new GetSalas(filtros)).subscribe({
-      next: () => {
-        this.offset = this.limit;
-        this.cargando = false;
-      },
-      error: (err) => {
-        this.cargando = false;
-        // Aquí podrías mostrar un toast o alerta
-        console.error('Error al cargar salas', err);
-      }
+      next: () => { this.offset = this.limit; this.cargando = false; },
+      error: (err) => { this.cargando = false; console.error('Error al cargar salas', err); }
     });
   }
 
+  loadMore(event?: any) {
+    if (this.cargando || this.todasCargadas) { event?.target?.complete(); return; }
+    this.cargando = true;
 
-
-loadMore(event?: any) {
-  if (this.cargando || this.todasCargadas) {
-    event?.target?.complete();
-    return;
+    const filtros = this.getFiltros(this.offset);
+    this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
+      const recibidas = res.sala?.cantidad || 0;
+      this.offset += recibidas;
+      if (recibidas === 0 || recibidas < this.limit) this.todasCargadas = true;
+      event?.target?.complete();
+      this.cargando = false;
+    });
   }
 
-  this.cargando = true;
-  const filtros = this.getFiltros(this.offset);
+  trackBySalaId(_i: number, sala: any): any { return sala.id_sala; }
+  onMapaClick() { console.log('🗺️ Click en botón de mapa (a implementar)'); }
+  onNotificacionesClick() { console.log('🔔 Notificaciones clickeadas'); }
 
-  this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
-    const recibidas = res.sala?.cantidad || 0;
-    
-    console.log(`🧾 Recibidas ${recibidas} salas, offset actual: ${this.offset}`);
-//console.log('🧾 Recibidas IDs:', res.sala.salas.map(s => s.id_sala));
-    this.offset += recibidas;
-
-    if (recibidas === 0 || recibidas < this.limit) {
-      this.todasCargadas = true;
-    }
-
-    event?.target?.complete();
-    this.cargando = false;
-  });
-}
-onScroll(ev: any) {
-    const scrollTop = ev.detail?.scrollTop || 0;
-    if (scrollTop > this.lastScrollTop && scrollTop > 100) {
-      this.toolbarHidden = true;
-    } else if (scrollTop < this.lastScrollTop - 10) {
-      this.toolbarHidden = false;
-    }
-    this.lastScrollTop = scrollTop;
+  get filtrosActivos(): number {
+    const { ciudad, query, ...rest } = this.filters;
+    let total = 0;
+    Object.values(rest).forEach(value => {
+      if (Array.isArray(value)) total += value.length;
+      else if (value !== undefined && value !== null && value !== '' && value !== false) total += 1;
+    });
+    return total;
   }
-
-
-  trackBySalaId(_i: number, sala: any): any {
-    return sala.id_sala;
-  }
-
-  onMapaClick() {
-  console.log('🗺️ Click en botón de mapa (a implementar)');
-}
-
-onNotificacionesClick() {
-  // abrir modal, redirigir, mostrar alert, etc.
-  console.log('🔔 Notificaciones clickeadas');
-}
-
-get filtrosActivos(): number {
-  const { ciudad, query, ...rest } = this.filters;
-
-  let total = 0;
-
-  Object.values(rest).forEach(value => {
-    if (Array.isArray(value)) {
-      total += value.length;
-    } else if (value !== undefined && value !== null && value !== '' && value !== false) {
-      total += 1;
-    }
-  });
-
-  return total;
-}
-
-
 }
