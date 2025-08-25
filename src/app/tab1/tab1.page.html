@@ -53,9 +53,7 @@
   <!-- Lista de salas -->
   <ng-container *ngIf="salas$ | async as salas">
     <ng-container *ngIf="salas.length > 0; else noResultados">
-      <app-sala-card
-        *ngFor="let sala of salas; trackBy: trackBySalaId"
-        [sala]="sala">
+      <app-sala-card class="sala-card" *ngFor="let sala of salas; trackBy: trackBySalaId" [sala]="sala">
       </app-sala-card>
     </ng-container>
   </ng-container>

@@ -8,7 +8,7 @@ export const environment = {
   //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
 
   /*PARCELA*/
-apiUrl: 'http://192.168.1.207:3000/api',
-imageURL: 'http://192.168.1.207:3000/'
+apiUrl: 'http://192.168.1.205:3000/api',
+imageURL: 'http://192.168.1.205:3000/'
 
 };

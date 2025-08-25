@@ -49,9 +49,26 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   private lastY = 0;           // último scrollTop para Δ
   private ticking = false;
   private ro?: ResizeObserver;
-  
+  private scrollEl!: HTMLElement;
+    
+// ── Config dinámica en FRACCIONES ──
+REVEAL_START_FRAC = 1;      // hay que “tirar” ~100% del alto del header para armar
+REQUIRED_HIDDEN_FRAC = 0.75;   // el header debe estar oculto ~75% para permitir snap
+REVEAL_SNAP_FRAC = 0.70;       // la primera card a ~25% del alto del header del borde
 
-  constructor(
+
+// Derivados (se recalculan al medir el header)
+private revealStartPx = 0;          // = maxCollapse * REVEAL_START_FRAC
+private revealSnapPx  = 0;          // = maxCollapse * REVEAL_SNAP_FRAC
+private minDeltaPx    = 0.75;       // umbral anti-microgesto dependiente de DPR
+
+// Estado de gesto
+private revealAccum = 0;
+private revealArmed = false;
+private lastDir: 1 | -1 | 0 = 0;    // dirección anterior del scroll: 1 = abajo, -1 = arriba
+
+
+    constructor(
     private store: Store,
     private socketService: SocketService,
     private modalCtrl: ModalController
@@ -92,8 +109,8 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
       if (entry.isIntersecting && !this.cargando && !this.todasCargadas) this.loadMore();
     });
 
-    // Asegura que el toolbar está listo y mide alturas
     await this.waitForToolbarReady();
+    this.scrollEl = await this.pageContent.getScrollElement();
     this.measureAndFixHeaderHeight(); // fija maxCollapse y deja el contenedor sticky con altura FIJA
 
     // Estado inicial del movimiento
@@ -122,28 +139,70 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // ======== Arrastre 1:1 por DELTAS — solo transform, sin cambiar alturas en scroll ========
-  onScroll(ev: any) {
-    const y = ev?.detail?.scrollTop ?? 0;
-    if (!this.maxCollapse) return;
+onScroll(ev: any) {
+  const y = ev?.detail?.scrollTop ?? 0;
+  if (!this.maxCollapse) return;
 
-    const dy = y - this.lastY;
-    this.lastY = y;
+  const dy = y - this.lastY;
+  this.lastY = y;
 
-    // Ignora micro-deltas para evitar ruido (sensores / inercia)
-    if (Math.abs(dy) < 0.25) return;
+  const dir: 1 | -1 = dy > 0 ? 1 : -1;
 
-    this.headerOffset = Math.max(0, Math.min(this.headerOffset + dy, this.maxCollapse));
+  // 0) ignora micro-deltas (ruido)
+  if (Math.abs(dy) < this.minDeltaPx) return;
 
-    if (!this.ticking) {
-      this.ticking = true;
-      requestAnimationFrame(() => {
-        // Redondear a píxel evita vibraciones por subpíxel
-        const offset = Math.round(this.headerOffset);
-        this.setHeaderOffsetVar(offset); // SOLO movemos el inner (translate3d)
-        this.ticking = false;
-      });
+  // 1) si cambia la dirección, resetea la “arma” del reveal
+  if (dir !== this.lastDir) {
+    this.revealAccum = 0;
+    this.revealArmed = false;
+    this.lastDir = dir;
+  }
+
+  if (dir === 1) {
+    // 2) scroll hacia ABAJO → ocultar sin fricción
+    this.revealAccum = 0;
+    this.revealArmed = false;
+    this.headerOffset = Math.min(this.maxCollapse, this.headerOffset + dy);
+  } else {
+    // 3) scroll hacia ARRIBA → revelar con histeresis
+    const nearCardEdge = this.isFirstCardNearTop();
+    const enoughHidden = this.headerOffset >= (this.maxCollapse * this.REQUIRED_HIDDEN_FRAC);
+
+    if (!this.revealArmed) {
+      // acumula el gesto hacia arriba
+      this.revealAccum += (-dy); // dy < 0
+
+      // Se arma si: a) se supera el umbral proporcional, o
+      // b) hay snap (primera card en el borde) y el header estaba suficientemente oculto
+      if (this.revealAccum >= this.revealStartPx || (nearCardEdge && enoughHidden)) {
+        this.revealArmed = true;
+      } else {
+        return; // gesto pequeño aún → ignorar
+      }
+    }
+
+    // Ya armado → revelar sin fricción
+    this.headerOffset = Math.max(0, this.headerOffset + dy);
+
+    // Si se abrió del todo, limpia estados
+    if (this.headerOffset === 0) {
+      this.revealArmed = false;
+      this.revealAccum = 0;
     }
   }
+
+  // 4) pintar usando rAF (sin subpíxel)
+  if (!this.ticking) {
+    this.ticking = true;
+    requestAnimationFrame(() => {
+      const offset = Math.round(this.headerOffset);
+      this.setHeaderOffsetVar(offset);
+      this.ticking = false;
+    });
+  }
+}
+
+
 
   // ========== Utilidades de medición / estilo ==========
   private async waitForToolbarReady() {
@@ -155,20 +214,43 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     await new Promise<void>(r => requestAnimationFrame(() => r()));
   }
 
-  private measureAndFixHeaderHeight() {
-    const el = this.collapsibleRef?.nativeElement;
-    if (!el) return;
+private measureAndFixHeaderHeight() {
+  const el = this.collapsibleRef?.nativeElement;
+  if (!el) return;
 
-    // medir altura natural del header
-    const prev = el.style.height;
-    el.style.height = 'auto';
-    let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
-    if (h < 1) h = 120;
-    this.maxCollapse = Math.ceil(h);
+  el.style.height = 'auto';
+  let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
+  if (h < 1) h = 120;
+  this.maxCollapse = Math.ceil(h);
 
-    // dejar ALTURA FIJA (constante) del contenedor sticky
-    el.style.height = `${this.maxCollapse}px`;
+  // altura FIJA del contenedor sticky
+  el.style.height = `${this.maxCollapse}px`;
+
+  // ── Derivados dinámicos ──
+  this.revealStartPx = this.maxCollapse * this.REVEAL_START_FRAC;
+  this.revealSnapPx  = this.maxCollapse * this.REVEAL_SNAP_FRAC;
+
+  // Umbral anti-microgesto según densidad de pantalla
+  const dpr = (window.devicePixelRatio || 1);
+  // evita ruido: aprox 1px físico; sube ligeramente en dpr altos
+  this.minDeltaPx = Math.max(0.5, 1.0 / dpr) * 1.2;
+}
+
+
+private isFirstCardNearTop(): boolean {
+  if (!this.scrollEl) return false;
+
+  const scrollerTop = this.scrollEl.getBoundingClientRect().top;
+  const cards = this.scrollEl.querySelectorAll<HTMLElement>('app-sala-card, .sala-card');
+
+  for (const card of Array.from(cards)) {
+    const topRel = card.getBoundingClientRect().top - scrollerTop;
+    if (topRel >= 0) {
+      return topRel <= this.revealSnapPx; // dinámico
+    }
   }
+  return false;
+}
 
   private setHeaderOffsetVar(px: number) {
     const el = this.collapsibleRef?.nativeElement;
