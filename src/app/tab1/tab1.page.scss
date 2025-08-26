@@ -189,6 +189,15 @@ ion-searchbar {
   flex: 1;
 }
 
+.no-scroll-overlay {
+  position: absolute;
+  inset: 0; /* cubrir todo el ion-content */
+  /* debe quedar POR DEBAJO del header colapsable (z-index: 1000) para permitir clicks en él */
+  z-index: 900;
+  background: transparent;
+  touch-action: none; /* evita gestos táctiles */
+}
+
 .no-resultados-icono {
   width: 50vw;
   height: auto;

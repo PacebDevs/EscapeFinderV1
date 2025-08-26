@@ -9,6 +9,9 @@
 
 <ion-content #pageContent scrollEvents="true" (ionScroll)="onScroll($event)">
 
+  <!-- Overlay transparente que impide el scroll (touch + wheel) cuando no hay salas -->
+  <div class="no-scroll-overlay" *ngIf="numeroSalas === 0" (wheel)="$event.preventDefault()"></div>
+
   <!-- Header colapsable pegajoso -->
   <div #collapsible class="collapsible">
     <div class="collapsible-inner">

@@ -54,7 +54,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 // ── Config dinámica en FRACCIONES ──
 REVEAL_START_FRAC = 1;      // hay que “tirar” ~100% del alto del header para armar
 REQUIRED_HIDDEN_FRAC = 0.75;   // el header debe estar oculto ~75% para permitir snap
-REVEAL_SNAP_FRAC = 0.70;       // la primera card a ~25% del alto del header del borde
+REVEAL_SNAP_FRAC = 0.25;       // la primera card a ~25% del alto del header del borde
 
 
 // Derivados (se recalculan al medir el header)
