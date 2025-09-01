@@ -1,7 +1,16 @@
 <div class="direccion-picker">
   <ion-item button lines="none" class="trigger" (click)="togglePanel()">
-    <ion-label>
-      <span [class.seleccionada]="ciudadActual">{{ ciudadActual || 'Dirección' }}</span>
+    <ion-label class="ubicacion-label">
+      <div class="linea-ubicacion">
+        <span class="ciudad" [class.seleccionada]="ciudadActual">{{ ciudadActual ? ciudadActual : 'Dirección' }}</span>
+  <ng-container *ngIf="ciudadActual && !calleNumero">
+          <span class="centro">(centro)</span>
+        </ng-container>
+        <ng-container *ngIf="calleNumero">
+          <span class="sep">·</span>
+          <span #direccionEl class="direccion" [class.compacta]="direccionCompacta">{{ calleNumero }}</span>
+        </ng-container>
+      </div>
     </ion-label>
     <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
   </ion-item>
@@ -46,6 +55,20 @@
           showCancelButton="never"
           placeholder="Buscar ciudad o dirección">
         </ion-searchbar>
+
+        <!-- Dirección completa seleccionada, centrada; se muestra solo cuando no hay autocompletados -->
+        <div class="direccion-completa-wrapper" *ngIf="direccionActual && predicciones.length === 0">
+          <div class="direccion-completa" role="note" aria-label="Ubicación actual seleccionada">
+            <ion-badge color="success" class="badge-actual">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Ubicación actual</span>
+            </ion-badge>
+            <div class="direccion-completa-line">
+              <ion-icon name="location-outline" class="direccion-completa-icon" aria-hidden="true"></ion-icon>
+              <span class="direccion-completa-text">{{ direccionActual }}</span>
+            </div>
+          </div>
+        </div>
 
         <ion-list *ngIf="predicciones.length > 0" class="predictions-list">
           <ion-item button lines="none" class="prediction-item" *ngFor="let p of predicciones" (click)="seleccionar(p)">

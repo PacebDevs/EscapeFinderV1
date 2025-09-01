@@ -8,9 +8,69 @@
   --background: transparent;
 }
 
-.trigger .seleccionada {
+.ubicacion-label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+}
+
+.linea-ubicacion {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.ciudad {
+  font-weight: 600;
+  color: var(--ion-text-color, #222);
+  flex: 0 0 auto; /* ciudad no se encoge */
+}
+
+.ciudad.seleccionada {
   color: var(--ion-color-success);
+}
+
+.centro {
+  color: var(--ion-color-medium);
   font-weight: 500;
+}
+
+.sep {
+  color: var(--ion-color-medium);
+  flex: 0 0 auto;
+}
+
+.direccion {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto; /* esta parte sí se encoge y elide */
+}
+
+.direccion.compacta {
+  font-size: 12px;
+}
+.ciudad {
+  font-weight: 600;
+  color: var(--ion-text-color, #222);
+}
+
+.ciudad.seleccionada {
+  color: var(--ion-color-success);
+}
+
+.direccion {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* elipsis en una sola línea */
 }
 
 /* Estilos del modal tipo hoja */
@@ -145,4 +205,58 @@
   color: #065f46;
   padding: 0 2px;
   border-radius: 4px;
+}
+
+/* Dirección completa seleccionada (debajo del buscador) */
+.direccion-completa-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.direccion-completa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  max-width: 100%;
+}
+
+.direccion-completa-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.direccion-completa-icon {
+  color: var(--ion-color-success);
+  font-size: 18px;
+}
+
+.direccion-completa-text {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: pre-wrap; /* permite saltos de línea */
+  overflow-wrap: anywhere; /* permite cortes dentro de palabras largas */
+  word-break: break-word;
+  max-width: min(720px, 100%);
+}
+
+.badge-actual {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  --background: #e6f9f1;
+  --color: #047857;
+  padding: 6px 10px;
+  border-radius: 999px;
 }

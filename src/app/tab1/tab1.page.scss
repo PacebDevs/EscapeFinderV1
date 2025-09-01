@@ -1,13 +1,15 @@
 /* ====== Header fijo (fila superior) ====== */
 /* Header fijo (fila superior) */
 .top-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto; /* la dirección ocupa todo; la campana queda al borde */
   align-items: center;
-  justify-content: space-between;
+  column-gap: 8px;
   padding: 0 8px;
 
+  /* el picker puede crecer y también encogerse sin romper el layout */
   app-direccion-picker {
-    flex: 1;
+    min-width: 0; /* clave para que el texto no fuerce overflow del grid */
   }
 
   .btn-notificaciones {
@@ -15,6 +17,7 @@
     height: 32px;
     min-width: 32px;
     margin: 0;
+    justify-self: end; /* al borde derecho */
     --padding-start: 0;
     --padding-end: 0;
     --border-radius: 12px;
