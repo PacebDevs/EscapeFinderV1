@@ -238,17 +238,106 @@ private measureAndFixHeaderHeight() {
 
 
 private isFirstCardNearTop(): boolean {
-  if (!this.scrollEl) return false;
+  if (!this.scrollEl) {
+    console.log('Debug isFirstCardNearTop: No scrollEl');
+    return false;
+  }
 
   const scrollerTop = this.scrollEl.getBoundingClientRect().top;
-  const cards = this.scrollEl.querySelectorAll<HTMLElement>('app-sala-card, .sala-card');
+  
+  // Buscar en todo el documento, no solo en scrollEl
+  // Esto es necesario porque las tarjetas pueden estar en shadow DOM o en otra parte del árbol DOM
+  const cardsInDocument = document.querySelectorAll<HTMLElement>('app-sala-card, .sala-card, ion-card');
+  
+  // También buscar dentro de los shadow roots si es posible
+  // (Este es un intento más avanzado de buscar dentro de componentes web)
+  let shadowCards: HTMLElement[] = [];
+  try {
+    // Buscar dentro del contenedor principal de la página (ion-content)
+    const ionContent = document.querySelector('ion-content');
+    if (ionContent && ionContent.shadowRoot) {
+      // Buscar las tarjetas dentro del shadow root de ion-content
+      const shadowCardElements = ionContent.shadowRoot.querySelectorAll<HTMLElement>('app-sala-card, .sala-card, ion-card, .card');
+      shadowCards = Array.from(shadowCardElements);
+      
+      // También buscar en los slots
+      const slots = ionContent.shadowRoot.querySelectorAll('slot');
+      slots.forEach(slot => {
+        const assignedElements = slot.assignedElements();
+        for (const el of assignedElements) {
+          if (el.tagName === 'APP-SALA-CARD' || 
+              (el as HTMLElement).classList.contains('sala-card') || 
+              el.tagName === 'ION-CARD') {
+            shadowCards.push(el as HTMLElement);
+          }
+          
+          // Buscar también en los hijos directos de los elementos asignados
+          el.querySelectorAll<HTMLElement>('app-sala-card, .sala-card, ion-card').forEach(child => {
+            shadowCards.push(child);
+          });
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Error buscando en shadow DOM:', e);
+  }
+  
+  // Combinar todas las tarjetas encontradas
+  const allCards = [...Array.from(cardsInDocument), ...shadowCards];
+  
+  console.log(`Debug isFirstCardNearTop: scrollerTop=${scrollerTop}, cardsInDocument=${cardsInDocument.length}, shadowCards=${shadowCards.length}, revealSnapPx=${this.revealSnapPx}`);
+  
+  // Si no encontramos tarjetas, intentar detectar por el scrollTop
+  if (allCards.length === 0) {
+    // Ver el contenido DOM del documento para ayudar a diagnosticar
+    console.log('Debug document body:', document.body.innerHTML.substring(0, 200) + '...');
+    
+    // Como fallback, evaluar basado en la posición de scroll
+    // Si estamos cerca del inicio o en la parte superior, consideramos que la primera tarjeta está cerca
+    const isNearTop = this.scrollEl.scrollTop < 20;
+    if (isNearTop) {
+      console.log('Fallback: Estamos en la parte superior, consideramos que hay una tarjeta cerca');
+      return true;
+    }
+    
+    // Otra estrategia: ver si hay elementos importantes cerca del borde superior
+    const anyVisibleElements = document.elementsFromPoint(window.innerWidth/2, scrollerTop + this.revealSnapPx);
+    const hasRelevantElement = anyVisibleElements.some(el => 
+      el.tagName !== 'ION-HEADER' && 
+      el.tagName !== 'ION-TOOLBAR' &&
+      !el.classList.contains('collapsible')
+    );
+    
+    if (hasRelevantElement) {
+      console.log('Fallback: Hay elementos relevantes cerca del borde superior');
+      return true;
+    }
+    
+    console.log('Debug isFirstCardNearTop: No se encontraron tarjetas con ningún método');
+    return false;
+  }
 
-  for (const card of Array.from(cards)) {
-    const topRel = card.getBoundingClientRect().top - scrollerTop;
+  // Mostrar información de las tarjetas encontradas
+  allCards.slice(0, 3).forEach((card, index) => {
+    const cardTop = card.getBoundingClientRect().top;
+    const topRel = cardTop - scrollerTop;
+    console.log(`Debug tarjeta #${index}: tag=${card.tagName}, class=${card.className}, topRel=${topRel}, visible=${cardTop >= scrollerTop}`);
+  });
+
+  // Usar el algoritmo original para determinar si la primera tarjeta visible está cerca del borde superior
+  for (const card of allCards) {
+    const cardTop = card.getBoundingClientRect().top;
+    const topRel = cardTop - scrollerTop;
+    
+    // Solo considerar tarjetas visibles (no por encima del borde superior)
     if (topRel >= 0) {
-      return topRel <= this.revealSnapPx; // dinámico
+      const result = topRel <= this.revealSnapPx;
+      console.log(`Debug isFirstCardNearTop: First visible card topRel=${topRel}, revealSnapPx=${this.revealSnapPx}, result=${result}`);
+      return result;
     }
   }
+  
+  console.log('Debug isFirstCardNearTop: No card with topRel >= 0');
   return false;
 }
 
