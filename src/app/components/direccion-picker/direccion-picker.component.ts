@@ -66,6 +66,11 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     }
   }
 
+  onModalDismiss() {
+    this.abierto = false;
+    this.predicciones = [];
+  }
+
   buscar() {
     this.queryChanged.next(this.query);
   }
@@ -140,5 +145,34 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     this.abierto = false;
     this.ciudadSeleccionada.emit(null);
     this.store.dispatch(new ClearUbicacionUsuario());
+  }
+
+  // Resalta el término buscado dentro de cada predicción
+  highlight(texto: string): string {
+    const q = (this.query || '').trim();
+    if (!q) return this.escapeHtml(texto);
+    try {
+      const re = new RegExp(this.escapeRegExp(q), 'ig');
+      const safe = this.escapeHtml(texto);
+      // Aplicar el highlight buscando sobre el string original pero sustituyendo en el escapado
+      // Para mantener posiciones, hacemos un replace sobre el escapado usando el mismo regex sobre el original en paralelo
+      // Simplificación: reemplazamos sobre el escapado también (funciona mientras el escapado no altera el match del término)
+      return safe.replace(re, (m) => `<span class="hl">${this.escapeHtml(m)}</span>`);
+    } catch {
+      return this.escapeHtml(texto);
+    }
+  }
+
+  private escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  private escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 }

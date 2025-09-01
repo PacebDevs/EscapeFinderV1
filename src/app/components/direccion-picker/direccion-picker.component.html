@@ -1,31 +1,60 @@
 <div class="direccion-picker">
-  <div class="trigger" (click)="togglePanel()">
-    <span [class.seleccionada]="ciudadActual">{{ ciudadActual || 'Dirección' }} ▼</span>
-  </div>
+  <ion-item button lines="none" class="trigger" (click)="togglePanel()">
+    <ion-label>
+      <span [class.seleccionada]="ciudadActual">{{ ciudadActual || 'Dirección' }}</span>
+    </ion-label>
+    <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+  </ion-item>
 
-  <div class="panel" *ngIf="abierto">
-    <div class="search-container">
-      <ion-icon
-        name="locate"
-        class="geo-icon"
-        (click)="usarMiUbicacion()">
-      </ion-icon>
-      <ion-searchbar
-        [(ngModel)]="query"
-        (ionInput)="buscar()"
-        showCancelButton="never"
-        placeholder="Buscar ciudad o dirección">
-      </ion-searchbar>
-    </div>
+  <!-- Modal tipo hoja al 50% -->
+  <ion-modal
+    class="direccion-modal"
+    [isOpen]="abierto"
+    (didDismiss)="onModalDismiss()"
+    [initialBreakpoint]="0.5"
+    [breakpoints]="[0, 0.5, 0.9]"
+    handleBehavior="cycle">
+    <ng-template>
+      <ion-header class="modal-header">
+        <div class="header-content">
+          <h2>Seleccionar dirección</h2>
+          <ion-icon name="close-outline" class="close-icon" (click)="togglePanel()"></ion-icon>
+        </div>
+      </ion-header>
 
-    <ion-list *ngIf="predicciones.length > 0">
-      <ion-item button *ngFor="let p of predicciones" (click)="seleccionar(p)">
-        {{ p }}
-      </ion-item>
-    </ion-list>
+      <ion-content class="modal-content">
+        <div class="top-actions">
+          <ion-button size="small" fill="solid" color="success" class="action-btn locate-btn" (click)="usarMiUbicacion()">
+            <ion-icon name="locate" slot="start"></ion-icon>
+            Usar mi ubicación
+          </ion-button>
+          <ion-button size="small" fill="outline" color="medium" class="action-btn clear-btn" (click)="borrar()">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Borrar dirección
+          </ion-button>
+        </div>
 
-    <ion-button expand="block" fill="clear" color="medium" (click)="borrar()">
-      ❌ Borrar ubicación
-    </ion-button>
-  </div>
+        <ion-searchbar
+          class="searchbar-custom"
+          animated="true"
+          showClearButton="focus"
+          searchIcon="search-outline"
+          enterkeyhint="search"
+          inputmode="search"
+          [(ngModel)]="query"
+          (ionInput)="buscar()"
+          showCancelButton="never"
+          placeholder="Buscar ciudad o dirección">
+        </ion-searchbar>
+
+        <ion-list *ngIf="predicciones.length > 0" class="predictions-list">
+          <ion-item button lines="none" class="prediction-item" *ngFor="let p of predicciones" (click)="seleccionar(p)">
+            <ion-icon name="location-outline" slot="start" class="prediction-icon"></ion-icon>
+            <ion-label [innerHTML]="highlight(p)"></ion-label>
+            <ion-icon name="chevron-forward-outline" slot="end" class="prediction-chevron"></ion-icon>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </div>
