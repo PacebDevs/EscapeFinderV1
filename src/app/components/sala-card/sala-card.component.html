@@ -1,4 +1,4 @@
-<ion-card class="sala-card">
+<ion-card class="sala-card" (click)="onOpen()">
   <!-- Mostrar el contenido real solo cuando la imagen se ha cargado completamente -->
   <ng-container *ngIf="!loadingImage; else skeletonTemplate">
     
@@ -63,7 +63,7 @@
   <!-- Contenido de la tarjeta -->
   <ion-card-content>
       <p class="descripcion-limitada">
-        {{ sala.descripcion || 'Sin descripción disponible.' }}
+        {{ sala.descripcion_corta || 'Sin descripción disponible.' }}
       </p>
     </ion-card-content>
   </ng-container>

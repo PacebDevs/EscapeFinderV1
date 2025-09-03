@@ -260,3 +260,11 @@
   padding: 6px 10px;
   border-radius: 999px;
 }
+
+:host { --kb-height: 0px; }
+
+.predicciones-panel {
+  padding-bottom: max(env(safe-area-inset-bottom), var(--kb-height));
+  max-height: calc(100vh - var(--kb-height)); /* usa toda la altura disponible */
+  overflow: auto;
+}

@@ -7,7 +7,9 @@ import {
   OnDestroy,
   OnInit,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
+  Output,
+  EventEmitter 
 } from '@angular/core';
 import { Sala } from 'src/app/models/sala.model';
 import { CommonModule } from '@angular/common';
@@ -34,6 +36,7 @@ import { environment } from 'src/environments/environment';
 export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sala!: Sala;
   @ViewChild('favoriteIcon') favoriteIconRef!: ElementRef;
+  @Output() open = new EventEmitter<number>(); // <-- NUEVO
 
   isFavorito = false;
   loadingImage = true;
@@ -181,4 +184,12 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     }
     return 'N/A';
   }
+
+ 
+  
+  onOpen() {
+    // Si el click vino desde el icono favorito, ya hiciste stopPropagation() ahí
+    if (this.sala?.id_sala) this.open.emit(this.sala.id_sala);
+  }
 }
+

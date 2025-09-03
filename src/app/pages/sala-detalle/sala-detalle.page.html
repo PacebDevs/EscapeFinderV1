@@ -1,0 +1,120 @@
+<ion-content [fullscreen]="true" class="detalle-content">
+
+  <!-- Volver -->
+  <button class="btn-back" (click)="volver()" aria-label="Volver">
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </button>
+
+  <!-- Skeleton estructura -->
+  <ng-container *ngIf="cargandoDatos">
+    <div class="skel slide"></div>
+    <div class="skel title"></div>
+    <div class="skel text"></div>
+    <div class="skel text small"></div>
+    <div class="skel chips"></div>
+    <div class="skel map"></div>
+    <div class="footer-gap"></div>
+  </ng-container>
+
+  <ng-container *ngIf="!cargandoDatos && sala">
+
+    <!-- Slide Swiper (cover primero; overlay hasta galería lista) -->
+    <div class="slide-wrapper">
+      <div class="slide-overlay" *ngIf="!galleryReady"></div>
+
+      <swiper-container slides-per-view="1" pagination="true" navigation="false" style="width: 100%; height: 100%;">
+        <swiper-slide *ngFor="let src of displayedImgs; trackBy: trackByUrl">
+          <img [src]="src" alt="Imagen de la sala" />
+        </swiper-slide>
+      </swiper-container>
+    </div>
+    <!-- Título + empresa -->
+    <section class="section">
+      <h1>{{ sala.nombre }}</h1>
+      <div class="empresa">{{ sala.empresa || sala.nombre_local }}</div>
+    </section>
+
+    <!-- Descripción -->
+    <section class="section" *ngIf="sala.descripcion || sala.descripcion_corta">
+      <p>{{ sala.descripcion || sala.descripcion_corta }}</p>
+    </section>
+
+    <!-- Características principales -->
+    <section class="section chips">
+      <ion-chip *ngIf="sala.jugadores_min || sala.jugadores_max">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label>{{ sala.jugadores_min }}–{{ sala.jugadores_max }}</ion-label>
+      </ion-chip>
+      <ion-chip *ngIf="sala.tiempo">
+        <ion-icon name="time-outline"></ion-icon>
+        <ion-label>{{ sala.tiempo }} min</ion-label>
+      </ion-chip>
+      <ion-chip *ngIf="sala.dificultad">
+        <ion-icon name="barbell-outline"></ion-icon>
+        <ion-label>{{ sala.dificultad }}</ion-label>
+      </ion-chip>
+      <ion-chip *ngIf="sala.categorias?.length">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <ion-label>{{ sala.categorias!.join(', ') }}</ion-label>
+      </ion-chip>
+    </section>
+
+    <!-- Precio -->
+    <section class="section" *ngIf="tienePrecioPP">
+      <h3>Precio</h3>
+      <div *ngIf="sala.precios_por_jugadores?.length; else rango">
+        <div class="precio-line" *ngFor="let p of sala.precios_por_jugadores">
+          <span>{{ p.jugadores }} jugadores</span>
+          <span>{{ p.pp }} €/persona</span>
+        </div>
+      </div>
+      <ng-template #rango>
+        <div class="precio-line">
+          <span>Por persona</span>
+          <span>
+            <ng-container *ngIf="sala.precio_min_pp">{{ sala.precio_min_pp }}–</ng-container>
+            {{ sala.precio_max_pp }} €
+          </span>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Secundarias -->
+    <section class="section secondary">
+      <div class="sec-line" *ngIf="sala.tipo_sala?.length">
+        <ion-icon name="home-outline"></ion-icon><span>{{ sala.tipo_sala!.join(', ') }}</span>
+      </div>
+      <div class="sec-line" *ngIf="sala.idiomas?.length">
+        <ion-icon name="language-outline"></ion-icon><span>{{ sala.idiomas!.join(', ') }}</span>
+      </div>
+      <div class="sec-line" *ngIf="sala.actores !== null && sala.actores !== undefined">
+        <ion-icon name="person-outline"></ion-icon><span>{{ sala.actores ? 'Actores en vivo' : 'Sin actores' }}</span>
+      </div>
+      <!-- …y más abajo… -->
+      <div class="sec-line" *ngIf="accesibilidadesAptas">
+        <ion-icon name="accessibility-outline"></ion-icon>
+        <span>{{ accesibilidadesAptas }}</span>
+      </div>
+    </section>
+
+    <!-- Mapa (placeholder) -->
+    <section class="section">
+      <h3>Ubicación de la sala</h3>
+      <div class="map-placeholder"></div>
+      <div class="direccion-text" *ngIf="sala.nombre_via">
+        {{ sala.tipo_via }} {{ sala.nombre_via }} {{ sala.numero }},
+        {{ sala.ciudad }} {{ sala.codigo_postal }}
+      </div>
+    </section>
+
+    <div class="footer-gap"></div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="footer-reserva">
+  <ion-toolbar>
+    <ion-button expand="block" color="success" size="large">
+      ¡Reservar tu aventura!
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

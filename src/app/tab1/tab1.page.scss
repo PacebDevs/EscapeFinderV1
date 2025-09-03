@@ -42,7 +42,7 @@
 /* El que se mueve: usa transform 3D y aisla repaints */
 .collapsible-inner {
   will-change: transform;
-  transform: translate3d(0, calc(-1px * var(--header-offset, 0)), 0);
+  transform: translate3d(0, calc(-1 * var(--header-offset, 0px)), 0);
   backface-visibility: hidden;
   contain: paint;               /* aisla repaints del resto */
   background: var(--ion-background-color, #fff);

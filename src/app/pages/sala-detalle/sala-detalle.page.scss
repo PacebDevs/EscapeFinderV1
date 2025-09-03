@@ -1,0 +1,64 @@
+.detalle-content {
+  --padding-top: 0;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+  background: #fff;
+}
+
+/* Volver */
+.btn-back {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 12px);
+  left: 12px;
+  z-index: 1000;
+  width: 36px; height: 36px; border-radius: 12px;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0,0,0,.06);
+  display: grid; place-items: center;
+}
+
+/* Slide container */
+.slide-wrapper { position: relative; height: 260px; background: #f2f3f5; }
+
+/* Las imágenes dentro del slide */
+swiper-container, swiper-slide { width: 100%; height: 100%; display: block; }
+swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Overlay shimmer hasta que la galería completa esté lista */
+.slide-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3), rgba(255,255,255,0));
+  animation: shimmer 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes shimmer { from {transform: translateX(-100%);} to {transform: translateX(100%);} }
+
+/* Secciones / skeleton / footer igual que antes */
+.section { padding: 16px; }
+.section h1 { font-size: 22px; margin: 4px 0 2px; }
+.section .empresa { color: #6b7280; font-weight: 600; }
+.section p { margin: 0; color: #374151; line-height: 1.4; }
+
+.chips ion-chip { margin-right: 8px; }
+
+.secondary .sec-line {
+  display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #374151;
+}
+
+.map-placeholder {
+  height: 200px; border-radius: 16px;
+  background: repeating-linear-gradient(45deg, #f6f7f9, #f6f7f9 10px, #eef2f7 10px, #eef2f7 20px);
+}
+.direccion-text { margin-top: 8px; color: #4b5563; }
+
+.skel { border-radius: 14px; background: linear-gradient(90deg,#eee,#f7f7f7,#eee); animation: pulse 1.2s infinite; margin: 12px; }
+.skel.slide { height: 260px; margin: 0; border-radius: 0; }
+.skel.title { height: 24px; width: 60%; }
+.skel.text { height: 14px; }
+.skel.text.small { width: 80%; }
+.skel.chips { height: 36px; }
+.skel.map { height: 200px; }
+@keyframes pulse { 0%{background-position:0%} 100%{background-position:100%} }
+
+.footer-reserva ion-toolbar { padding: 8px 12px; }
+.footer-gap { height: 88px; }

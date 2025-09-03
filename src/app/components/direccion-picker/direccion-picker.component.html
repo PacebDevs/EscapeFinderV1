@@ -17,12 +17,10 @@
 
   <!-- Modal tipo hoja al 50% -->
   <ion-modal
-    class="direccion-modal"
     [isOpen]="abierto"
-    (didDismiss)="onModalDismiss()"
-    [initialBreakpoint]="0.5"
-    [breakpoints]="[0, 0.5, 0.9]"
-    handleBehavior="cycle">
+    [initialBreakpoint]="initialBreakpoint"
+    [breakpoints]="breakpoints"
+    (didDismiss)="onModalDismiss()">
     <ng-template>
       <ion-header class="modal-header">
         <div class="header-content">
@@ -70,13 +68,15 @@
           </div>
         </div>
 
-        <ion-list *ngIf="predicciones.length > 0" class="predictions-list">
-          <ion-item button lines="none" class="prediction-item" *ngFor="let p of predicciones" (click)="seleccionar(p)">
-            <ion-icon name="location-outline" slot="start" class="prediction-icon"></ion-icon>
-            <ion-label [innerHTML]="highlight(p)"></ion-label>
-            <ion-icon name="chevron-forward-outline" slot="end" class="prediction-chevron"></ion-icon>
-          </ion-item>
-        </ion-list>
+        <div class="predicciones-panel">
+          <ion-list *ngIf="predicciones.length > 0" class="predictions-list">
+            <ion-item button lines="none" class="prediction-item" *ngFor="let p of predicciones" (click)="seleccionar(p)">
+              <ion-icon name="location-outline" slot="start" class="prediction-icon"></ion-icon>
+              <ion-label [innerHTML]="highlight(p)"></ion-label>
+              <ion-icon name="chevron-forward-outline" slot="end" class="prediction-chevron"></ion-icon>
+            </ion-item>
+          </ion-list>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

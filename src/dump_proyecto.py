@@ -1,55 +1,45 @@
-import os
+from pathlib import Path
+import sys
+import traceback
 
-EXCLUDED_DIRS = {'node_modules', 'dist', '.git', '__pycache__'}
-EXCLUDED_EXTENSIONS = {'.log', '.lock', '.png', '.jpg', '.jpeg', '.mp4', '.zip', '.exe'}
-MAX_FILE_SIZE_KB = 500
+# Extensiones a volcar
+EXTS = {'.ts', '.html', '.scss', '.json', '.md'}
 
-output_lines = []
-env_included = False
+def collect(root: Path):
+  files = []
+  for p in root.rglob('*'):
+    if p.is_dir():
+      if p.name in {'node_modules', 'dist', '.angular', '.git'}:
+        continue
+      continue
+    if p.suffix.lower() in EXTS:
+      files.append(p)
+  return files
 
-def is_text_file(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            f.read(1024)
-        return True
-    except:
-        return False
+def main():
+  here = Path(__file__).resolve().parent  # src/
+  root = here
+  out = here / 'proyecto_dump.txt'
 
-def process_directory(root_dir):
-    global env_included
-    for dirpath, dirnames, filenames in os.walk(root_dir):
-        dirnames[:] = [d for d in dirnames if d not in EXCLUDED_DIRS]
-        relative_dir = os.path.relpath(dirpath, root_dir)
-        output_lines.append(f"\n📁 {relative_dir}/" if relative_dir != '.' else "\n📁 /")
+  files = collect(root)
+  print(f'Encontrados {len(files)} archivos. Escribiendo a {out}...', flush=True)
 
-        for filename in filenames:
-            filepath = os.path.join(dirpath, filename)
-            relpath = os.path.relpath(filepath, root_dir)
+  with out.open('w', encoding='utf-8') as f:
+    for p in files:
+      rel = p.relative_to(root)
+      f.write(f'=== {rel.as_posix()} ===\n')
+      try:
+        content = p.read_text(encoding='utf-8', errors='ignore')
+      except Exception as e:
+        content = f'[ERROR leyendo {rel}: {e}]'
+      f.write(content)
+      f.write('\n\n')
 
-            if any(filename.endswith(ext) for ext in EXCLUDED_EXTENSIONS):
-                continue
-            if os.path.getsize(filepath) > MAX_FILE_SIZE_KB * 1024:
-                continue
-            if not is_text_file(filepath):
-                continue
+  print('OK', flush=True)
 
-            output_lines.append(f"  └── {filename}")
-            if filename == '.env':
-                env_included = True
-
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                output_lines.append(f"\n--- 📄 {relpath} ---\n{content}\n")
-            except Exception as e:
-                output_lines.append(f"\n--- 📄 {relpath} ---\n[Error leyendo archivo: {e}]\n")
-
-process_directory(".")
-
-if env_included:
-    output_lines.insert(0, "⚠️ AVISO: Este volcado incluye archivos `.env`.\n"
-                           "No lo compartas públicamente si contiene datos sensibles.\n"
-                           "============================================================\n")
-
-with open("proyecto_dump.txt", 'w', encoding='utf-8') as f:
-    f.write('\n'.join(output_lines))
+if __name__ == '__main__':
+  try:
+    sys.exit(main())
+  except Exception:
+    traceback.print_exc()
+    sys.exit(1)

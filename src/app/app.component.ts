@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-root',
@@ -18,5 +20,14 @@ export class AppComponent {
     await EdgeToEdge.setBackgroundColor({ color: '#ffffff' });
     await StatusBar.setOverlaysWebView({ overlay: false });
     await StatusBar.setStyle({ style: Style.Dark });
+  }
+
+  ngOnInit() {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // setResizeMode puede no existir en versiones antiguas; usar optional chaining
+        (Keyboard as any).setResizeMode?.({ mode: 'ionic' });
+      }
+    } catch {}
   }
 }

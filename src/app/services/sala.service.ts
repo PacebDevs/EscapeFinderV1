@@ -23,4 +23,13 @@ export class SalaService {
       map((salas) => salas.map(enrichSala))
     );
   }
+  getSalaById(id: number, lat?: number | null, lng?: number | null): Observable<Sala> {
+    let params = new HttpParams();
+    if (Number.isFinite(lat as number) && Number.isFinite(lng as number)) {
+      params = params.set('lat', String(lat)).set('lng', String(lng));
+    }
+    return this.http.get<Sala>(`${this.baseUrl}/${id}`, { params });
+}
+
+
 }

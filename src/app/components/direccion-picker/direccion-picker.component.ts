@@ -5,13 +5,15 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, IonModal } from '@ionic/angular';
 import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { ClearUbicacionUsuario, SetUbicacionUsuario, UsuarioState } from 'src/app/states/usuario.state';
+import { Keyboard } from '@capacitor/keyboard';
+import { PluginListenerHandle } from '@capacitor/core';
 
 @Component({
   selector: 'app-direccion-picker',
@@ -32,9 +34,17 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   direccionCompacta = false;
 
   @ViewChild('direccionEl') direccionEl?: ElementRef<HTMLDivElement>;
+  @ViewChild(IonModal) modal?: IonModal;
+
+  breakpoints: number[] = [0, 0.5, 1];
+  initialBreakpoint = 0.5;
 
   private queryChanged = new Subject<string>();
   private querySub?: Subscription;
+
+  // Cambia a handles reales (no Promises)
+  private kbShowSub?: PluginListenerHandle;
+  private kbHideSub?: PluginListenerHandle;
 
   constructor(private ubicacionService: UbicacionService, private store: Store) {}
 
@@ -45,12 +55,14 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     }
 
     if (ubicacion?.direccion) {
-      // Si hay dirección guardada, pinta solo el primer tramo o "(Centro)" si coincide con la ciudad
       this.direccionActual = ubicacion.direccion;
-      const seg = this.firstSegment(this.direccionActual);
-      this.calleNumero = this.segEsCiudad(seg, this.ciudadActual) ? '(Centro)' : (seg || '(Centro)');
+      this.updateCalleNumeroFromDireccion({
+        direccion: ubicacion.direccion,
+        ciudad: ubicacion.ciudad || null,
+        lat: ubicacion.lat ?? null,
+        lng: ubicacion.lng ?? null
+      } as any as UbicacionResultado);
     } else if (this.ciudadActual) {
-      // Caso: solo ciudad (no se introdujo dirección)
       this.calleNumero = '(Centro)';
     }
 
@@ -63,34 +75,44 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.predicciones = [];
           return;
         }
-        // Autocomplete: mostrar EXACTAMENTE lo que manda el backend
         this.ubicacionService.autocomplete(texto.trim()).subscribe((res) => {
           this.predicciones = res || [];
         });
       });
+
+    // Escuchar teclado y expandir al 100%
+    Keyboard.addListener('keyboardDidShow', (e) => {
+      document.documentElement.style.setProperty('--kb-height', `${e.keyboardHeight}px`);
+      this.modal?.setCurrentBreakpoint(1); // 100%
+    }).then(h => this.kbShowSub = h);
+
+    Keyboard.addListener('keyboardDidHide', () => {
+      document.documentElement.style.setProperty('--kb-height', `0px`);
+      this.modal?.setCurrentBreakpoint(this.initialBreakpoint);
+    }).then(h => this.kbHideSub = h);
   }
 
   ngOnDestroy() {
     this.querySub?.unsubscribe();
+    // remove() devuelve Promise; no es necesario await aquí
+    this.kbShowSub?.remove();
+    this.kbHideSub?.remove();
   }
 
   togglePanel() {
     this.abierto = !this.abierto;
     if (this.abierto) {
-      // Al abrir, limpiar el input para no mostrar la última dirección
       this.query = '';
       this.predicciones = [];
     } else {
-      // Al cerrar, limpiar predicciones
       this.predicciones = [];
     }
   }
 
   onModalDismiss() {
     this.abierto = false;
-  // Al cerrar por dismiss, también limpiar el input
-  this.query = '';
-  this.predicciones = [];
+    this.query = '';
+    this.predicciones = [];
   }
 
   buscar() {
@@ -106,7 +128,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.abierto = false;
         this.predicciones = [];
 
-        this.updateCalleNumeroBackendAware(res);
+        this.updateCalleNumeroFromDireccion(res);
 
         this.store.dispatch(new SetUbicacionUsuario({
           direccion: res.direccion,
@@ -140,7 +162,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.abierto = false;
           this.predicciones = [];
 
-          this.updateCalleNumeroBackendAware(res);
+          this.updateCalleNumeroFromDireccion(res);
 
           this.store.dispatch(new SetUbicacionUsuario({
             direccion: res.direccion,
@@ -173,17 +195,12 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   }
 
   // ===== Autocomplete: SIN formateo =====
-  // En la plantilla usa {{ prediccion }} o [innerText], no innerHTML.
   highlight(texto: string): string {
     return texto; // exacto del backend
   }
 
-  private escapeRegExp(s: string): string {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
   // =========================
-  // 🔽 Formateo del “chip” (vía + número) con fallback "(Centro)"
+  // 🔽 Formateo del “chip” (vía + número) con fallback "(Centro)" desde 'direccion'
   // =========================
 
   private normalizeBasic(s?: string | null): string {
@@ -198,10 +215,10 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     return this.normalizeBasic(seg) === this.normalizeBasic(ciudad);
   }
 
-  private isEmptyVia(res: UbicacionResultado): boolean {
-    const v = (res.via ?? '').trim();
-  
-    return !v;
+  private firstSegment(addr?: string | null): string | null {
+    if (!addr) return null;
+    const seg = addr.split(',')[0]?.trim() || '';
+    return seg || null;
   }
 
   // Abreviador
@@ -235,68 +252,57 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     }
   }
 
-  private abreviarViaTipo(tipo?: string | null): string {
-    if (!tipo) return '';
-    return this.abreviarToken(tipo);
-  }
-
-  private abreviarDesdeVia(via: string): string | null {
-    const re = /^\s*(c\/|c\.|calle|avenida|avda\.?|av\.?|paseo|pº|ps\.?|plaza|pl\.?|camino|carretera|ctra\.?|ronda|v[íi]a|traves[íi]a|trav\.?|bulevar|boulevard|blvr|carrer|passeig|pg|pasaje|pje\.?|glorieta|gta\.?)\s+(.+)$/i;
-    const m = via.match(re);
+  // Detecta el tipo de vía en el inicio y lo abrevia. Devuelve "C/ Pizarro" o null.
+  private abreviarDesdeVia(viaCompleta: string): string | null {
+    const re = /^\s*(c\/|c\.|calle|avenida|avda\.?|av\.?|paseo|pº|ps\.?|plaza|pl\.?|camino|carretera|ctra\.?|ronda|v[íi]a|traves[íi]a|trav\.?|bulevar|boulevard|blvr|carrer|passeig|pg|pasaje|pje\.?|glorieta|gta\.?)\s+(de\s+|del\s+|la\s+|los\s+|las\s+)?(.+)$/i;
+    const m = viaCompleta.match(re);
     if (!m) return null;
     const token = m[1];
-    const nombre = m[2].trim();
+    const resto = m[3].trim();
     const abbr = this.abreviarToken(token);
-    return `${abbr} ${nombre}`.trim();
+    return `${abbr} ${resto}`.trim();
   }
 
-  private fromBackendCalleNumero(res: UbicacionResultado): string | null {
-    const via = (res.via ?? '').trim();
-    const viaTipo = (res.via_tipo ?? '').trim();
-    const viaNombre = (res.via_nombre ?? '').trim();
-    const numero = (res.numero ?? '').trim();
+  // Extrae número de la dirección (fin del primer tramo o inicio del segundo), evitando CP de 5 dígitos
+  private extraerNumero(direccion?: string | null): string | null {
+    if (!direccion) return null;
+    const partes = direccion.split(',').map(p => p.trim()).filter(Boolean);
+    const seg1 = partes[0] || '';
+    const seg2 = partes[1] || '';
 
-    let principal = '';
-    if (viaTipo && viaNombre) {
-      principal = `${this.abreviarViaTipo(viaTipo)} ${viaNombre}`.trim();
-    } else if (via) {
-      principal = this.abreviarDesdeVia(via) || via;
-    } else if (viaNombre) {
-      principal = viaNombre;
-    }
-    if (!principal) return null;
+    // número al final del primer segmento
+    const m1 = seg1.match(/(\d+[A-Za-zºª\-\/]?)\s*$/);
+    if (m1) return m1[1];
 
+    // número al inicio del segundo segmento (evitar CP 5 dígitos)
+    const m2 = seg2.match(/^(\d+[A-Za-zºª\-\/]?)(?!\d)\b/);
+    if (m2 && !/^\d{5}$/.test(m2[1])) return m2[1];
+
+    return null;
+  }
+
+  // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
+  private formatCalleNumero(res: UbicacionResultado): string {
+    const seg = this.firstSegment(res.direccion);
+    if (!seg) return '(Centro)';
+    if (this.segEsCiudad(seg, res.ciudad)) return '(Centro)';
+
+    const principal = this.abreviarDesdeVia(seg) || seg;
     const yaTieneNumero = /\b\d/.test(principal);
+    const numero = this.extraerNumero(res.direccion);
+
     return (!yaTieneNumero && numero) ? `${principal} ${numero}`.trim() : principal;
   }
 
-  private firstSegment(addr?: string | null): string | null {
-    if (!addr) return null;
-    const seg = addr.split(',')[0]?.trim() || '';
-    return seg || null;
-  }
-
-  private baseFromFormattedOrCentro(res: UbicacionResultado): string | null {
-    const base = this.firstSegment(res.direccion);
-    if (!base) return '(Centro)';
-    if (this.segEsCiudad(base, res.ciudad)) return '(Centro)';
-    const numero = (res.numero ?? '').trim();
-    const yaTieneNumero = /\b\d/.test(base);
-    return (!yaTieneNumero && numero) ? `${base} ${numero}`.trim() : base;
-  }
-
-  // Siempre prioriza campos desglosados; si no hay vía -> "(Centro)"
-  private updateCalleNumeroBackendAware(res?: UbicacionResultado) {
+  // Aplica el formateo y actualiza el chip superior
+  private updateCalleNumeroFromDireccion(res?: UbicacionResultado) {
     if (res) {
-      if (this.isEmptyVia(res)) {
-        this.calleNumero = '(Centro)';
-      } else {
-        this.calleNumero = this.fromBackendCalleNumero(res) || this.baseFromFormattedOrCentro(res) || '(Centro)';
-      }
+      this.calleNumero = this.formatCalleNumero(res) || '(Centro)';
     } else {
-      // Sin respuesta reciente: decide con lo que hay en estado
       const seg = this.firstSegment(this.direccionActual);
-      this.calleNumero = this.segEsCiudad(seg, this.ciudadActual) ? '(Centro)' : (seg || (this.ciudadActual ? '(Centro)' : null));
+      this.calleNumero = this.segEsCiudad(seg, this.ciudadActual)
+        ? '(Centro)'
+        : (seg || (this.ciudadActual ? '(Centro)' : null));
     }
     setTimeout(() => this.ajustarTamanoDireccion(), 0);
   }
