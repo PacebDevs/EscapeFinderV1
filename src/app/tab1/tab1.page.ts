@@ -8,9 +8,10 @@ import { FiltersModalComponent } from '../components/filter-modal/filters-modal.
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
-import { IonInfiniteScroll } from '@ionic/angular';
 import { UsuarioState } from '../states/usuario.state';
-import { Router } from '@angular/router'; // <-- añade
+import { filter } from 'rxjs/operators';
+import { Router, NavigationStart, NavigationEnd } from '@angular/router';
+
 
 @Component({
   selector: 'app-tab1',
@@ -24,17 +25,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   filters: any = {};
   categoriasActivas: string[] = [];
   numeroSalas = 0;
+
   private subs: Subscription[] = [];
+  private navSub?: Subscription;
 
-  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
   @ViewChild(IonContent) pageContent!: IonContent;
-
-  // Header movible (sticky) dentro del ion-content
   @ViewChild('collapsible', { static: false }) collapsibleRef!: ElementRef<HTMLDivElement>;
 
-
-
-  
   private latUsuario: number | null = null;
   private lngUsuario: number | null = null;
 
@@ -42,23 +39,25 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   offset = 0;
   todasCargadas = false;
   cargando = false;
-  observer!: IntersectionObserver;
 
-  // Estado del colapso/movimiento
-  private maxCollapse = 0;     // altura natural del bloque colapsable
-  private headerOffset = 0;    // desplazamiento consumido (0..maxCollapse)
-  private lastY = 0;           // último scrollTop para Δ
-  private ticking = false;
+  // Header (modo Δ)
+  private maxCollapse = 0;          // alto natural del header
+  private headerOffset = 0;         // 0 visible, max oculto
+  private lastScrollTop = 0;        // último y observado
+  private raf = false;
   private ro?: ResizeObserver;
   private scrollEl!: HTMLElement;
-    
 
+  // Estado guardado al salir
+  private savedScrollTop = 0;
+  private savedHeaderOffset = 0;
+  private ignoreNextDelta = false;  // ignora el primer tick de vuelta
 
-    constructor(
+  constructor(
     private store: Store,
     private socketService: SocketService,
     private modalCtrl: ModalController,
-    private router: Router // <-- añade
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -69,9 +68,8 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
         const { ciudad, lat, lng } = ubicacion || {};
         this.latUsuario = lat ?? null;
         this.lngUsuario = lng ?? null;
-        if (ciudad) {
-          this.filters = { ...this.filters, ciudad };
-        } else {
+        if (ciudad) this.filters = { ...this.filters, ciudad };
+        else {
           const { ciudad: _c, ...rest } = this.filters;
           this.filters = { ...rest };
         }
@@ -86,73 +84,115 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
       })
     );
 
-     // ⚠️ Solo cargar si no hay data en el store (evita flicker al volver)
-  const existing = this.store.selectSnapshot(SalaState.salas);
-  if (!existing || existing.length === 0) {
-    this.reloadSalas();
-  }
+    const existing = this.store.selectSnapshot(SalaState.salas);
+    if (!existing || existing.length === 0) this.reloadSalas();
+
+    // Guarda/restaura scroll + header exactamente
+    this.navSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationStart || e instanceof NavigationEnd))
+      .subscribe(async e => {
+        if (e instanceof NavigationStart) {
+          if (this.router.url.startsWith('/tabs/tab1')) {
+            await this.ensureScrollEl();
+            this.savedScrollTop = this.scrollEl?.scrollTop || 0;
+            this.savedHeaderOffset = this.headerOffset; // 👈 guarda estado visible/oculto real
+          }
+        } else {
+          const url = (e as NavigationEnd).urlAfterRedirects || '';
+          if (url.startsWith('/tabs/tab1')) {
+            await this.ensureScrollEl();
+            this.measureAndFixHeaderHeight();
+
+            const y = Math.max(0, this.savedScrollTop);
+            requestAnimationFrame(() => {
+              this.scrollEl.scrollTop = y;
+              requestAnimationFrame(() => {
+                this.scrollEl.scrollTop = y;
+
+                // 👇 restaura EXACTAMENTE el estado del header al salir
+                this.lastScrollTop = y;
+                this.headerOffset = this.clamp(this.savedHeaderOffset);
+                this.setHeaderOffsetVar(this.headerOffset);
+
+                // evita que el primer micro-scroll lo empuje
+                this.ignoreNextDelta = true;
+              });
+            });
+          }
+        }
+      });
   }
 
   async ngAfterViewInit() {
-    // (opcional) infinito manual
-    this.observer = new IntersectionObserver(entries => {
-      const entry = entries[0];
-      if (entry.isIntersecting && !this.cargando && !this.todasCargadas) this.loadMore();
-    });
-
     await this.waitForToolbarReady();
     this.scrollEl = await this.pageContent.getScrollElement();
-    this.measureAndFixHeaderHeight(); // fija maxCollapse y deja el contenedor sticky con altura FIJA
 
-    // Estado inicial del movimiento
-    this.headerOffset = 0;
-    this.lastY = 0;
-    this.setHeaderOffsetVar(0); // inner sin desplazar
+    this.measureAndFixHeaderHeight();
 
-    // Observa cambios de tamaño dinámicos (chips, etc.) y mantiene la proporción visible
+    const y = this.scrollEl.scrollTop || 0;
+    this.lastScrollTop = y;
+    this.headerOffset = this.clamp(this.headerOffset);
+    this.setHeaderOffsetVar(this.headerOffset);
+
     const el = this.collapsibleRef?.nativeElement;
     if (el && 'ResizeObserver' in window) {
       this.ro = new ResizeObserver(() => {
         const visibleAntes = Math.max(0, this.maxCollapse - this.headerOffset);
-        this.measureAndFixHeaderHeight(); // recalcula maxCollapse y actualiza altura fija del contenedor
+        this.measureAndFixHeaderHeight();
         const visibleDespues = Math.max(0, Math.min(visibleAntes, this.maxCollapse));
-        this.headerOffset = Math.max(0, this.maxCollapse - visibleDespues);
-        this.setHeaderOffsetVar(Math.round(this.headerOffset));
+        this.headerOffset = this.clamp(this.maxCollapse - visibleDespues);
+        this.setHeaderOffsetVar(this.headerOffset);
       });
       this.ro.observe(el);
     }
   }
 
   ngOnDestroy() {
+    this.navSub?.unsubscribe();
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
     if (this.ro) { try { this.ro.disconnect(); } catch {} this.ro = undefined; }
   }
 
-  // ======== Scroll 1:1 — header acompaña al scroll sin umbrales ========
+  // ===== Scroll (Δ-mode: baja=oculta, sube=muestra) =====
   onScroll(ev: any) {
-    const y = ev?.detail?.scrollTop ?? 0;
     if (!this.maxCollapse) return;
 
-    const dy = y - this.lastY;
-    this.lastY = y;
+    const y = ev?.detail?.scrollTop ?? 0;
 
-    // Ocultar/mostrar a la misma velocidad del scroll, limitado al rango [0, maxCollapse]
-    this.headerOffset = Math.max(0, Math.min(this.maxCollapse, this.headerOffset + dy));
+    // ignora primer tick al volver de detalle
+    if (this.ignoreNextDelta) {
+      this.lastScrollTop = y;
+      this.ignoreNextDelta = false;
+      return;
+    }
 
-    if (!this.ticking) {
-      this.ticking = true;
+    let dy = y - this.lastScrollTop;
+    this.lastScrollTop = y;
+
+    if (Math.abs(dy) < 0.5) return; // filtra jitter
+
+    let next = this.headerOffset + dy;
+
+    if (y <= 0) next = 0; // top absoluto → visible
+
+    next = this.clamp(next);
+
+    if (!this.raf) {
+      this.raf = true;
       requestAnimationFrame(() => {
-        const offset = Math.round(this.headerOffset);
-        this.setHeaderOffsetVar(offset);
-        this.ticking = false;
+        this.headerOffset = next;
+        this.setHeaderOffsetVar(this.headerOffset);
+        this.raf = false;
       });
+    } else {
+      this.headerOffset = next;
     }
   }
 
+  // ===== Utilidades =====
+  private clamp(v: number) { return Math.max(0, Math.min(this.maxCollapse, Math.round(v))); }
 
-
-  // ========== Utilidades de medición / estilo ==========
   private async waitForToolbarReady() {
     if ('customElements' in window && (customElements as any).whenDefined) {
       try { await (customElements as any).whenDefined('ion-toolbar'); } catch {}
@@ -162,28 +202,35 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     await new Promise<void>(r => requestAnimationFrame(() => r()));
   }
 
-private measureAndFixHeaderHeight() {
-  const el = this.collapsibleRef?.nativeElement;
-  if (!el) return;
+  private async ensureScrollEl() {
+    if (!this.scrollEl) {
+      await this.waitForToolbarReady();
+      this.scrollEl = await this.pageContent.getScrollElement();
+    }
+  }
 
-  el.style.height = 'auto';
-  let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
-  if (h < 1) h = 120;
-  this.maxCollapse = Math.ceil(h);
+  private measureAndFixHeaderHeight() {
+    const el = this.collapsibleRef?.nativeElement;
+    if (!el) return;
 
-  // altura FIJA del contenedor sticky
-  el.style.height = `${this.maxCollapse}px`;
-  // Clampear offset si la altura cambió
-  this.headerOffset = Math.max(0, Math.min(this.headerOffset, this.maxCollapse));
-}
+    el.style.height = 'auto';
+    let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
+    if (h < 1) h = 120;
+    this.maxCollapse = Math.ceil(h);
+
+    el.style.height = `${this.maxCollapse}px`;
+
+    this.headerOffset = this.clamp(this.headerOffset);
+    this.setHeaderOffsetVar(this.headerOffset);
+  }
 
   private setHeaderOffsetVar(px: number) {
     const el = this.collapsibleRef?.nativeElement;
     if (!el) return;
-  el.style.setProperty('--header-offset', `${px}px`);
+    el.style.setProperty('--header-offset', `${px}px`);
   }
 
-  // ========= Lógica existente =========
+  // ===== Lógica existente =====
   async selectCategoria(valor: string) {
     if (valor === 'Filtros') { await this.openFilters(); return; }
     const index = this.categoriasActivas.indexOf(valor);
@@ -218,9 +265,8 @@ private measureAndFixHeaderHeight() {
   }
 
   onCiudadSeleccionada(ciudad: string | null) {
-    if (ciudad) {
-      this.filters = { ...this.filters, ciudad };
-    } else {
+    if (ciudad) this.filters = { ...this.filters, ciudad };
+    else {
       const { ciudad: _c, distancia_km: _d, coordenadas: _coords, ...rest } = this.filters;
       this.filters = { ...rest };
     }
@@ -242,22 +288,18 @@ private measureAndFixHeaderHeight() {
 
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
-    if (!filtros.distancia_km) {
-      delete filtros.lat; delete filtros.lng;
-    } else {
-      filtros.lat = this.latUsuario;
-      filtros.lng = this.lngUsuario;
-    }
+    if (!filtros.distancia_km) { delete filtros.lat; delete filtros.lng; }
+    else { filtros.lat = this.latUsuario; filtros.lng = this.lngUsuario; }
     return filtros;
   }
 
   reloadSalas() {
     this.pageContent?.scrollToTop(0);
-
-    // Reset visual del header (totalmente visible)
     this.headerOffset = 0;
-    this.lastY = 0;
     this.setHeaderOffsetVar(0);
+    this.lastScrollTop = 0;
+    this.savedScrollTop = 0;
+    this.savedHeaderOffset = 0;
 
     this.offset = 0;
     this.todasCargadas = false;
@@ -298,10 +340,7 @@ private measureAndFixHeaderHeight() {
     return total;
   }
 
-abrirSalaDetalle(id: number) {
-  // Navegación “forward” → Tab1 queda en la pila y conserva scroll/filtros
-  this.router.navigate(['/sala', id]);
+  abrirSalaDetalle(id: number) {
+    this.router.navigate(['/sala', id]);
+  }
 }
-}
-
-

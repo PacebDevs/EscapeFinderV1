@@ -30,13 +30,12 @@
 /* Contenedor pegajoso del header (NO tiene fondo) */
 .collapsible {
   position: sticky;
-  top: 0;                       /* o var(--ion-safe-area-top, 0) si lo necesitas */
+  top: var(--ion-safe-area-top, 0);
   z-index: 1000;
   overflow: hidden;
   background: transparent;
-  height: var(--collapsible-h, auto); /* pero TS la fija a px */
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-   pointer-events: none;
+  height: auto;            /* TS la fija a px */
+  pointer-events: none;
 }
 
 /* El que se mueve: usa transform 3D y aisla repaints */
@@ -44,10 +43,11 @@
   will-change: transform;
   transform: translate3d(0, calc(-1 * var(--header-offset, 0px)), 0);
   backface-visibility: hidden;
-  contain: paint;               /* aisla repaints del resto */
+  contain: paint;
   background: var(--ion-background-color, #fff);
   box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-  pointer-events: auto; 
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 /* ====== Searchbar + botones (tus estilos) ====== */
@@ -213,6 +213,11 @@ ion-content {
   --padding-top: 0;
   height: 100%;
   --background: #f8f9fa url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23dce1e6' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+ion-content::part(scroll) {
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
 }
 
 .reset-btn__badge {
