@@ -1,5 +1,4 @@
-// tab1.page.ts
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
@@ -11,12 +10,13 @@ import { Subscription } from 'rxjs';
 import { UsuarioState } from '../states/usuario.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
-
+import { ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: './tab1.page.html',
   styleUrls: ['./tab1.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
 export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
@@ -41,9 +41,9 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   cargando = false;
 
   // Header (modo Δ)
-  private maxCollapse = 0;          // alto natural del header
-  private headerOffset = 0;         // 0 visible, max oculto
-  private lastScrollTop = 0;        // último y observado
+  private maxCollapse = 0;
+  private headerOffset = 0;
+  private lastScrollTop = 0;
   private raf = false;
   private ro?: ResizeObserver;
   private scrollEl!: HTMLElement;
@@ -51,43 +51,64 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   // Estado guardado al salir
   private savedScrollTop = 0;
   private savedHeaderOffset = 0;
-  private ignoreNextDelta = false;  // ignora el primer tick de vuelta
+  private ignoreNextDelta = false;
 
   constructor(
     private store: Store,
     private socketService: SocketService,
     private modalCtrl: ModalController,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef // 👈 Agregado para updates manuales
   ) {}
 
   ngOnInit() {
-    this.subs.push(this.salas$.subscribe(salas => (this.numeroSalas = salas.length)));
+    // ✅ Los observables funcionan bien con OnPush
+    this.subs.push(
+      this.salas$.subscribe(salas => {
+        this.numeroSalas = salas.length;
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      })
+    );
 
     this.subs.push(
       this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
         const { ciudad, lat, lng } = ubicacion || {};
         this.latUsuario = lat ?? null;
         this.lngUsuario = lng ?? null;
-        if (ciudad) this.filters = { ...this.filters, ciudad };
-        else {
+        
+        if (ciudad) {
+          // ✅ Crear nuevo objeto en lugar de mutar
+          this.filters = { ...this.filters, ciudad };
+        } else {
           const { ciudad: _c, ...rest } = this.filters;
           this.filters = { ...rest };
         }
+        this.cdr.markForCheck(); // 👈 Marca para check manual
       })
     );
 
     this.socketService.connect();
-    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
+    
+    this.subs.push(
+      this.socketService.listenSalasUpdated().subscribe(() => {
+        this.reloadSalas();
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      })
+    );
+
     this.subs.push(
       this.socketService.listenSalaModificada().subscribe(sala => {
-        if (this.aplicaFiltros(sala)) this.store.dispatch(new UpdateSala(sala));
+        if (this.aplicaFiltros(sala)) {
+          this.store.dispatch(new UpdateSala(sala));
+          this.cdr.markForCheck(); // 👈 Marca para check manual
+        }
       })
     );
 
     const existing = this.store.selectSnapshot(SalaState.salas);
     if (!existing || existing.length === 0) this.reloadSalas();
 
-    // Guarda/restaura scroll + header exactamente
+    // Navigation handling
     this.navSub = this.router.events
       .pipe(filter(e => e instanceof NavigationStart || e instanceof NavigationEnd))
       .subscribe(async e => {
@@ -95,7 +116,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
           if (this.router.url.startsWith('/tabs/tab1')) {
             await this.ensureScrollEl();
             this.savedScrollTop = this.scrollEl?.scrollTop || 0;
-            this.savedHeaderOffset = this.headerOffset; // 👈 guarda estado visible/oculto real
+            this.savedHeaderOffset = this.headerOffset;
           }
         } else {
           const url = (e as NavigationEnd).urlAfterRedirects || '';
@@ -108,14 +129,11 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
               this.scrollEl.scrollTop = y;
               requestAnimationFrame(() => {
                 this.scrollEl.scrollTop = y;
-
-                // 👇 restaura EXACTAMENTE el estado del header al salir
                 this.lastScrollTop = y;
                 this.headerOffset = this.clamp(this.savedHeaderOffset);
                 this.setHeaderOffsetVar(this.headerOffset);
-
-                // evita que el primer micro-scroll lo empuje
                 this.ignoreNextDelta = true;
+                this.cdr.markForCheck(); // 👈 Marca para check manual
               });
             });
           }
@@ -142,6 +160,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
         const visibleDespues = Math.max(0, Math.min(visibleAntes, this.maxCollapse));
         this.headerOffset = this.clamp(this.maxCollapse - visibleDespues);
         this.setHeaderOffsetVar(this.headerOffset);
+        this.cdr.markForCheck(); // 👈 Marca para check manual
       });
       this.ro.observe(el);
     }
@@ -151,16 +170,18 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     this.navSub?.unsubscribe();
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
-    if (this.ro) { try { this.ro.disconnect(); } catch {} this.ro = undefined; }
+    if (this.ro) { 
+      try { this.ro.disconnect(); } catch {} 
+      this.ro = undefined; 
+    }
   }
 
-  // ===== Scroll (Δ-mode: baja=oculta, sube=muestra) =====
+  // ===== Scroll handling =====
   onScroll(ev: any) {
     if (!this.maxCollapse) return;
 
     const y = ev?.detail?.scrollTop ?? 0;
 
-    // ignora primer tick al volver de detalle
     if (this.ignoreNextDelta) {
       this.lastScrollTop = y;
       this.ignoreNextDelta = false;
@@ -170,12 +191,10 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     let dy = y - this.lastScrollTop;
     this.lastScrollTop = y;
 
-    if (Math.abs(dy) < 0.5) return; // filtra jitter
+    if (Math.abs(dy) < 0.5) return;
 
     let next = this.headerOffset + dy;
-
-    if (y <= 0) next = 0; // top absoluto → visible
-
+    if (y <= 0) next = 0;
     next = this.clamp(next);
 
     if (!this.raf) {
@@ -190,15 +209,19 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // ===== Utilidades =====
-  private clamp(v: number) { return Math.max(0, Math.min(this.maxCollapse, Math.round(v))); }
+  // ===== Utility methods =====
+  private clamp(v: number) { 
+    return Math.max(0, Math.min(this.maxCollapse, Math.round(v))); 
+  }
 
   private async waitForToolbarReady() {
     if ('customElements' in window && (customElements as any).whenDefined) {
       try { await (customElements as any).whenDefined('ion-toolbar'); } catch {}
     }
     const toolbar = this.collapsibleRef?.nativeElement?.querySelector('ion-toolbar') as any;
-    if (toolbar?.componentOnReady) { try { await toolbar.componentOnReady(); } catch {} }
+    if (toolbar?.componentOnReady) { 
+      try { await toolbar.componentOnReady(); } catch {} 
+    }
     await new Promise<void>(r => requestAnimationFrame(() => r()));
   }
 
@@ -219,7 +242,6 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     this.maxCollapse = Math.ceil(h);
 
     el.style.height = `${this.maxCollapse}px`;
-
     this.headerOffset = this.clamp(this.headerOffset);
     this.setHeaderOffsetVar(this.headerOffset);
   }
@@ -230,19 +252,30 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     el.style.setProperty('--header-offset', `${px}px`);
   }
 
-  // ===== Lógica existente =====
+  // ===== Business logic methods =====
   async selectCategoria(valor: string) {
-    if (valor === 'Filtros') { await this.openFilters(); return; }
+    if (valor === 'Filtros') { 
+      await this.openFilters(); 
+      return; 
+    }
+    
     const index = this.categoriasActivas.indexOf(valor);
-    if (index > -1) this.categoriasActivas.splice(index, 1);
-    else this.categoriasActivas.push(valor);
+    
+    // ✅ Crear nuevo array en lugar de mutar
+    if (index > -1) {
+      this.categoriasActivas = this.categoriasActivas.filter((_, i) => i !== index);
+    } else {
+      this.categoriasActivas = [...this.categoriasActivas, valor];
+    }
 
+    // ✅ Crear nuevo objeto de filtros
     this.filters = this.categoriasActivas.length === 0
       ? { ...this.filters, categorias: undefined }
       : { ...this.filters, categorias: [...this.categoriasActivas] };
 
     await Haptics.impact({ style: ImpactStyle.Light });
     this.reloadSalas();
+    this.cdr.markForCheck(); // 👈 Marca para check manual
   }
 
   async openFilters() {
@@ -257,20 +290,25 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
     await modal.present();
     const { data } = await modal.onDidDismiss();
+    
     if (data) {
+      // ✅ Crear nuevos objetos
       this.filters = { ...this.filters, ...data };
       this.categoriasActivas = this.filters.categorias ? [...this.filters.categorias] : [];
       this.reloadSalas();
+      this.cdr.markForCheck(); // 👈 Marca para check manual
     }
   }
 
   onCiudadSeleccionada(ciudad: string | null) {
-    if (ciudad) this.filters = { ...this.filters, ciudad };
-    else {
+    if (ciudad) {
+      this.filters = { ...this.filters, ciudad };
+    } else {
       const { ciudad: _c, distancia_km: _d, coordenadas: _coords, ...rest } = this.filters;
       this.filters = { ...rest };
     }
     this.reloadSalas();
+    this.cdr.markForCheck(); // 👈 Marca para check manual
   }
 
   aplicaFiltros(sala: any): boolean {
@@ -278,6 +316,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     const nombre = sala.nombre?.toLowerCase() || '';
     const empresa = sala.empresa?.toLowerCase() || '';
     if (q && !nombre.includes(q) && !empresa.includes(q)) return false;
+    
     if (this.filters.categorias?.length > 0) {
       const categorias = sala.categorias || [];
       const intersecta = categorias.some(c => this.filters.categorias.includes(c));
@@ -288,8 +327,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
-    if (!filtros.distancia_km) { delete filtros.lat; delete filtros.lng; }
-    else { filtros.lat = this.latUsuario; filtros.lng = this.lngUsuario; }
+    if (!filtros.distancia_km) { 
+      delete filtros.lat; 
+      delete filtros.lng; 
+    } else { 
+      filtros.lat = this.latUsuario; 
+      filtros.lng = this.lngUsuario; 
+    }
     return filtros;
   }
 
@@ -307,35 +351,62 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
     const filtros = this.getFiltros(0);
     this.store.dispatch(new GetSalas(filtros)).subscribe({
-      next: () => { this.offset = this.limit; this.cargando = false; },
-      error: (err) => { this.cargando = false; console.error('Error al cargar salas', err); }
+      next: () => { 
+        this.offset = this.limit; 
+        this.cargando = false; 
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      },
+      error: (err) => { 
+        this.cargando = false; 
+        console.error('Error al cargar salas', err); 
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      }
     });
   }
 
   loadMore(event?: any) {
-    if (this.cargando || this.todasCargadas) { event?.target?.complete(); return; }
+    if (this.cargando || this.todasCargadas) { 
+      event?.target?.complete(); 
+      return; 
+    }
+    
     this.cargando = true;
+    this.cdr.markForCheck(); // 👈 Marca para check manual
 
     const filtros = this.getFiltros(this.offset);
     this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
       const recibidas = res.sala?.cantidad || 0;
       this.offset += recibidas;
-      if (recibidas === 0 || recibidas < this.limit) this.todasCargadas = true;
+      if (recibidas === 0 || recibidas < this.limit) {
+        this.todasCargadas = true;
+      }
       event?.target?.complete();
       this.cargando = false;
+      this.cdr.markForCheck(); // 👈 Marca para check manual
     });
   }
 
-  trackBySalaId(_i: number, sala: any): any { return sala.id_sala; }
-  onMapaClick() { console.log('🗺️ Click en botón de mapa (a implementar)'); }
-  onNotificacionesClick() { console.log('🔔 Notificaciones clickeadas'); }
+  trackBySalaId(_i: number, sala: any): any { 
+    return sala.id_sala; 
+  }
+
+  onMapaClick() { 
+    console.log('🗺️ Click en botón de mapa (a implementar)'); 
+  }
+
+  onNotificacionesClick() { 
+    console.log('🔔 Notificaciones clickeadas'); 
+  }
 
   get filtrosActivos(): number {
     const { ciudad, query, ...rest } = this.filters;
     let total = 0;
     Object.values(rest).forEach(value => {
-      if (Array.isArray(value)) total += value.length;
-      else if (value !== undefined && value !== null && value !== '' && value !== false) total += 1;
+      if (Array.isArray(value)) {
+        total += value.length;
+      } else if (value !== undefined && value !== null && value !== '' && value !== false) {
+        total += 1;
+      }
     });
     return total;
   }
