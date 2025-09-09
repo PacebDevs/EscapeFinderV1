@@ -19,15 +19,44 @@
   <ng-container *ngIf="!cargandoDatos && sala">
 
     <!-- Slide Swiper (cover primero; overlay hasta galería lista) -->
-    <div class="slide-wrapper">
-      <div class="slide-overlay" *ngIf="!galleryReady"></div>
+<!-- Slide Swiper (cover primero; overlay hasta galería lista) -->
+<div class="slide-wrapper">
+  <!-- Gradiente inferior para dar contraste al héroe -->
+  <div class="hero-gradient"></div>
 
-      <swiper-container slides-per-view="1" pagination="true" navigation="false" style="width: 100%; height: 100%;">
-        <swiper-slide *ngFor="let src of displayedImgs; trackBy: trackByUrl">
-          <img [src]="src" alt="Imagen de la sala" />
-        </swiper-slide>
-      </swiper-container>
-    </div>
+  <!-- Shimmer mientras aún no está toda la galería -->
+  <div class="slide-overlay" *ngIf="!galleryReady"></div>
+
+  <!-- Botón Favorito (glass) -->
+  <button
+    class="fav-btn"
+    type="button"
+    aria-label="Favorito"
+    [attr.aria-pressed]="isFavorito"
+    [class.active]="isFavorito"
+    (click)="toggleFavorito($event)">
+    <ion-icon [name]="isFavorito ? 'heart' : 'heart-outline'"></ion-icon>
+  </button>
+
+  <swiper-container
+    slides-per-view="1"
+    pagination="true"
+    navigation="false"
+    loop="false"
+    resistance-ratio="0.85"
+    style="width: 100%; height: 100%;"
+  >
+    <swiper-slide *ngFor="let src of displayedImgs; let i = index; trackBy: trackByUrl">
+      <img
+        [src]="src"
+        alt="Imagen de la sala"
+        [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+        decoding="async"
+        [attr.fetchpriority]="i === 0 ? 'high' : null"
+      />
+    </swiper-slide>
+  </swiper-container>
+</div>
     <!-- Título + empresa -->
     <section class="section">
       <h1>{{ sala.nombre }}</h1>
@@ -35,48 +64,98 @@
     </section>
 
     <!-- Descripción -->
-    <section class="section" *ngIf="sala.descripcion || sala.descripcion_corta">
-      <p>{{ sala.descripcion || sala.descripcion_corta }}</p>
-    </section>
+    <div class="section" *ngIf="sala as s">
+      <div class="descripcion-wrapper" [class.expanded]="descExpanded" *ngIf="s.descripcion">
+        <p class="descripcion-text" #descRef>{{ s.descripcion }}</p>
+        <div class="fade-shadow" *ngIf="!descExpanded && isDescOverflow"></div>
+      </div>
 
-    <!-- Características principales -->
-    <section class="section chips">
-      <ion-chip *ngIf="sala.jugadores_min || sala.jugadores_max">
-        <ion-icon name="people-outline"></ion-icon>
-        <ion-label>{{ sala.jugadores_min }}–{{ sala.jugadores_max }}</ion-label>
-      </ion-chip>
-      <ion-chip *ngIf="sala.tiempo">
-        <ion-icon name="time-outline"></ion-icon>
-        <ion-label>{{ sala.tiempo }} min</ion-label>
-      </ion-chip>
-      <ion-chip *ngIf="sala.dificultad">
-        <ion-icon name="barbell-outline"></ion-icon>
-        <ion-label>{{ sala.dificultad }}</ion-label>
-      </ion-chip>
-      <ion-chip *ngIf="sala.categorias?.length">
-        <ion-icon name="pricetag-outline"></ion-icon>
-        <ion-label>{{ sala.categorias!.join(', ') }}</ion-label>
-      </ion-chip>
-    </section>
+      <div *ngIf="isDescOverflow" class="ver-mas-ctr">
+        <ion-button fill="outline"
+                    size="small"
+                    (click)="toggleDescripcion()"
+                    class="btn-ver-mas"
+                    [attr.aria-expanded]="descExpanded">
+          {{ descExpanded ? 'Ver menos' : 'Ver más' }}
+          <ion-icon slot="end" [name]="descExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+ <!-- Características principales (sin chips) -->
+<section class="section keyfacts" *ngIf="sala as s">
+  <div class="facts-grid">
+    <div class="fact" *ngIf="s.jugadores_min || s.jugadores_max">
+      <div class="icon"><ion-icon name="people-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Jugadores</div>
+        <div class="value">{{ s.jugadores_min }}–{{ s.jugadores_max }}</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.tiempo">
+      <div class="icon"><ion-icon name="time-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Duración</div>
+        <div class="value">{{ s.tiempo }} min</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.dificultad">
+      <div class="icon"><ion-icon name="barbell-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Dificultad</div>
+        <div class="value">{{ s.dificultad }}</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.categorias?.length">
+      <div class="icon"><ion-icon name="pricetag-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Categorías</div>
+        <div class="value value-multiline">{{ s.categorias!.join(', ') }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 
     <!-- Precio -->
-    <section class="section" *ngIf="tienePrecioPP">
-      <h3>Precio</h3>
-      <div *ngIf="sala.precios_por_jugadores?.length; else rango">
-        <div class="precio-line" *ngFor="let p of sala.precios_por_jugadores">
-          <span>{{ p.jugadores }} jugadores</span>
-          <span>{{ p.pp }} €/persona</span>
+    <section class="section pricing-section" *ngIf="tienePrecioPP">
+      <div class="price-range-header" *ngIf="sala.precio_min_pp || sala.precio_max_pp">
+        <div class="price-pill min">
+          <span class="label">Mín</span>
+          <span class="value">{{ sala.precio_min_pp || sala.precio_max_pp }} €</span>
+        </div>
+        <div class="price-pill max">
+          <span class="label">Máx</span>
+          <span class="value">{{ sala.precio_max_pp || sala.precio_min_pp }} €</span>
         </div>
       </div>
-      <ng-template #rango>
-        <div class="precio-line">
-          <span>Por persona</span>
-          <span>
-            <ng-container *ngIf="sala.precio_min_pp">{{ sala.precio_min_pp }}–</ng-container>
-            {{ sala.precio_max_pp }} €
-          </span>
+
+      <div class="pp-table" *ngIf="sala.precios_por_jugadores?.length">
+        <div class="pp-row header">
+          <span>Jugadores</span>
+          <span>€/persona</span>
         </div>
-      </ng-template>
+        <div class="pp-row"
+             *ngFor="let p of (priceTableExpanded ? sala.precios_por_jugadores : (sala.precios_por_jugadores | slice:0:6))">
+          <span>{{ p.jugadores }}</span>
+          <span>{{ p.pp }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="hasPriceOverflow" class="ver-mas-ctr price-more-btn">
+        <ion-button fill="outline"
+                    size="small"
+                    class="btn-ver-mas"
+                    (click)="togglePriceTable()"
+                    [attr.aria-expanded]="priceTableExpanded">
+          {{ priceTableExpanded ? 'Ver menos' : 'Ver más' }}
+          <ion-icon slot="end"
+                    [name]="priceTableExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </ion-button>
+      </div>
     </section>
 
     <!-- Secundarias -->

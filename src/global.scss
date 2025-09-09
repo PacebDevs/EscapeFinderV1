@@ -39,6 +39,8 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
+
 
 ion-header,
 ion-toolbar {
@@ -55,3 +57,13 @@ ion-content {
 ion-footer {
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
+
+/* Vars globales para tipografía y colores del título */
+:root {
+  --ef-title-color: #1F2937;   /* gris casi negro */
+  --ef-meta-color:  #64748B;   /* para .empresa */
+  --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Dark mode (si usas dark.system.css) */

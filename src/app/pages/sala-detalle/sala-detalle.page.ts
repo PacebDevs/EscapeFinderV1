@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Store } from '@ngxs/store';
@@ -6,6 +6,9 @@ import { Sala } from 'src/app/models/sala.model';
 import { SalaService } from 'src/app/services/sala.service';
 import { UsuarioState } from 'src/app/states/usuario.state';
 import { environment } from 'src/environments/environment';
+import { FavoritosService } from 'src/app/services/favoritos.service';
+import { Subscription } from 'rxjs';
+import { Haptics, ImpactStyle } from '@capacitor/haptics'; // opcional, mismo feedback que en la card
 
 @Component({
   selector: 'app-sala-detalle',
@@ -13,9 +16,11 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./sala-detalle.page.scss'],
   standalone: false
 })
-export class SalaDetallePage implements OnInit, OnDestroy {
+export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
   sala: Sala | null = null;
 
+  isFavorito = false;
+  private favSub?: Subscription;
   cargandoDatos = true;
   galleryReady = false;
 
@@ -27,12 +32,22 @@ export class SalaDetallePage implements OnInit, OnDestroy {
   private cancelado = false;
   get baseUrl() { return environment.imageURL; }
 
+  descExpanded = false;
+  isDescOverflow = false;
+  // private readonly DESC_CHAR_THRESHOLD = 800;  // <-- ya no se usa (por líneas)
+  @ViewChild('descRef') private descRef?: ElementRef<HTMLParagraphElement>;
+  private pendingOverflowCheck = false;
+
+  priceTableExpanded = false;
+  hasPriceOverflow = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private navCtrl: NavController,
     private salaService: SalaService,
-    private store: Store
+    private store: Store,
+    private favoritosService: FavoritosService
   ) {}
 
   ngOnInit() {
@@ -41,45 +56,85 @@ export class SalaDetallePage implements OnInit, OnDestroy {
     this.cargarSala(id, lat, lng);
   }
 
-  ngOnDestroy() { this.cancelado = true; }
+  ngAfterViewChecked() {
+    if (this.pendingOverflowCheck) {
+      this.pendingOverflowCheck = false;
+      this.checkDescripcionOverflow();
+    }
+  }
+
+  ngOnDestroy() { 
+    this.cancelado = true; 
+    this.favSub?.unsubscribe();
+  }
 
   volver() {
     if (window.history.length > 1) this.navCtrl.back();
     else this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
   }
 
-  private cargarSala(id: number, lat?: number | null, lng?: number | null) {
-    this.cargandoDatos = true;
-    this.galleryReady = false;
+private cargarSala(id: number, lat?: number | null, lng?: number | null) {
+  this.cargandoDatos = true;
+  this.galleryReady = false;
+  this.salaService.getSalaById(id, lat ?? null, lng ?? null).subscribe({
+    next: (s) => {
+      if (this.cancelado) return;
+      this.sala = s;
 
-    this.salaService.getSalaById(id, lat ?? null, lng ?? null).subscribe({
-      next: (s) => {
-        if (this.cancelado) return;
-        this.sala = s;
-        this.cargandoDatos = false;
+      // Ya no evaluamos por nº de caracteres, siempre reset y luego medimos el DOM
+      this.descExpanded = false;
+      this.isDescOverflow = false;
+      this.priceTableExpanded = false;
+      this.hasPriceOverflow = (s.precios_por_jugadores?.length || 0) > 6;
 
-        // Texto de accesibilidad (para no usar flechas en la plantilla)
-        this.accesibilidadesAptas = (s.caracteristicas || [])
-          .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
-          .map(c => c.nombre)
-          .join(', ');
+      this.cargandoDatos = false;
 
-        // Imágenes
-        const base = (u: string) => u?.startsWith('http') ? u : (this.baseUrl + (u || '').replace(/^\//,''));
-        const cover = s.cover_url ? [base(s.cover_url)] : [];
-        const galeria = (s.imagenes || []).map(i => base(i.url)).filter(Boolean);
-        const set = new Set<string>([...cover, ...galeria]);
-        this.allImgs = Array.from(set);
+      // Texto de accesibilidad (sin funciones flecha en plantilla)
+      this.accesibilidadesAptas = (s.caracteristicas || [])
+        .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
+        .map(c => c.nombre)
+        .join(', ');
 
-        this.displayedImgs = this.allImgs.length ? [this.allImgs[0]] : [];
+      // ---- Imágenes (DOM estable) ----
+      const base = (u: string) =>
+        u?.startsWith('http') ? u : (this.baseUrl + (u || '').replace(/^\//, ''));
+
+      const cover   = s.cover_url ? [base(s.cover_url)] : [];
+      const galeria = (s.imagenes || []).map(i => base(i.url)).filter(Boolean);
+
+      // Evita duplicados (cover repetida)
+      const set = new Set<string>([...cover, ...galeria]);
+      this.allImgs = Array.from(set);
+
+      // ✅ Renderiza TODAS las imágenes desde el principio
+      this.displayedImgs = [...this.allImgs];
+
+      // Preload: sólo controla el overlay (no cambia el nº de slides)
+      if (this.allImgs.length <= 1) {
+        this.galleryReady = true; // sin overlay si hay 0/1 imagen
+      } else {
         this.preloadGallery(this.allImgs);
-      },
-      error: (e) => {
-        console.error('Error cargando sala', e);
-        this.cargandoDatos = false;
       }
-    });
-  }
+
+      // ---- Favorito: suscripción por sala ----
+      this.favSub?.unsubscribe();
+      this.favSub = this.favoritosService
+        .getFavoritoStatusStream(s.id_sala)
+        .subscribe(v => this.isFavorito = v);
+
+      // Marcar que tras render se mida overflow (líneas)
+      this.pendingOverflowCheck = true;
+    },
+    error: (e) => {
+      console.error('Error cargando sala', e);
+      this.cargandoDatos = false;
+      this.allImgs = [];
+      this.displayedImgs = [];
+      this.galleryReady = true;
+    }
+  });
+}
+
 
   private preloadGallery(urls: string[]) {
     if (urls.length <= 1) { this.galleryReady = true; return; }
@@ -89,7 +144,6 @@ export class SalaDetallePage implements OnInit, OnDestroy {
       loaded++;
       if (loaded >= urls.length) {
         this.galleryReady = true;
-        this.displayedImgs = [...this.allImgs];
       }
     };
 
@@ -105,4 +159,30 @@ export class SalaDetallePage implements OnInit, OnDestroy {
   }
 
   trackByUrl(_i: number, u: string) { return u; }
+
+  async toggleFavorito(ev?: Event) {
+    ev?.stopPropagation();
+    if (!this.sala) return;
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch {}
+    this.favoritosService.toggleFavorito(this.sala.id_sala);
+    // el stream actualizará isFavorito automáticamente
+  }
+
+  togglePriceTable() {
+    this.priceTableExpanded = !this.priceTableExpanded;
+  }
+
+  toggleDescripcion() {
+    this.descExpanded = !this.descExpanded;
+    if (!this.descExpanded) this.pendingOverflowCheck = true;
+  }
+
+  private checkDescripcionOverflow() {
+    if (!this.descRef || this.descExpanded) return;
+    const el = this.descRef.nativeElement;
+    // Si el contenido real (scrollHeight) excede el alto visible (clientHeight) => overflow
+    this.isDescOverflow = el.scrollHeight - el.clientHeight > 2;
+  }
 }

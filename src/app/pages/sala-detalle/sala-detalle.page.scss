@@ -1,10 +1,25 @@
+/* =========================
+   Layout base / contenido
+   ========================= */
 .detalle-content {
   --padding-top: 0;
   --padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
   background: #fff;
+
+  /* Paleta marrón + tipografía */
+  --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --ef-brown-900: #4E342E;
+  --ef-brown-800: #5D4037; /* título */
+  --ef-brown-700: #6D4C41;
+
+  --ef-title-color: var(--ef-brown-800);
+  --ef-meta-color:  #6B7280; /* GRIS como antes */
 }
 
-/* Volver */
+/* =========================
+   Botón Volver (glass)
+   ========================= */
 .btn-back {
   position: fixed;
   top: calc(env(safe-area-inset-top) + 12px);
@@ -17,42 +32,128 @@
   display: grid; place-items: center;
 }
 
-/* Slide container */
-.slide-wrapper { position: relative; height: 260px; background: #f2f3f5; }
+/* =========================
+   Slide / Galería
+   ========================= */
+.slide-wrapper {
+  position: relative;
+  height: clamp(180px, 32vh, 300px);
+  background: #f2f3f5;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  overflow: hidden;
+  margin-top: 0;
+}
 
-/* Las imágenes dentro del slide */
+/* Imágenes */
 swiper-container, swiper-slide { width: 100%; height: 100%; display: block; }
-swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+swiper-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(1.03) contrast(1.02);
+}
 
-/* Overlay shimmer hasta que la galería completa esté lista */
+/* Paginación “pill” */
+swiper-container::part(bullet) {
+  background: rgba(255,255,255,.85);
+  opacity: .9; width: 8px; height: 8px; transition: width .2s ease;
+}
+swiper-container::part(bullet-active) {
+  width: 22px; border-radius: 6px; background: #fff;
+}
+
+/* Gradiente inferior del hero */
+.hero-gradient {
+  position: absolute; inset: auto 0 0 0; height: 42%;
+  background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0));
+  pointer-events: none; z-index: 1;
+}
+
+/* Botón favorito (glass) */
+.fav-btn {
+  position: absolute; z-index: 3;
+  top: 12px; right: 12px;
+  width: 42px; height: 42px; border-radius: 14px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(0,0,0,.06);
+  background: rgba(255,255,255,.75);
+  backdrop-filter: blur(8px) saturate(1.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transition: transform .12s ease, background .2s ease;
+}
+.fav-btn ion-icon { font-size: 22px; color: #111827; }
+.fav-btn:active { transform: scale(.96); }
+.fav-btn.active {
+  background: rgba(255,255,255,.9);
+  border-color: rgba(16,185,129,.35);
+  box-shadow: 0 8px 22px rgba(16,185,129,.22);
+}
+.fav-btn.active ion-icon { color: #10b981; }
+
+/* Shimmer overlay */
 .slide-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3), rgba(255,255,255,0));
-  animation: shimmer 1.2s infinite;
-  pointer-events: none;
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.25), rgba(255,255,255,0));
+  animation: shimmer 1.2s infinite; pointer-events: none;
 }
 @keyframes shimmer { from {transform: translateX(-100%);} to {transform: translateX(100%);} }
 
-/* Secciones / skeleton / footer igual que antes */
+/* =========================
+   Secciones / texto general
+   ========================= */
 .section { padding: 16px; }
-.section h1 { font-size: 22px; margin: 4px 0 2px; }
-.section .empresa { color: #6b7280; font-weight: 600; }
+
+/* Título (marrón, app-like) */
+.detalle-content .section h1 {
+  font-family: var(--ef-font-stack), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: clamp(18px, 2.8vh, 24px);
+  line-height: 1.15;
+  color: var(--ef-title-color, #5D4037);
+  margin: 8px 0 2px;
+  text-wrap: balance;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Empresa (gris, simple como antes) */
+.detalle-content .section .empresa {
+  font-family: var(--ef-font-stack), sans-serif;
+  font-weight: 600;                 /* como tenías */
+  color: var(--ef-meta-color, #6B7280);
+  margin-top: 2px;
+
+  /* sin chip */
+  padding: 0;
+  background: transparent;
+  border: none;
+  display: block;
+}
+
 .section p { margin: 0; color: #374151; line-height: 1.4; }
 
-.chips ion-chip { margin-right: 8px; }
+
 
 .secondary .sec-line {
   display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #374151;
 }
 
+/* =========================
+   Mapa / dirección
+   ========================= */
 .map-placeholder {
   height: 200px; border-radius: 16px;
   background: repeating-linear-gradient(45deg, #f6f7f9, #f6f7f9 10px, #eef2f7 10px, #eef2f7 20px);
+  border: 1px solid #eef1f5;
 }
 .direccion-text { margin-top: 8px; color: #4b5563; }
 
+/* =========================
+   Skeletons
+   ========================= */
 .skel { border-radius: 14px; background: linear-gradient(90deg,#eee,#f7f7f7,#eee); animation: pulse 1.2s infinite; margin: 12px; }
-.skel.slide { height: 260px; margin: 0; border-radius: 0; }
+.skel.slide { height: clamp(180px, 32vh, 300px); margin: 0; border-radius: 0; }
 .skel.title { height: 24px; width: 60%; }
 .skel.text { height: 14px; }
 .skel.text.small { width: 80%; }
@@ -60,5 +161,263 @@ swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
 .skel.map { height: 200px; }
 @keyframes pulse { 0%{background-position:0%} 100%{background-position:100%} }
 
+/* =========================
+   Footer / CTA
+   ========================= */
 .footer-reserva ion-toolbar { padding: 8px 12px; }
 .footer-gap { height: 88px; }
+
+.footer-reserva ion-button {
+  --border-radius: 24px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  height: 40px;
+  max-width: 220px;
+  width: auto;
+  margin: 0 auto;
+  font-size: 14px;
+  text-transform: none;
+}
+
+.footer-reserva .reservar-container {
+  display: flex;
+  justify-content: center;
+}
+
+/* =========================
+   Descripción expandible
+   ========================= */
+.descripcion-wrapper {
+  position: relative;
+  --collapsed-lines: 9; /* ajusta aquí el nº de líneas visibles antes de 'Ver más' */
+  margin-top: 8px;
+}
+
+.descripcion-wrapper .descripcion-text {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;          /* antes 1.45 */
+  font-size: 15.8px;         /* antes ~14.5px (ligeramente mayor) */
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+.descripcion-wrapper:not(.expanded) .descripcion-text {
+  display: -webkit-box;
+  -webkit-line-clamp: var(--collapsed-lines);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fade-shadow {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 65%);
+  pointer-events: none;
+}
+
+.ver-mas-ctr {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.btn-ver-mas {
+  --border-radius: 18px;
+  --padding-start: 14px;
+  --padding-end: 12px;
+  --background: #ffffff;
+  --border-color: #e2e5e9;
+  --color: #5D4037;
+  font-weight: 600;
+  letter-spacing: .3px;
+  --border-width: 1px;
+  --box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.btn-ver-mas ion-icon {
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.descripcion-wrapper.expanded + .ver-mas-ctr .btn-ver-mas {
+  --border-color: #d5c9c4;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .detalle-content {
+    --ef-title-color: #D7CCC8; /* marrón claro */
+    --ef-meta-color:  #9CA3AF; /* gris claro para empresa */
+  }
+  .fade-shadow {
+    background: linear-gradient(to bottom, rgba(18,18,18,0), #121212 65%);
+  }
+  .btn-ver-mas {
+    --background: #1e1f20;
+    --border-color: #2b2c2d;
+    --color: #E9DFDC;
+  }
+}
+
+/* ===== Características principales (stats) ===== */
+.keyfacts { padding-top: 8px; }
+
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #FAFAFB;
+  border: 1px solid #EEF1F5;
+  box-shadow: 0 1px 0 rgba(17,24,39,.03);
+  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+}
+.fact:active { transform: scale(.98); }
+
+.fact .icon {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #FFF, #F3F4F6);
+  border: 1px solid #E9EEF3;
+}
+.fact .icon ion-icon {
+  font-size: 20px;
+  color: var(--ef-brown-800, #5D4037); /* usa tu marrón */
+}
+
+.fact .label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: #6B7280; /* gris meta */
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.fact .value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827; /* título oscuro */
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+/* Categorías: permite 2 líneas y luego corta con ellipsis */
+.fact .value-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .fact {
+    background: #0B1020;
+    border-color: #1F2937;
+    box-shadow: none;
+  }
+  .fact .icon {
+    background: linear-gradient(180deg, #0E1324, #0B1020);
+    border-color: #1F2937;
+  }
+  .fact .label { color: #9CA3AF; }
+  .fact .value { color: #E5E7EB; }
+}
+
+/* =========================
+   Bloque precios (nuevo formato)
+   ========================= */
+.pricing-section { margin-top: 4px; }
+
+.price-range-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.price-pill {
+  /* centrado interno */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;      /* centra horizontalmente */
+  text-align: center;       /* centra el texto */
+  flex: 1;
+  background: linear-gradient(135deg,#f8f5f4,#f1eeeb);
+  border: 1px solid #e4dad5;
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  min-height: 72px;
+}
+
+.price-pill .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: #8d7168;
+  margin-bottom: 6px;
+}
+
+.price-pill .value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5D4037;
+  line-height: 1;
+}
+
+.pp-table {
+  border: 1px solid #ece7e4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.pp-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a4d50;
+}
+
+.pp-row:nth-child(even):not(.header) { background: #faf9f8; }
+
+.pp-row.header {
+  background: #f3eeec;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #6f5248;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .price-pill {
+    background: linear-gradient(135deg,#2a2523,#231f1e);
+    border-color: #3a322f;
+  }
+  .price-pill .label { color: #b89f96; }
+  .price-pill .value { color: #f2e6e2; }
+  .pp-table { background:#1f1d1c; border-color:#352e2b; }
+  .pp-row { color:#d9d4d2; }
+  .pp-row:nth-child(even):not(.header) { background:#241f1e; }
+  .pp-row.header { background:#2d2624; color:#c5b2aa; }
+}
+
+.price-more-btn { margin-top: 8px; }

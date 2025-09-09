@@ -5,8 +5,8 @@
 export const environment = {
   production: true,
   //Piso y casa de padres
-  //apiUrl: 'http://192.168.1.131:3000/api',
-  //imageURL: 'http://192.168.1.131:3000/'
+  apiUrl: 'http://192.168.1.131:3000/api',
+  imageURL: 'http://192.168.1.131:3000/'
 //Internet
   //apiUrl: 'https://soil-gabriel-violation-structured.trycloudflare.com/api',
   //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
@@ -14,8 +14,8 @@ export const environment = {
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'
 /*PARCELA*/
-apiUrl: 'http://192.168.1.200:3000/api',
-imageURL: 'http://192.168.1.200:3000/'
+//apiUrl: 'http://192.168.1.200:3000/api',
+//imageURL: 'http://192.168.1.200:3000/'
 
 };
 
