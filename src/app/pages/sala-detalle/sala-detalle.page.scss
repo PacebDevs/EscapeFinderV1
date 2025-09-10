@@ -69,34 +69,27 @@ swiper-container::part(bullet-active) {
   pointer-events: none; z-index: 1;
 }
 
-/* Botón favorito (glass) */
-.fav-btn {
-  position: absolute; z-index: 3;
-  top: 12px; right: 12px;
-  width: 42px; height: 42px; border-radius: 14px;
-  display: grid; place-items: center;
-  border: 1px solid rgba(0,0,0,.06);
-  background: rgba(255,255,255,.75);
-  backdrop-filter: blur(8px) saturate(1.1);
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-  transition: transform .12s ease, background .2s ease;
+/* Favorito (igual que card) */
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 30px;
+  color: #32db64;
+  z-index: 2;
+  border-radius: 50%;
+  padding: 4px;
+  background: transparent;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
-.fav-btn ion-icon { font-size: 22px; color: #111827; }
-.fav-btn:active { transform: scale(.96); }
-.fav-btn.active {
-  background: rgba(255,255,255,.9);
-  border-color: rgba(16,185,129,.35);
-  box-shadow: 0 8px 22px rgba(16,185,129,.22);
+.favorite-icon.pulse-animation {
+  animation: pulse 0.3s ease;
 }
-.fav-btn.active ion-icon { color: #10b981; }
-
-/* Shimmer overlay */
-.slide-overlay {
-  position: absolute; inset: 0; z-index: 2;
-  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.25), rgba(255,255,255,0));
-  animation: shimmer 1.2s infinite; pointer-events: none;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
 }
-@keyframes shimmer { from {transform: translateX(-100%);} to {transform: translateX(100%);} }
 
 /* =========================
    Secciones / texto general
@@ -148,6 +141,26 @@ swiper-container::part(bullet-active) {
   border: 1px solid #eef1f5;
 }
 .direccion-text { margin-top: 8px; color: #4b5563; }
+
+/* Distancia usuario en bloque mapa */
+.distancia-usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  color: var(--ef-meta-color, #6B7280);
+  font-weight: 600;
+  font-size: 14px;
+}
+.distancia-usuario ion-icon {
+  font-size: 18px;
+  color: #5D4037;
+}
+
+@media (prefers-color-scheme: dark) {
+  .distancia-usuario { color: #b9b1af; }
+  .distancia-usuario ion-icon { color: #d7c7c1; }
+}
 
 /* =========================
    Skeletons
@@ -421,3 +434,82 @@ swiper-container::part(bullet-active) {
 }
 
 .price-more-btn { margin-top: 8px; }
+
+/* =========================
+   Sección ubicación
+   ========================= */
+.ubicacion-section {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 14px;
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.ubicacion-section .section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* título a la izquierda, distancia a la derecha */
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ubicacion-section .section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ef-title-color, #5D4037);
+}
+
+/* Ya existente, se reutiliza; ajustes leves para la fila */
+.distancia-usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ef-meta-color, #6B7280);
+  font-weight: 600;
+  font-size: 14px;
+}
+.distancia-usuario ion-icon { font-size: 18px; color: #5D4037; }
+
+@media (prefers-color-scheme: dark) {
+  .ubicacion-section {
+    background: #111827;
+    border-color: #374151;
+  }
+  .ubicacion-section .section-title {
+    color: #D1D5DB;
+  }
+  .distancia-usuario { color: #9CA3AF; }
+  .distancia-usuario ion-icon { color: #D1D5DB; }
+}
+
+.ubicacion-actions {
+  margin-top: 8px;
+  display: flex;              /* centrado horizontal */
+  justify-content: center;    /* centrado horizontal */
+  align-items: center;        /* opcional: centra verticalmente si hay más altura */
+}
+
+.btn-abrir-mapas {
+  --border-radius: 18px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --background: #ffffff;
+  --border-color: #d7cbc6;
+  --border-width: 1px;
+  --color: var(--ef-brown-800, #5D4037);
+  --box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.btn-abrir-mapas ion-icon { font-size: 16px; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .btn-abrir-mapas {
+    --background: #1e1f20;
+    --border-color: #2b2c2d;
+    --color: #E9DFDC;
+  }
+}

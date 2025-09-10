@@ -8,7 +8,7 @@ import { UsuarioState } from 'src/app/states/usuario.state';
 import { environment } from 'src/environments/environment';
 import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
-import { Haptics, ImpactStyle } from '@capacitor/haptics'; // opcional, mismo feedback que en la card
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-sala-detalle',
@@ -27,7 +27,8 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
   displayedImgs: string[] = [];
   allImgs: string[] = [];
 
-  accesibilidadesAptas = ''; // <-- evita la función flecha en plantilla
+  accesibilidadesAptas = '';           // ...existing code...
+  accesibilidades: string[] = [];      // NUEVO
 
   private cancelado = false;
   get baseUrl() { return environment.imageURL; }
@@ -41,6 +42,10 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
   priceTableExpanded = false;
   hasPriceOverflow = false;
 
+  distanciaKm: number | null = null;
+  private userLat: number | null = null;
+  private userLng: number | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -53,6 +58,8 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     const { lat, lng } = this.store.selectSnapshot(UsuarioState.ubicacion) || {};
+    this.userLat = lat ?? null;
+    this.userLng = lng ?? null;
     this.cargarSala(id, lat, lng);
   }
 
@@ -76,6 +83,7 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
 private cargarSala(id: number, lat?: number | null, lng?: number | null) {
   this.cargandoDatos = true;
   this.galleryReady = false;
+  this.distanciaKm = null;
   this.salaService.getSalaById(id, lat ?? null, lng ?? null).subscribe({
     next: (s) => {
       if (this.cancelado) return;
@@ -89,11 +97,12 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
 
       this.cargandoDatos = false;
 
-      // Texto de accesibilidad (sin funciones flecha en plantilla)
-      this.accesibilidadesAptas = (s.caracteristicas || [])
+      // Accesibilidades: ahora como lista (no separadas por comas)
+      this.accesibilidades = (s.caracteristicas || [])
         .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
         .map(c => c.nombre)
-        .join(', ');
+        .filter(Boolean);
+      this.accesibilidadesAptas = ''; // limpiar el string antiguo (ya no se usa)
 
       // ---- Imágenes (DOM estable) ----
       const base = (u: string) =>
@@ -124,6 +133,13 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
 
       // Marcar que tras render se mida overflow (líneas)
       this.pendingOverflowCheck = true;
+
+      // Distancia: usa exclusivamente la del backend
+      const rawDist = (s as any)?.distancia_km ?? (s as any)?.distancia ?? null;
+      this.distanciaKm = (rawDist !== null && rawDist !== undefined && rawDist !== '')
+        ? Number(rawDist)
+        : null;
+
     },
     error: (e) => {
       console.error('Error cargando sala', e);
@@ -160,14 +176,18 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
 
   trackByUrl(_i: number, u: string) { return u; }
 
-  async toggleFavorito(ev?: Event) {
-    ev?.stopPropagation();
-    if (!this.sala) return;
-    try {
-      await Haptics.impact({ style: ImpactStyle.Light });
-    } catch {}
-    this.favoritosService.toggleFavorito(this.sala.id_sala);
-    // el stream actualizará isFavorito automáticamente
+  async toggleFavorito(event?: Event) {
+    event?.stopPropagation();
+    event?.preventDefault();
+
+    const target = (event?.target as HTMLElement) ?? null;
+    try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+
+    if (target) {
+      target.classList.add('pulse-animation');
+      setTimeout(() => target.classList.remove('pulse-animation'), 300);
+    }
+    this.favoritosService.toggleFavorito(this.sala!.id_sala);
   }
 
   togglePriceTable() {
@@ -185,4 +205,21 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     // Si el contenido real (scrollHeight) excede el alto visible (clientHeight) => overflow
     this.isDescOverflow = el.scrollHeight - el.clientHeight > 2;
   }
+
+  getAccIcon(nombre: string): string {
+    const n = (nombre || '').toLowerCase();
+    if (n.includes('sign') || n.includes('señas') || n.includes('lengua')) return 'hand-left-outline';
+    if (n.includes('audit') || n.includes('oído') || n.includes('sonido')) return 'ear-outline';
+    if (n.includes('visual') || n.includes('visión') || n.includes('ciego')) return 'eye-outline';
+    if (n.includes('movilidad') || n.includes('rueda')) return 'accessibility-outline';
+    return 'accessibility-outline';
+  }
+
+  abrirEnMapas(event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    // TODO: implementar navegación a mapas (Google/Apple Maps)
+    console.log('Abrir en mapas clicado');
+  }
+
 }

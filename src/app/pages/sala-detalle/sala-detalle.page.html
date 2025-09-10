@@ -27,16 +27,12 @@
   <!-- Shimmer mientras aún no está toda la galería -->
   <div class="slide-overlay" *ngIf="!galleryReady"></div>
 
-  <!-- Botón Favorito (glass) -->
-  <button
-    class="fav-btn"
-    type="button"
-    aria-label="Favorito"
-    [attr.aria-pressed]="isFavorito"
-    [class.active]="isFavorito"
+  <!-- Favorito igual que en la card -->
+  <ion-icon
+    [name]="isFavorito ? 'heart' : 'heart-outline'"
+    class="favorite-icon"
     (click)="toggleFavorito($event)">
-    <ion-icon [name]="isFavorito ? 'heart' : 'heart-outline'"></ion-icon>
-  </button>
+  </ion-icon>
 
   <swiper-container
     slides-per-view="1"
@@ -169,20 +165,43 @@
       <div class="sec-line" *ngIf="sala.actores !== null && sala.actores !== undefined">
         <ion-icon name="person-outline"></ion-icon><span>{{ sala.actores ? 'Actores en vivo' : 'Sin actores' }}</span>
       </div>
-      <!-- …y más abajo… -->
-      <div class="sec-line" *ngIf="accesibilidadesAptas">
-        <ion-icon name="accessibility-outline"></ion-icon>
-        <span>{{ accesibilidadesAptas }}</span>
-      </div>
+
+      <!-- ACCESIBILIDADES: una por línea con icono -->
+      <ng-container *ngIf="accesibilidades?.length">
+        <div class="sec-line" *ngFor="let acc of accesibilidades">
+          <ion-icon [name]="getAccIcon(acc)"></ion-icon>
+          <span>{{ acc }}</span>
+        </div>
+      </ng-container>
     </section>
 
-    <!-- Mapa (placeholder) -->
-    <section class="section">
-      <h3>Ubicación de la sala</h3>
+       <!-- Mapa (placeholder) -->
+    <section class="section ubicacion-section">
+      <div class="section-title-row">
+        <h3 class="section-title">Ubicación de la sala</h3>
+        <div class="distancia-usuario" *ngIf="distanciaKm !== null">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>
+            {{ distanciaKm < 1 ? ((distanciaKm * 1000) | number:'1.0-0') + ' m' : (distanciaKm | number:'1.0-1') + ' km' }}
+          </span>
+        </div>
+      </div>
+
       <div class="map-placeholder"></div>
-      <div class="direccion-text" *ngIf="sala.nombre_via">
-        {{ sala.tipo_via }} {{ sala.nombre_via }} {{ sala.numero }},
-        {{ sala.ciudad }} {{ sala.codigo_postal }}
+      <div class="direccion-text" *ngIf="sala?.nombre_via">
+        {{ sala?.tipo_via }} {{ sala?.nombre_via }} {{ sala?.numero }},
+        {{ sala?.ciudad }} {{ sala?.codigo_postal }}
+      </div>
+
+      <!-- Botón sutil para abrir en mapas -->
+      <div class="ubicacion-actions" *ngIf="sala?.nombre_via">
+        <ion-button class="btn-abrir-mapas"
+                    fill="outline"
+                    size="small"
+                    (click)="abrirEnMapas($event)">
+          <ion-icon name="map-outline" slot="start"></ion-icon>
+          Cómo llegar
+        </ion-button>
       </div>
     </section>
 

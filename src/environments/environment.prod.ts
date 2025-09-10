@@ -4,8 +4,8 @@ export const environment = {
   imageURL: 'http://192.168.1.131:3000/',
   //apiUrl: 'http://10.0.2.2:3000/api'
   //Internet
-  //apiUrl: 'https://soil-gabriel-violation-structured.trycloudflare.com/api',
-  //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
+  //apiUrl: 'https://eur-talented-lb-apache.trycloudflare.com/api',
+  //imageURL: 'https://eur-talented-lb-apache.trycloudflare.com/'
 
   /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
