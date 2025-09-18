@@ -76,6 +76,9 @@
               <ion-icon name="chevron-forward-outline" slot="end" class="prediction-chevron"></ion-icon>
             </ion-item>
           </ion-list>
+          <ion-item *ngIf="mostrarNoResultados && query.length > 0" lines="none">
+            <ion-label color="medium">No se encontraron resultados</ion-label>
+          </ion-item>
         </div>
       </ion-content>
     </ng-template>

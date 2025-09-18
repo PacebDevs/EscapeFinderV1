@@ -11,6 +11,7 @@ import { UsuarioState } from '../states/usuario.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { ChangeDetectionStrategy } from '@angular/core';
+import { DireccionPickerComponent } from '../components/direccion-picker/direccion-picker.component';
 
 @Component({
   selector: 'app-tab1',
@@ -52,6 +53,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   private savedScrollTop = 0;
   private savedHeaderOffset = 0;
   private ignoreNextDelta = false;
+  modalController: any;
 
   constructor(
     private store: Store,

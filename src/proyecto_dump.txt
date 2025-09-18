@@ -26,6 +26,10 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+@import 'swiper/css/navigation';
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
@@ -36,6 +40,8 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
+
 
 ion-header,
 ion-toolbar {
@@ -52,6 +58,17 @@ ion-content {
 ion-footer {
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
+
+/* Vars globales para tipografía y colores del título */
+:root {
+  --ef-title-color: #1F2937;   /* gris casi negro */
+  --ef-meta-color:  #64748B;   /* para .empresa */
+  --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Dark mode (si usas dark.system.css) */
+
 
 === index.html ===
 <!DOCTYPE html>
@@ -84,8 +101,10 @@ ion-footer {
 
 === main.ts ===
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-
 import { AppModule } from './app/app.module';
+
+import { register } from 'swiper/element/bundle'; // 👈
+register();                                      // 👈
 
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.log(err));
@@ -188,6 +207,10 @@ const routes: Routes = [
   {
     path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+  },
+  {
+    path: 'sala/:id',
+    loadChildren: () => import('./pages/sala-detalle/sala-detalle.module').then( m => m.SalaDetallePageModule)
   }
 ];
 
@@ -237,6 +260,7 @@ import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
+
 
 @Component({
   selector: 'app-root',
@@ -303,15 +327,15 @@ export class AppModule {}
 export const environment = {
   production: true,
   //apiUrl: 'http://192.168.1.131:3000/api',
- // imageURL: 'http://192.168.1.131:3000/'
-//apiUrl: 'http://10.0.2.2:3000/api'
-//Internet
-  //apiUrl: 'https://soil-gabriel-violation-structured.trycloudflare.com/api',
-  //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
+  //imageURL: 'http://192.168.1.131:3000/',
+  //apiUrl: 'http://10.0.2.2:3000/api'
+  //Internet
+  apiUrl: 'https://contemporary-melbourne-newman-moisture.trycloudflare.com/api',
+  imageURL: 'https://contemporary-melbourne-newman-moisture.trycloudflare.com/'
 
   /*PARCELA*/
-apiUrl: 'http://192.168.1.200:3000/api',
-imageURL: 'http://192.168.1.200:3000/'
+//apiUrl: 'http://192.168.1.200:3000/api',
+//imageURL: 'http://192.168.1.200:3000/'
 
 };
 
@@ -324,17 +348,17 @@ imageURL: 'http://192.168.1.200:3000/'
 export const environment = {
   production: true,
   //Piso y casa de padres
-  //apiUrl: 'http://192.168.1.131:3000/api',
-  //imageURL: 'http://192.168.1.131:3000/'
+ apiUrl: 'http://192.168.1.131:3000/api',
+imageURL: 'http://192.168.1.131:3000/'
 //Internet
-  //apiUrl: 'https://soil-gabriel-violation-structured.trycloudflare.com/api',
-  //imageURL: 'https://soil-gabriel-violation-structured.trycloudflare.com/'
+   //apiUrl: 'https://intervals-circuit-recipe-jam.trycloudflare.com/api',
+  //imageURL: 'https://intervals-circuit-recipe-jam.trycloudflare.com/'
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'
 /*PARCELA*/
-apiUrl: 'http://192.168.1.200:3000/api',
-imageURL: 'http://192.168.1.200:3000/'
+//apiUrl: 'http://192.168.1.200:3000/api',
+//imageURL: 'http://192.168.1.200:3000/'
 
 };
 
@@ -534,7 +558,8 @@ export interface Sala {
   codigo_google?: string | null;
   latitud?: number | null;
   longitud?: number | null;
-
+  // Mapa estático
+  mapa_estatico_url?: string; // URL del mapa estático generado en el backend
   // Empresa / reserva
   empresa?: string | null;
   tipo_reserva?: string | null;
@@ -632,6 +657,15 @@ export class SalaService {
       map((salas) => salas.map(enrichSala))
     );
   }
+  getSalaById(id: number, lat?: number | null, lng?: number | null): Observable<Sala> {
+    let params = new HttpParams();
+    if (Number.isFinite(lat as number) && Number.isFinite(lng as number)) {
+      params = params.set('lat', String(lat)).set('lng', String(lng));
+    }
+    return this.http.get<Sala>(`${this.baseUrl}/${id}`, { params });
+}
+
+
 }
 
 
@@ -685,7 +719,7 @@ export interface UbicacionResultado {
   ciudad: string;
   lat: number;
   lng: number;
-  // Nuevos campos proporcionados por el backend (opcionales para compatibilidad)
+  // Campos opcionales (compatibilidad con backend enriquecido)
   via?: string | null;
   via_tipo?: string | null;
   via_nombre?: string | null;
@@ -702,35 +736,76 @@ export interface UbicacionResultado {
 @Injectable({ providedIn: 'root' })
 export class UbicacionService {
   private baseUrl = `${environment.apiUrl}/ubicacion`;
+  private sessionId = UbicacionService.ensureSessionId();
 
   constructor(private http: HttpClient) {}
 
-  /** Autocompleta mientras se escribe */
+  /**
+   * Autocompleta mientras se escribe.
+   * Importante: NO recortamos el input; enviamos tal cual (espacio final incluido).
+   * El backend hará coalescing/debounce por sesión y token-closing.
+   */
   autocomplete(input: string): Observable<string[]> {
-    const params = new HttpParams().set('input', input);
-    return this.http.get<string[]>(`${this.baseUrl}/autocomplete`, { params });
+    const params = new HttpParams().set('input', input ?? '');
+    return this.http.get<string[]>(`${this.baseUrl}/autocomplete`, {
+      params,
+      headers: { 'X-Session-Id': this.sessionId }
+    }).pipe(
+      tap(predictions => this.logAutocompletePredictions(input, predictions))
+    );
   }
 
   /** Geocodifica una dirección seleccionada */
   geocode(description: string): Observable<UbicacionResultado> {
     const params = new HttpParams().set('description', description);
     return this.http
-      .get<UbicacionResultado>(`${this.baseUrl}/geocode`, { params })
+      .get<UbicacionResultado>(`${this.baseUrl}/geocode`, {
+        params,
+        headers: { 'X-Session-Id': this.sessionId }
+      })
       .pipe(tap((res) => this.logUbicacionResultado('geocode', res)));
   }
 
   /** Desde coordenadas GPS */
   reverseGeocode(lat: number, lng: number): Observable<UbicacionResultado> {
-    const params = new HttpParams().set('lat', lat.toString()).set('lng', lng.toString());
+    const params = new HttpParams()
+      .set('lat', String(lat))
+      .set('lng', String(lng));
+
     return this.http
-      .get<UbicacionResultado>(`${this.baseUrl}/reverse`, { params })
+      .get<UbicacionResultado>(`${this.baseUrl}/reverse`, {
+        params,
+        headers: { 'X-Session-Id': this.sessionId }
+      })
       .pipe(tap((res) => this.logUbicacionResultado('reverse', res)));
+  }
+
+  // ======================================
+  // Utils
+  // ======================================
+
+  /** Genera/recupera un SessionId estable (persistido en localStorage) */
+  private static ensureSessionId(): string {
+    try {
+      const key = 'ef_session_id';
+      const existing = localStorage.getItem(key);
+      if (existing) return existing;
+
+      const generated = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+      localStorage.setItem(key, generated);
+      return generated;
+    } catch {
+      // Fallback (SSR / private mode)
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
   }
 
   // Log estructurado de todos los campos que puede devolver el backend
   private logUbicacionResultado(context: 'geocode' | 'reverse', res: UbicacionResultado) {
     try {
-      // agrupado y colapsado para no saturar la consola
       console.groupCollapsed(`UbicacionService:${context} UbicacionResultado`);
       console.log('direccion:', res.direccion);
       console.log('ciudad:', res.ciudad);
@@ -749,8 +824,20 @@ export class UbicacionService {
       console.log('place_id:', res.place_id ?? null);
       console.groupEnd();
     } catch {
-      // fallback simple por si algo falla
       console.log(`UbicacionService:${context} UbicacionResultado:`, res);
+    }
+  }
+
+  // Log de predicciones de autocompletado
+  private logAutocompletePredictions(input: string, predictions: string[]) {
+    try {
+      console.groupCollapsed(`UbicacionService:autocomplete [${input}]`);
+      console.log('Input:', input);
+      console.log('Cantidad de predicciones:', predictions.length);
+      console.log('Predicciones:', predictions);
+      console.groupEnd();
+    } catch {
+      console.log(`UbicacionService:autocomplete [${input}]`, predictions);
     }
   }
 }
@@ -919,7 +1006,11 @@ export class Tab1PageModule {}
   <!-- Lista de salas -->
   <ng-container *ngIf="salas$ | async as salas">
     <ng-container *ngIf="salas.length > 0; else noResultados">
-      <app-sala-card class="sala-card" *ngFor="let sala of salas; trackBy: trackBySalaId" [sala]="sala">
+      <app-sala-card
+        class="sala-card"
+        *ngFor="let sala of salas; trackBy: trackBySalaId"
+        [sala]="sala"
+        (open)="abrirSalaDetalle($event)">
       </app-sala-card>
     </ng-container>
   </ng-container>
@@ -976,13 +1067,12 @@ export class Tab1PageModule {}
 /* Contenedor pegajoso del header (NO tiene fondo) */
 .collapsible {
   position: sticky;
-  top: 0;                       /* o var(--ion-safe-area-top, 0) si lo necesitas */
+  top: var(--ion-safe-area-top, 0);
   z-index: 1000;
   overflow: hidden;
   background: transparent;
-  height: var(--collapsible-h, auto); /* pero TS la fija a px */
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-   pointer-events: none;
+  height: auto;            /* TS la fija a px */
+  pointer-events: none;
 }
 
 /* El que se mueve: usa transform 3D y aisla repaints */
@@ -990,10 +1080,11 @@ export class Tab1PageModule {}
   will-change: transform;
   transform: translate3d(0, calc(-1 * var(--header-offset, 0px)), 0);
   backface-visibility: hidden;
-  contain: paint;               /* aisla repaints del resto */
+  contain: paint;
   background: var(--ion-background-color, #fff);
   box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-  pointer-events: auto; 
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 /* ====== Searchbar + botones (tus estilos) ====== */
@@ -1161,6 +1252,11 @@ ion-content {
   --background: #f8f9fa url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23dce1e6' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+ion-content::part(scroll) {
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
 .reset-btn__badge {
   position: absolute;
   top: -4px;
@@ -1182,8 +1278,7 @@ ion-content {
 
 
 === app/tab1/tab1.page.ts ===
-// tab1.page.ts
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ModalController, IonContent } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
@@ -1192,13 +1287,17 @@ import { FiltersModalComponent } from '../components/filter-modal/filters-modal.
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
-import { IonInfiniteScroll } from '@ionic/angular';
 import { UsuarioState } from '../states/usuario.state';
+import { filter } from 'rxjs/operators';
+import { Router, NavigationStart, NavigationEnd } from '@angular/router';
+import { ChangeDetectionStrategy } from '@angular/core';
+import { DireccionPickerComponent } from '../components/direccion-picker/direccion-picker.component';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: './tab1.page.html',
   styleUrls: ['./tab1.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
 export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
@@ -1207,17 +1306,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   filters: any = {};
   categoriasActivas: string[] = [];
   numeroSalas = 0;
+
   private subs: Subscription[] = [];
+  private navSub?: Subscription;
 
-  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
   @ViewChild(IonContent) pageContent!: IonContent;
-
-  // Header movible (sticky) dentro del ion-content
   @ViewChild('collapsible', { static: false }) collapsibleRef!: ElementRef<HTMLDivElement>;
 
-
-
-  
   private latUsuario: number | null = null;
   private lngUsuario: number | null = null;
 
@@ -1225,155 +1320,244 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   offset = 0;
   todasCargadas = false;
   cargando = false;
-  observer!: IntersectionObserver;
 
-  // Estado del colapso/movimiento
-  private maxCollapse = 0;     // altura natural del bloque colapsable
-  private headerOffset = 0;    // desplazamiento consumido (0..maxCollapse)
-  private lastY = 0;           // último scrollTop para Δ
-  private ticking = false;
+  // Header (modo Δ)
+  private maxCollapse = 0;
+  private headerOffset = 0;
+  private lastScrollTop = 0;
+  private raf = false;
   private ro?: ResizeObserver;
   private scrollEl!: HTMLElement;
-    
 
+  // Estado guardado al salir
+  private savedScrollTop = 0;
+  private savedHeaderOffset = 0;
+  private ignoreNextDelta = false;
+  modalController: any;
 
-    constructor(
+  constructor(
     private store: Store,
     private socketService: SocketService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private router: Router,
+    private cdr: ChangeDetectorRef // 👈 Agregado para updates manuales
   ) {}
 
   ngOnInit() {
-    this.subs.push(this.salas$.subscribe(salas => (this.numeroSalas = salas.length)));
+    // ✅ Los observables funcionan bien con OnPush
+    this.subs.push(
+      this.salas$.subscribe(salas => {
+        this.numeroSalas = salas.length;
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      })
+    );
 
     this.subs.push(
       this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
         const { ciudad, lat, lng } = ubicacion || {};
         this.latUsuario = lat ?? null;
         this.lngUsuario = lng ?? null;
+        
         if (ciudad) {
+          // ✅ Crear nuevo objeto en lugar de mutar
           this.filters = { ...this.filters, ciudad };
         } else {
           const { ciudad: _c, ...rest } = this.filters;
           this.filters = { ...rest };
         }
+        this.cdr.markForCheck(); // 👈 Marca para check manual
       })
     );
 
     this.socketService.connect();
-    this.subs.push(this.socketService.listenSalasUpdated().subscribe(() => this.reloadSalas()));
+    
     this.subs.push(
-      this.socketService.listenSalaModificada().subscribe(sala => {
-        if (this.aplicaFiltros(sala)) this.store.dispatch(new UpdateSala(sala));
+      this.socketService.listenSalasUpdated().subscribe(() => {
+        this.reloadSalas();
+        this.cdr.markForCheck(); // 👈 Marca para check manual
       })
     );
 
-    this.reloadSalas();
+    this.subs.push(
+      this.socketService.listenSalaModificada().subscribe(sala => {
+        if (this.aplicaFiltros(sala)) {
+          this.store.dispatch(new UpdateSala(sala));
+          this.cdr.markForCheck(); // 👈 Marca para check manual
+        }
+      })
+    );
+
+    const existing = this.store.selectSnapshot(SalaState.salas);
+    if (!existing || existing.length === 0) this.reloadSalas();
+
+    // Navigation handling
+    this.navSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationStart || e instanceof NavigationEnd))
+      .subscribe(async e => {
+        if (e instanceof NavigationStart) {
+          if (this.router.url.startsWith('/tabs/tab1')) {
+            await this.ensureScrollEl();
+            this.savedScrollTop = this.scrollEl?.scrollTop || 0;
+            this.savedHeaderOffset = this.headerOffset;
+          }
+        } else {
+          const url = (e as NavigationEnd).urlAfterRedirects || '';
+          if (url.startsWith('/tabs/tab1')) {
+            await this.ensureScrollEl();
+            this.measureAndFixHeaderHeight();
+
+            const y = Math.max(0, this.savedScrollTop);
+            requestAnimationFrame(() => {
+              this.scrollEl.scrollTop = y;
+              requestAnimationFrame(() => {
+                this.scrollEl.scrollTop = y;
+                this.lastScrollTop = y;
+                this.headerOffset = this.clamp(this.savedHeaderOffset);
+                this.setHeaderOffsetVar(this.headerOffset);
+                this.ignoreNextDelta = true;
+                this.cdr.markForCheck(); // 👈 Marca para check manual
+              });
+            });
+          }
+        }
+      });
   }
 
   async ngAfterViewInit() {
-    // (opcional) infinito manual
-    this.observer = new IntersectionObserver(entries => {
-      const entry = entries[0];
-      if (entry.isIntersecting && !this.cargando && !this.todasCargadas) this.loadMore();
-    });
-
     await this.waitForToolbarReady();
     this.scrollEl = await this.pageContent.getScrollElement();
-    this.measureAndFixHeaderHeight(); // fija maxCollapse y deja el contenedor sticky con altura FIJA
 
-    // Estado inicial del movimiento
-    this.headerOffset = 0;
-    this.lastY = 0;
-    this.setHeaderOffsetVar(0); // inner sin desplazar
+    this.measureAndFixHeaderHeight();
 
-    // Observa cambios de tamaño dinámicos (chips, etc.) y mantiene la proporción visible
+    const y = this.scrollEl.scrollTop || 0;
+    this.lastScrollTop = y;
+    this.headerOffset = this.clamp(this.headerOffset);
+    this.setHeaderOffsetVar(this.headerOffset);
+
     const el = this.collapsibleRef?.nativeElement;
     if (el && 'ResizeObserver' in window) {
       this.ro = new ResizeObserver(() => {
         const visibleAntes = Math.max(0, this.maxCollapse - this.headerOffset);
-        this.measureAndFixHeaderHeight(); // recalcula maxCollapse y actualiza altura fija del contenedor
+        this.measureAndFixHeaderHeight();
         const visibleDespues = Math.max(0, Math.min(visibleAntes, this.maxCollapse));
-        this.headerOffset = Math.max(0, this.maxCollapse - visibleDespues);
-        this.setHeaderOffsetVar(Math.round(this.headerOffset));
+        this.headerOffset = this.clamp(this.maxCollapse - visibleDespues);
+        this.setHeaderOffsetVar(this.headerOffset);
+        this.cdr.markForCheck(); // 👈 Marca para check manual
       });
       this.ro.observe(el);
     }
   }
 
   ngOnDestroy() {
+    this.navSub?.unsubscribe();
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
-    if (this.ro) { try { this.ro.disconnect(); } catch {} this.ro = undefined; }
-  }
-
-  // ======== Scroll 1:1 — header acompaña al scroll sin umbrales ========
-  onScroll(ev: any) {
-    const y = ev?.detail?.scrollTop ?? 0;
-    if (!this.maxCollapse) return;
-
-    const dy = y - this.lastY;
-    this.lastY = y;
-
-    // Ocultar/mostrar a la misma velocidad del scroll, limitado al rango [0, maxCollapse]
-    this.headerOffset = Math.max(0, Math.min(this.maxCollapse, this.headerOffset + dy));
-
-    if (!this.ticking) {
-      this.ticking = true;
-      requestAnimationFrame(() => {
-        const offset = Math.round(this.headerOffset);
-        this.setHeaderOffsetVar(offset);
-        this.ticking = false;
-      });
+    if (this.ro) { 
+      try { this.ro.disconnect(); } catch {} 
+      this.ro = undefined; 
     }
   }
 
+  // ===== Scroll handling =====
+  onScroll(ev: any) {
+    if (!this.maxCollapse) return;
 
+    const y = ev?.detail?.scrollTop ?? 0;
 
-  // ========== Utilidades de medición / estilo ==========
+    if (this.ignoreNextDelta) {
+      this.lastScrollTop = y;
+      this.ignoreNextDelta = false;
+      return;
+    }
+
+    let dy = y - this.lastScrollTop;
+    this.lastScrollTop = y;
+
+    if (Math.abs(dy) < 0.5) return;
+
+    let next = this.headerOffset + dy;
+    if (y <= 0) next = 0;
+    next = this.clamp(next);
+
+    if (!this.raf) {
+      this.raf = true;
+      requestAnimationFrame(() => {
+        this.headerOffset = next;
+        this.setHeaderOffsetVar(this.headerOffset);
+        this.raf = false;
+      });
+    } else {
+      this.headerOffset = next;
+    }
+  }
+
+  // ===== Utility methods =====
+  private clamp(v: number) { 
+    return Math.max(0, Math.min(this.maxCollapse, Math.round(v))); 
+  }
+
   private async waitForToolbarReady() {
     if ('customElements' in window && (customElements as any).whenDefined) {
       try { await (customElements as any).whenDefined('ion-toolbar'); } catch {}
     }
     const toolbar = this.collapsibleRef?.nativeElement?.querySelector('ion-toolbar') as any;
-    if (toolbar?.componentOnReady) { try { await toolbar.componentOnReady(); } catch {} }
+    if (toolbar?.componentOnReady) { 
+      try { await toolbar.componentOnReady(); } catch {} 
+    }
     await new Promise<void>(r => requestAnimationFrame(() => r()));
   }
 
-private measureAndFixHeaderHeight() {
-  const el = this.collapsibleRef?.nativeElement;
-  if (!el) return;
+  private async ensureScrollEl() {
+    if (!this.scrollEl) {
+      await this.waitForToolbarReady();
+      this.scrollEl = await this.pageContent.getScrollElement();
+    }
+  }
 
-  el.style.height = 'auto';
-  let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
-  if (h < 1) h = 120;
-  this.maxCollapse = Math.ceil(h);
+  private measureAndFixHeaderHeight() {
+    const el = this.collapsibleRef?.nativeElement;
+    if (!el) return;
 
-  // altura FIJA del contenedor sticky
-  el.style.height = `${this.maxCollapse}px`;
-  // Clampear offset si la altura cambió
-  this.headerOffset = Math.max(0, Math.min(this.headerOffset, this.maxCollapse));
-}
+    el.style.height = 'auto';
+    let h = el.scrollHeight || el.getBoundingClientRect().height || 0;
+    if (h < 1) h = 120;
+    this.maxCollapse = Math.ceil(h);
+
+    el.style.height = `${this.maxCollapse}px`;
+    this.headerOffset = this.clamp(this.headerOffset);
+    this.setHeaderOffsetVar(this.headerOffset);
+  }
 
   private setHeaderOffsetVar(px: number) {
     const el = this.collapsibleRef?.nativeElement;
     if (!el) return;
-  el.style.setProperty('--header-offset', `${px}px`);
+    el.style.setProperty('--header-offset', `${px}px`);
   }
 
-  // ========= Lógica existente =========
+  // ===== Business logic methods =====
   async selectCategoria(valor: string) {
-    if (valor === 'Filtros') { await this.openFilters(); return; }
+    if (valor === 'Filtros') { 
+      await this.openFilters(); 
+      return; 
+    }
+    
     const index = this.categoriasActivas.indexOf(valor);
-    if (index > -1) this.categoriasActivas.splice(index, 1);
-    else this.categoriasActivas.push(valor);
+    
+    // ✅ Crear nuevo array en lugar de mutar
+    if (index > -1) {
+      this.categoriasActivas = this.categoriasActivas.filter((_, i) => i !== index);
+    } else {
+      this.categoriasActivas = [...this.categoriasActivas, valor];
+    }
 
+    // ✅ Crear nuevo objeto de filtros
     this.filters = this.categoriasActivas.length === 0
       ? { ...this.filters, categorias: undefined }
       : { ...this.filters, categorias: [...this.categoriasActivas] };
 
     await Haptics.impact({ style: ImpactStyle.Light });
     this.reloadSalas();
+    this.cdr.markForCheck(); // 👈 Marca para check manual
   }
 
   async openFilters() {
@@ -1388,10 +1572,13 @@ private measureAndFixHeaderHeight() {
 
     await modal.present();
     const { data } = await modal.onDidDismiss();
+    
     if (data) {
+      // ✅ Crear nuevos objetos
       this.filters = { ...this.filters, ...data };
       this.categoriasActivas = this.filters.categorias ? [...this.filters.categorias] : [];
       this.reloadSalas();
+      this.cdr.markForCheck(); // 👈 Marca para check manual
     }
   }
 
@@ -1403,6 +1590,7 @@ private measureAndFixHeaderHeight() {
       this.filters = { ...rest };
     }
     this.reloadSalas();
+    this.cdr.markForCheck(); // 👈 Marca para check manual
   }
 
   aplicaFiltros(sala: any): boolean {
@@ -1410,6 +1598,7 @@ private measureAndFixHeaderHeight() {
     const nombre = sala.nombre?.toLowerCase() || '';
     const empresa = sala.empresa?.toLowerCase() || '';
     if (q && !nombre.includes(q) && !empresa.includes(q)) return false;
+    
     if (this.filters.categorias?.length > 0) {
       const categorias = sala.categorias || [];
       const intersecta = categorias.some(c => this.filters.categorias.includes(c));
@@ -1420,22 +1609,23 @@ private measureAndFixHeaderHeight() {
 
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
-    if (!filtros.distancia_km) {
-      delete filtros.lat; delete filtros.lng;
-    } else {
-      filtros.lat = this.latUsuario;
-      filtros.lng = this.lngUsuario;
+    if (!filtros.distancia_km) { 
+      delete filtros.lat; 
+      delete filtros.lng; 
+    } else { 
+      filtros.lat = this.latUsuario; 
+      filtros.lng = this.lngUsuario; 
     }
     return filtros;
   }
 
   reloadSalas() {
     this.pageContent?.scrollToTop(0);
-
-    // Reset visual del header (totalmente visible)
     this.headerOffset = 0;
-    this.lastY = 0;
     this.setHeaderOffsetVar(0);
+    this.lastScrollTop = 0;
+    this.savedScrollTop = 0;
+    this.savedHeaderOffset = 0;
 
     this.offset = 0;
     this.todasCargadas = false;
@@ -1443,42 +1633,70 @@ private measureAndFixHeaderHeight() {
 
     const filtros = this.getFiltros(0);
     this.store.dispatch(new GetSalas(filtros)).subscribe({
-      next: () => { this.offset = this.limit; this.cargando = false; },
-      error: (err) => { this.cargando = false; console.error('Error al cargar salas', err); }
+      next: () => { 
+        this.offset = this.limit; 
+        this.cargando = false; 
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      },
+      error: (err) => { 
+        this.cargando = false; 
+        console.error('Error al cargar salas', err); 
+        this.cdr.markForCheck(); // 👈 Marca para check manual
+      }
     });
   }
 
   loadMore(event?: any) {
-    if (this.cargando || this.todasCargadas) { event?.target?.complete(); return; }
+    if (this.cargando || this.todasCargadas) { 
+      event?.target?.complete(); 
+      return; 
+    }
+    
     this.cargando = true;
+    this.cdr.markForCheck(); // 👈 Marca para check manual
 
     const filtros = this.getFiltros(this.offset);
     this.store.dispatch(new AppendSalas(filtros)).subscribe((res: any) => {
       const recibidas = res.sala?.cantidad || 0;
       this.offset += recibidas;
-      if (recibidas === 0 || recibidas < this.limit) this.todasCargadas = true;
+      if (recibidas === 0 || recibidas < this.limit) {
+        this.todasCargadas = true;
+      }
       event?.target?.complete();
       this.cargando = false;
+      this.cdr.markForCheck(); // 👈 Marca para check manual
     });
   }
 
-  trackBySalaId(_i: number, sala: any): any { return sala.id_sala; }
-  onMapaClick() { console.log('🗺️ Click en botón de mapa (a implementar)'); }
-  onNotificacionesClick() { console.log('🔔 Notificaciones clickeadas'); }
+  trackBySalaId(_i: number, sala: any): any { 
+    return sala.id_sala; 
+  }
+
+  onMapaClick() { 
+    console.log('🗺️ Click en botón de mapa (a implementar)'); 
+  }
+
+  onNotificacionesClick() { 
+    console.log('🔔 Notificaciones clickeadas'); 
+  }
 
   get filtrosActivos(): number {
     const { ciudad, query, ...rest } = this.filters;
     let total = 0;
     Object.values(rest).forEach(value => {
-      if (Array.isArray(value)) total += value.length;
-      else if (value !== undefined && value !== null && value !== '' && value !== false) total += 1;
+      if (Array.isArray(value)) {
+        total += value.length;
+      } else if (value !== undefined && value !== null && value !== '' && value !== false) {
+        total += 1;
+      }
     });
     return total;
   }
+
+  abrirSalaDetalle(id: number) {
+    this.router.navigate(['/sala', id]);
+  }
 }
-
-
-
 
 === app/tab2/tab2-routing.module.ts ===
 import { NgModule } from '@angular/core';
@@ -1947,6 +2165,1158 @@ updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: Upd
 }
 
 
+=== app/pages/sala-detalle/sala-detalle-routing.module.ts ===
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { SalaDetallePage } from './sala-detalle.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: SalaDetallePage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class SalaDetallePageRoutingModule {}
+
+
+=== app/pages/sala-detalle/sala-detalle.module.ts ===
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { RouterModule, Routes } from '@angular/router';
+import { SalaDetallePage } from './sala-detalle.page';
+
+
+const routes: Routes = [{ path: '', component: SalaDetallePage }];
+
+@NgModule({
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
+  declarations: [SalaDetallePage],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA] 
+})
+export class SalaDetallePageModule {}
+
+
+=== app/pages/sala-detalle/sala-detalle.page.html ===
+<ion-content [fullscreen]="true" class="detalle-content">
+
+  <!-- Volver -->
+  <button class="btn-back" (click)="volver()" aria-label="Volver">
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </button>
+
+  <!-- Skeleton estructura -->
+  <ng-container *ngIf="cargandoDatos">
+    <div class="skel slide"></div>
+    <div class="skel title"></div>
+    <div class="skel text"></div>
+    <div class="skel text small"></div>
+    <div class="skel chips"></div>
+    <div class="skel map"></div>
+    <div class="footer-gap"></div>
+  </ng-container>
+
+  <ng-container *ngIf="!cargandoDatos && sala">
+
+    <!-- Slide Swiper (cover primero; overlay hasta galería lista) -->
+<!-- Slide Swiper (cover primero; overlay hasta galería lista) -->
+<div class="slide-wrapper">
+  <!-- Gradiente inferior para dar contraste al héroe -->
+  <div class="hero-gradient"></div>
+
+  <!-- Shimmer mientras aún no está toda la galería -->
+  <div class="slide-overlay" *ngIf="!galleryReady"></div>
+
+  <!-- Favorito igual que en la card -->
+  <ion-icon
+    [name]="isFavorito ? 'heart' : 'heart-outline'"
+    class="favorite-icon"
+    (click)="toggleFavorito($event)">
+  </ion-icon>
+
+  <swiper-container
+    slides-per-view="1"
+    pagination="true"
+    navigation="false"
+    loop="false"
+    resistance-ratio="0.85"
+    style="width: 100%; height: 100%;"
+  >
+    <swiper-slide *ngFor="let src of displayedImgs; let i = index; trackBy: trackByUrl">
+      <img
+        [src]="src"
+        alt="Imagen de la sala"
+        [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+        decoding="async"
+        [attr.fetchpriority]="i === 0 ? 'high' : null"
+      />
+    </swiper-slide>
+  </swiper-container>
+</div>
+    <!-- Título + empresa -->
+    <section class="section">
+      <h1>{{ sala.nombre }}</h1>
+      <div class="empresa">{{ sala.empresa || sala.nombre_local }}</div>
+    </section>
+
+    <!-- Descripción -->
+    <div class="section" *ngIf="sala as s">
+      <div class="descripcion-wrapper" [class.expanded]="descExpanded" *ngIf="s.descripcion">
+        <p class="descripcion-text" #descRef>{{ s.descripcion }}</p>
+        <div class="fade-shadow" *ngIf="!descExpanded && isDescOverflow"></div>
+      </div>
+
+      <div *ngIf="isDescOverflow" class="ver-mas-ctr">
+        <ion-button fill="outline"
+                    size="small"
+                    (click)="toggleDescripcion()"
+                    class="btn-ver-mas"
+                    [attr.aria-expanded]="descExpanded">
+          {{ descExpanded ? 'Ver menos' : 'Ver más' }}
+          <ion-icon slot="end" [name]="descExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+ <!-- Características principales (sin chips) -->
+<section class="section keyfacts" *ngIf="sala as s">
+  <div class="facts-grid">
+    <div class="fact" *ngIf="s.jugadores_min || s.jugadores_max">
+      <div class="icon"><ion-icon name="people-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Jugadores</div>
+        <div class="value">{{ s.jugadores_min }}–{{ s.jugadores_max }}</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.tiempo">
+      <div class="icon"><ion-icon name="time-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Duración</div>
+        <div class="value">{{ s.tiempo }} min</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.dificultad">
+      <div class="icon"><ion-icon name="barbell-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Dificultad</div>
+        <div class="value">{{ s.dificultad }}</div>
+      </div>
+    </div>
+
+    <div class="fact" *ngIf="s.categorias?.length">
+      <div class="icon"><ion-icon name="pricetag-outline"></ion-icon></div>
+      <div class="content">
+        <div class="label">Categorías</div>
+        <div class="value value-multiline">{{ s.categorias!.join(', ') }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    <!-- Precio -->
+    <section class="section pricing-section" *ngIf="tienePrecioPP">
+      <div class="price-range-header" *ngIf="sala.precio_min_pp || sala.precio_max_pp">
+        <div class="price-pill min">
+          <span class="label">Mín</span>
+          <span class="value">{{ sala.precio_min_pp || sala.precio_max_pp }} €</span>
+        </div>
+        <div class="price-pill max">
+          <span class="label">Máx</span>
+          <span class="value">{{ sala.precio_max_pp || sala.precio_min_pp }} €</span>
+        </div>
+      </div>
+
+      <div class="pp-table" *ngIf="sala.precios_por_jugadores?.length">
+        <div class="pp-row header">
+          <span>Jugadores</span>
+          <span>€/persona</span>
+        </div>
+        <div class="pp-row"
+             *ngFor="let p of (priceTableExpanded ? sala.precios_por_jugadores : (sala.precios_por_jugadores | slice:0:6))">
+          <span>{{ p.jugadores }}</span>
+          <span>{{ p.pp }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="hasPriceOverflow" class="ver-mas-ctr price-more-btn">
+        <ion-button fill="outline"
+                    size="small"
+                    class="btn-ver-mas"
+                    (click)="togglePriceTable()"
+                    [attr.aria-expanded]="priceTableExpanded">
+          {{ priceTableExpanded ? 'Ver menos' : 'Ver más' }}
+          <ion-icon slot="end"
+                    [name]="priceTableExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </ion-button>
+      </div>
+    </section>
+
+    <!-- Secundarias -->
+    <section class="section secondary">
+      <div class="sec-line" *ngIf="sala.tipo_sala?.length">
+        <ion-icon name="home-outline"></ion-icon><span>{{ sala.tipo_sala!.join(', ') }}</span>
+      </div>
+      <div class="sec-line" *ngIf="sala.idiomas?.length">
+        <ion-icon name="language-outline"></ion-icon><span>{{ sala.idiomas!.join(', ') }}</span>
+      </div>
+      <div class="sec-line" *ngIf="sala.actores !== null && sala.actores !== undefined">
+        <ion-icon name="person-outline"></ion-icon><span>{{ sala.actores ? 'Actores en vivo' : 'Sin actores' }}</span>
+      </div>
+
+      <!-- ACCESIBILIDADES: una por línea con icono -->
+      <ng-container *ngIf="accesibilidades?.length">
+        <div class="sec-line" *ngFor="let acc of accesibilidades">
+          <ion-icon [name]="getAccIcon(acc)"></ion-icon>
+          <span>{{ acc }}</span>
+        </div>
+      </ng-container>
+    </section>
+
+       <!-- Mapa (placeholder) -->
+    <section class="section ubicacion-section">
+      <div class="section-title-row">
+        <h3 class="section-title">Ubicación de la sala</h3>
+        <div class="distancia-usuario" *ngIf="distanciaKm !== null">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>
+            {{ distanciaKm < 1 ? ((distanciaKm * 1000) | number:'1.0-0') + ' m' : (distanciaKm | number:'1.0-1') + ' km' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Mapa estático (si hay URL), con fallback al placeholder -->
+      <div class="map-container" *ngIf="sala?.mapa_estatico_url; else noMap">
+        <img class="map-img" 
+             [src]="sala.mapa_estatico_url.startsWith('http') ? sala.mapa_estatico_url : baseUrl + sala.mapa_estatico_url" 
+             alt="Mapa de {{ sala?.nombre }}" 
+             decoding="async" 
+             loading="lazy"
+             (click)="abrirEnMapas($event)" />
+      </div>
+      <ng-template #noMap>
+        <div class="map-placeholder"></div>
+      </ng-template>
+      <div class="direccion-text" *ngIf="sala?.nombre_via">
+        {{ sala?.tipo_via }} {{ sala?.nombre_via }} {{ sala?.numero }},
+        {{ sala?.ciudad }} {{ sala?.codigo_postal }}
+      </div>
+
+      <!-- Botón sutil para abrir en mapas -->
+      <div class="ubicacion-actions" *ngIf="sala?.nombre_via">
+        <ion-button class="btn-abrir-mapas"
+                    fill="outline"
+                    size="small"
+                    (click)="abrirEnMapas($event)">
+          <ion-icon name="map-outline" slot="start"></ion-icon>
+          Cómo llegar
+        </ion-button>
+      </div>
+    </section>
+
+    <div class="footer-gap"></div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="footer-reserva">
+  <ion-toolbar>
+    <ion-button expand="block" color="success" size="large">
+      ¡Reservar tu aventura!
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>
+
+=== app/pages/sala-detalle/sala-detalle.page.scss ===
+/* =========================
+   Layout base / contenido
+   ========================= */
+.detalle-content {
+  --padding-top: 0;
+  --padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+  background: #fff;
+
+  /* Paleta marrón + tipografía */
+  --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --ef-brown-900: #4E342E;
+  --ef-brown-800: #5D4037; /* título */
+  --ef-brown-700: #6D4C41;
+
+  --ef-title-color: var(--ef-brown-800);
+  --ef-meta-color:  #6B7280; /* GRIS como antes */
+}
+
+/* =========================
+   Botón Volver (glass)
+   ========================= */
+.btn-back {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 12px);
+  left: 12px;
+  z-index: 1000;
+  width: 36px; height: 36px;           /* mantiene tamaño/posición */
+  border-radius: 12px;
+  background: rgba(255,255,255,.78);   /* glass más suave */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 0; /* evita halo/blanco sobre imagen */
+  /* resto igual */
+}
+.btn-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(17,24,39,.10); /* contorno neutro */
+  pointer-events: none;
+}
+.btn-back ion-icon {
+  font-size: 20px;
+  color: var(--ef-title-color, #5D4037); /* marrón del título */
+}
+
+/* Hover (solo dispositivos con puntero) */
+@media (hover: hover) {
+  .btn-back:hover {
+    background: rgba(255,255,255,.92);
+    box-shadow:
+      0 6px 14px rgba(17,24,39,.10),
+      inset 0 1px 0 rgba(255,255,255,.6);
+  }
+}
+
+/* Active / Focus */
+.btn-back:active { transform: scale(.96); }
+.btn-back:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(93,64,55,.20),       /* anillo acorde al marrón */
+    0 4px 12px rgba(17,24,39,.08),
+    inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+/* Dark mode, coherente con el resto de la pantalla */
+@media (prefers-color-scheme: dark) {
+  .btn-back {
+    background: rgba(18,18,18,.60);
+    border-color: #2b2c2d;
+    box-shadow:
+      0 6px 16px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .btn-back ion-icon {
+    color: #E9DFDC; /* marrón claro */
+  }
+  .btn-back:focus-visible {
+    box-shadow:
+      0 0 0 3px rgba(233,223,220,.16),
+      0 6px 16px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+}
+
+/* =========================
+   Slide / Galería
+   ========================= */
+.slide-wrapper {
+  position: relative;
+  height: clamp(180px, 32vh, 300px);
+  background: #f2f3f5;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  overflow: hidden;
+  margin-top: 0;
+}
+
+/* Imágenes */
+swiper-container, swiper-slide { width: 100%; height: 100%; display: block; }
+swiper-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(1.03) contrast(1.02);
+}
+
+/* Paginación “pill” */
+swiper-container::part(bullet) {
+  background: rgba(255,255,255,.85);
+  opacity: .9; width: 8px; height: 8px; transition: width .2s ease;
+}
+swiper-container::part(bullet-active) {
+  width: 22px; border-radius: 6px; background: #fff;
+}
+
+/* Gradiente inferior del hero */
+.hero-gradient {
+  position: absolute; inset: auto 0 0 0; height: 42%;
+  background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0));
+  pointer-events: none; z-index: 1;
+}
+
+/* Favorito (igual que card) */
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 30px;
+  color: #32db64;
+  z-index: 2;
+  border-radius: 50%;
+  padding: 4px;
+  background: transparent;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.favorite-icon.pulse-animation {
+  animation: pulse 0.3s ease;
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* =========================
+   Secciones / texto general
+   ========================= */
+.section { padding: 16px; }
+
+/* Título (marrón, app-like) */
+.detalle-content .section h1 {
+  font-family: var(--ef-font-stack), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: clamp(18px, 2.8vh, 24px);
+  line-height: 1.15;
+  color: var(--ef-title-color, #5D4037);
+  margin: 8px 0 2px;
+  text-wrap: balance;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Empresa (gris, simple como antes) */
+.detalle-content .section .empresa {
+  font-family: var(--ef-font-stack), sans-serif;
+  font-weight: 600;                 /* como tenías */
+  color: var(--ef-meta-color, #6B7280);
+  margin-top: 2px;
+
+  /* sin chip */
+  padding: 0;
+  background: transparent;
+  border: none;
+  display: block;
+}
+
+.section p { margin: 0; color: #374151; line-height: 1.4; }
+
+
+
+.secondary .sec-line {
+  display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #374151;
+}
+
+/* =========================
+   Mapa / dirección
+   ========================= */
+.map-container {
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #eef1f5;
+  background: #f6f7f9;
+}
+
+.map-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer; /* clic para abrir en mapas */
+}
+.direccion-text { margin-top: 8px; color: #4b5563; }
+
+/* Distancia usuario en bloque mapa */
+.distancia-usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  color: var(--ef-meta-color, #6B7280);
+  font-weight: 600;
+  font-size: 14px;
+}
+.distancia-usuario ion-icon {
+  font-size: 18px;
+  color: #5D4037;
+}
+
+@media (prefers-color-scheme: dark) {
+  .distancia-usuario { color: #b9b1af; }
+  .distancia-usuario ion-icon { color: #d7c7c1; }
+}
+
+/* =========================
+   Skeletons
+   ========================= */
+.skel { border-radius: 14px; background: linear-gradient(90deg,#eee,#f7f7f7,#eee); animation: pulse 1.2s infinite; margin: 12px; }
+.skel.slide { height: clamp(180px, 32vh, 300px); margin: 0; border-radius: 0; }
+.skel.title { height: 24px; width: 60%; }
+.skel.text { height: 14px; }
+.skel.text.small { width: 80%; }
+.skel.chips { height: 36px; }
+.skel.map { height: 200px; }
+@keyframes pulse { 0%{background-position:0%} 100%{background-position:100%} }
+
+/* =========================
+   Footer / CTA
+   ========================= */
+.footer-reserva {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;                           /* pegado abajo */
+  z-index: 1100;                       /* por encima de todo */
+  background: transparent !important;  /* sin barra/fondo */
+  border: 0;
+  box-shadow: none;
+}
+.footer-reserva ion-toolbar {
+  --background: transparent;
+  background: transparent !important;
+  box-shadow: none;
+  border: 0;
+  --border-width: 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)); /* mantiene posición + safe area */
+}
+/* elimina hairlines (iOS) */
+.footer-reserva::before,
+.footer-reserva::after,
+.footer-reserva ion-toolbar::before,
+.footer-reserva ion-toolbar::after {
+  display: none;
+}
+
+.footer-reserva ion-button {
+  --border-radius: 24px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  height: 40px;
+  max-width: 220px;
+  width: auto;
+  margin: 0 auto;
+  font-size: 14px;
+  text-transform: none;
+}
+
+.footer-reserva .reservar-container {
+  display: flex;
+  justify-content: center;
+}
+
+/* =========================
+   Descripción expandible
+   ========================= */
+.descripcion-wrapper {
+  position: relative;
+  --collapsed-lines: 9; /* ajusta aquí el nº de líneas visibles antes de 'Ver más' */
+  margin-top: 8px;
+}
+
+.descripcion-wrapper .descripcion-text {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;          /* antes 1.45 */
+  font-size: 15.8px;         /* antes ~14.5px (ligeramente mayor) */
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+.descripcion-wrapper:not(.expanded) .descripcion-text {
+  display: -webkit-box;
+  -webkit-line-clamp: var(--collapsed-lines);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fade-shadow {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 56px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 65%);
+  pointer-events: none;
+}
+
+.ver-mas-ctr {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.btn-ver-mas {
+  --border-radius: 18px;
+  --padding-start: 14px;
+  --padding-end: 12px;
+  --background: #ffffff;
+  --border-color: #e2e5e9;
+  --color: #5D4037;
+  font-weight: 600;
+  letter-spacing: .3px;
+  --border-width: 1px;
+  --box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.btn-ver-mas ion-icon {
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.descripcion-wrapper.expanded + .ver-mas-ctr .btn-ver-mas {
+  --border-color: #d5c9c4;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .detalle-content {
+    --ef-title-color: #D7CCC8; /* marrón claro */
+    --ef-meta-color:  #9CA3AF; /* gris claro para empresa */
+  }
+  .fade-shadow {
+    background: linear-gradient(to bottom, rgba(18,18,18,0), #121212 65%);
+  }
+  .btn-ver-mas {
+    --background: #1e1f20;
+    --border-color: #2b2c2d;
+    --color: #E9DFDC;
+  }
+}
+
+/* ===== Características principales (stats) ===== */
+.keyfacts { padding-top: 8px; }
+
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #FAFAFB;
+  border: 1px solid #EEF1F5;
+  box-shadow: 0 1px 0 rgba(17,24,39,.03);
+  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+}
+.fact:active { transform: scale(.98); }
+
+.fact .icon {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, #FFF, #F3F4F6);
+  border: 1px solid #E9EEF3;
+}
+.fact .icon ion-icon {
+  font-size: 20px;
+  color: var(--ef-brown-800, #5D4037); /* usa tu marrón */
+}
+
+.fact .label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: #6B7280; /* gris meta */
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.fact .value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827; /* título oscuro */
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+/* Categorías: permite 2 líneas y luego corta con ellipsis */
+.fact .value-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .fact {
+    background: #0B1020;
+    border-color: #1F2937;
+    box-shadow: none;
+  }
+  .fact .icon {
+    background: linear-gradient(180deg, #0E1324, #0B1020);
+    border-color: #1F2937;
+  }
+  .fact .label { color: #9CA3AF; }
+  .fact .value { color: #E5E7EB; }
+}
+
+/* =========================
+   Bloque precios (nuevo formato)
+   ========================= */
+.pricing-section { margin-top: 4px; }
+
+.price-range-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.price-pill {
+  /* centrado interno */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;      /* centra horizontalmente */
+  text-align: center;       /* centra el texto */
+  flex: 1;
+  background: linear-gradient(135deg,#f8f5f4,#f1eeeb);
+  border: 1px solid #e4dad5;
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  min-height: 72px;
+}
+
+.price-pill .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: #8d7168;
+  margin-bottom: 6px;
+}
+
+.price-pill .value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5D4037;
+  line-height: 1;
+}
+
+.pp-table {
+  border: 1px solid #ece7e4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.pp-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a4d50;
+}
+
+.pp-row:nth-child(even):not(.header) { background: #faf9f8; }
+
+.pp-row.header {
+  background: #f3eeec;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #6f5248;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .price-pill {
+    background: linear-gradient(135deg,#2a2523,#231f1e);
+    border-color: #3a322f;
+  }
+  .price-pill .label { color: #b89f96; }
+  .price-pill .value { color: #f2e6e2; }
+  .pp-table { background:#1f1d1c; border-color:#352e2b; }
+  .pp-row { color:#d9d4d2; }
+  .pp-row:nth-child(even):not(.header) { background:#241f1e; }
+  .pp-row.header { background:#2d2624; color:#c5b2aa; }
+}
+
+.price-more-btn { margin-top: 8px; }
+
+/* =========================
+   Sección ubicación
+   ========================= */
+.ubicacion-section {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 14px;
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.ubicacion-section .section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* título a la izquierda, distancia a la derecha */
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ubicacion-section .section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ef-title-color, #5D4037);
+}
+
+/* Ya existente, se reutiliza; ajustes leves para la fila */
+.distancia-usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ef-meta-color, #6B7280);
+  font-weight: 600;
+  font-size: 14px;
+}
+.distancia-usuario ion-icon { font-size: 18px; color: #5D4037; }
+
+@media (prefers-color-scheme: dark) {
+  .ubicacion-section {
+    background: #111827;
+    border-color: #374151;
+  }
+  .ubicacion-section .section-title {
+    color: #D1D5DB;
+  }
+  .distancia-usuario { color: #9CA3AF; }
+  .distancia-usuario ion-icon { color: #D1D5DB; }
+}
+
+.ubicacion-actions {
+  margin-top: 8px;
+  display: flex;              /* centrado horizontal */
+  justify-content: center;    /* centrado horizontal */
+  align-items: center;        /* opcional: centra verticalmente si hay más altura */
+}
+
+.btn-abrir-mapas {
+  --border-radius: 18px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --background: #ffffff;
+  --border-color: #d7cbc6;
+  --border-width: 1px;
+  --color: var(--ef-brown-800, #5D4037);
+  --box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.btn-abrir-mapas ion-icon { font-size: 16px; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .btn-abrir-mapas {
+    --background: #1e1f20;
+    --border-color: #2b2c2d;
+    --color: #E9DFDC;
+  }
+}
+
+
+=== app/pages/sala-detalle/sala-detalle.page.ts ===
+import { Component, OnDestroy, OnInit, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NavController } from '@ionic/angular';
+import { Store } from '@ngxs/store';
+import { Sala } from 'src/app/models/sala.model';
+import { SalaService } from 'src/app/services/sala.service';
+import { UsuarioState } from 'src/app/states/usuario.state';
+import { environment } from 'src/environments/environment';
+import { FavoritosService } from 'src/app/services/favoritos.service';
+import { Subscription } from 'rxjs';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+
+@Component({
+  selector: 'app-sala-detalle',
+  templateUrl: './sala-detalle.page.html',
+  styleUrls: ['./sala-detalle.page.scss'],
+  standalone: false
+})
+export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
+  sala: Sala | null = null;
+
+  isFavorito = false;
+  private favSub?: Subscription;
+  cargandoDatos = true;
+  galleryReady = false;
+
+  displayedImgs: string[] = [];
+  allImgs: string[] = [];
+
+  accesibilidadesAptas = '';           // ...existing code...
+  accesibilidades: string[] = [];      // NUEVO
+
+  private cancelado = false;
+  get baseUrl() { return environment.imageURL; }
+
+  descExpanded = false;
+  isDescOverflow = false;
+  // private readonly DESC_CHAR_THRESHOLD = 800;  // <-- ya no se usa (por líneas)
+  @ViewChild('descRef') private descRef?: ElementRef<HTMLParagraphElement>;
+  private pendingOverflowCheck = false;
+
+  priceTableExpanded = false;
+  hasPriceOverflow = false;
+
+  distanciaKm: number | null = null;
+  private userLat: number | null = null;
+  private userLng: number | null = null;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private navCtrl: NavController,
+    private salaService: SalaService,
+    private store: Store,
+    private favoritosService: FavoritosService
+  ) {}
+
+  ngOnInit() {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    const { lat, lng } = this.store.selectSnapshot(UsuarioState.ubicacion) || {};
+    this.userLat = lat ?? null;
+    this.userLng = lng ?? null;
+    this.cargarSala(id, lat, lng);
+  }
+
+  ngAfterViewChecked() {
+    if (this.pendingOverflowCheck) {
+      this.pendingOverflowCheck = false;
+      this.checkDescripcionOverflow();
+    }
+  }
+
+  ngOnDestroy() { 
+    this.cancelado = true; 
+    this.favSub?.unsubscribe();
+  }
+
+  volver() {
+    if (window.history.length > 1) this.navCtrl.back();
+    else this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
+  }
+
+private cargarSala(id: number, lat?: number | null, lng?: number | null) {
+  this.cargandoDatos = true;
+  this.galleryReady = false;
+  this.distanciaKm = null;
+  this.salaService.getSalaById(id, lat ?? null, lng ?? null).subscribe({
+    next: (s) => {
+      if (this.cancelado) return;
+      this.sala = s;
+      this.cargandoDatos = false;
+      
+      // Procesar URL del mapa estático
+      if (s.mapa_estatico_url && !s.mapa_estatico_url.startsWith('http')) {
+        s.mapa_estatico_url = this.baseUrl + s.mapa_estatico_url.replace(/^\//, '');
+      }
+
+      // Extraer solo accesibilidades aptas
+      this.accesibilidades = (s.caracteristicas || [])
+        .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
+        .map(c => c.nombre);
+      
+      // Ya no evaluamos por nº de caracteres, siempre reset y luego medimos el DOM
+      this.descExpanded = false;
+      this.isDescOverflow = false;
+      this.priceTableExpanded = false;
+      this.hasPriceOverflow = (s.precios_por_jugadores?.length || 0) > 6;
+
+      this.cargandoDatos = false;
+
+      // ---- Imágenes (DOM estable) ----
+      const base = (u: string) =>
+        u?.startsWith('http') ? u : (this.baseUrl + (u || '').replace(/^\//, ''));
+
+      const cover   = s.cover_url ? [base(s.cover_url)] : [];
+      const galeria = (s.imagenes || []).map(i => base(i.url)).filter(Boolean);
+
+      // Evita duplicados (cover repetida)
+      const set = new Set<string>([...cover, ...galeria]);
+      this.allImgs = Array.from(set);
+
+      // ✅ Renderiza TODAS las imágenes desde el principio
+      this.displayedImgs = [...this.allImgs];
+
+      // Preload: sólo controla el overlay (no cambia el nº de slides)
+      if (this.allImgs.length <= 1) {
+        this.galleryReady = true; // sin overlay si hay 0/1 imagen
+      } else {
+        this.preloadGallery(this.allImgs);
+      }
+
+      // ---- Favorito: suscripción por sala ----
+      this.favSub?.unsubscribe();
+      this.favSub = this.favoritosService
+        .getFavoritoStatusStream(s.id_sala)
+        .subscribe(v => this.isFavorito = v);
+
+      // Marcar que tras render se mida overflow (líneas)
+      this.pendingOverflowCheck = true;
+
+      // Distancia: usa exclusivamente la del backend
+      const rawDist = (s as any)?.distancia_km ?? (s as any)?.distancia ?? null;
+      this.distanciaKm = (rawDist !== null && rawDist !== undefined && rawDist !== '')
+        ? Number(rawDist)
+        : null;
+
+    },
+    error: (e) => {
+      console.error('Error cargando sala', e);
+      this.cargandoDatos = false;
+      this.allImgs = [];
+      this.displayedImgs = [];
+      this.galleryReady = true;
+    }
+  });
+}
+
+
+  private preloadGallery(urls: string[]) {
+    if (urls.length <= 1) { this.galleryReady = true; return; }
+
+    let loaded = 0;
+    const onDone = () => {
+      loaded++;
+      if (loaded >= urls.length) {
+        this.galleryReady = true;
+      }
+    };
+
+    urls.forEach(u => {
+      const img = new Image();
+      img.onload = onDone; img.onerror = onDone;
+      img.src = u;
+    });
+  }
+
+  get tienePrecioPP(): boolean {
+    return !!(this.sala?.precio_min_pp || this.sala?.precio_max_pp || (this.sala?.precios_por_jugadores?.length));
+  }
+
+  trackByUrl(_i: number, u: string) { return u; }
+
+  async toggleFavorito(event?: Event) {
+    event?.stopPropagation();
+    event?.preventDefault();
+
+    const target = (event?.target as HTMLElement) ?? null;
+    try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+
+    if (target) {
+      target.classList.add('pulse-animation');
+      setTimeout(() => target.classList.remove('pulse-animation'), 300);
+    }
+    this.favoritosService.toggleFavorito(this.sala!.id_sala);
+  }
+
+  togglePriceTable() {
+    this.priceTableExpanded = !this.priceTableExpanded;
+  }
+
+  toggleDescripcion() {
+    this.descExpanded = !this.descExpanded;
+    if (!this.descExpanded) this.pendingOverflowCheck = true;
+  }
+
+  private checkDescripcionOverflow() {
+    if (!this.descRef || this.descExpanded) return;
+    const el = this.descRef.nativeElement;
+    // Si el contenido real (scrollHeight) excede el alto visible (clientHeight) => overflow
+    this.isDescOverflow = el.scrollHeight - el.clientHeight > 2;
+  }
+
+  getAccIcon(nombre: string): string {
+    const n = (nombre || '').toLowerCase();
+    if (n.includes('sign') || n.includes('señas') || n.includes('lengua')) return 'hand-left-outline';
+    if (n.includes('audit') || n.includes('oído') || n.includes('sonido')) return 'ear-outline';
+    if (n.includes('visual') || n.includes('visión') || n.includes('ciego')) return 'eye-outline';
+    if (n.includes('movilidad') || n.includes('rueda')) return 'accessibility-outline';
+    return 'accessibility-outline';
+  }
+
+  async abrirEnMapas(event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    // Construir la dirección textual
+    const partes = [
+      this.sala?.tipo_via,
+      this.sala?.nombre_via,
+      this.sala?.numero,
+      this.sala?.ciudad,
+      this.sala?.codigo_postal
+    ]
+      .filter(Boolean)
+      .join(' ');
+    
+    const direccion = partes || this.sala?.nombre || '';
+    const q = encodeURIComponent(direccion);
+    
+    // URL para navegador web (fallback)
+    const webUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    
+    // Verificar la plataforma
+    const platform = Capacitor.getPlatform();
+    
+    try {
+      if (platform === 'ios') {
+        // En iOS, abrir Apple Maps (nativo)
+        window.location.href = `maps://?q=${q}`;
+        
+        // Fallback a navegador
+        setTimeout(() => {
+          window.open(webUrl, '_blank');
+        }, 500);
+      } else if (platform === 'android') {
+        // En Android, usar la URL web específica de Google Maps
+        const intentUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+        
+        // Simplemente usar window.open para Android
+        window.open(intentUrl, '_blank');
+      } else {
+        // En web
+        window.open(webUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error al abrir la aplicación de mapas:', error);
+      window.open(webUrl, '_blank');
+    }
+  }
+
+
+}
+
+
 === app/components/direccion-picker/direccion-picker.component.html ===
 <div class="direccion-picker">
   <ion-item button lines="none" class="trigger" (click)="togglePanel()">
@@ -2026,6 +3396,9 @@ updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: Upd
               <ion-icon name="chevron-forward-outline" slot="end" class="prediction-chevron"></ion-icon>
             </ion-item>
           </ion-list>
+          <ion-item *ngIf="mostrarNoResultados && query.length > 0" lines="none">
+            <ion-label color="medium">No se encontraron resultados</ion-label>
+          </ion-item>
         </div>
       </ion-content>
     </ng-template>
@@ -2338,18 +3711,18 @@ describe('DireccionPickerComponent', () => {
 // 🧭 DireccionPickerComponent.ts
 // ==============================
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, ElementRef, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, IonModal } from '@ionic/angular';
 import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
-import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { ClearUbicacionUsuario, SetUbicacionUsuario, UsuarioState } from 'src/app/states/usuario.state';
 import { Keyboard } from '@capacitor/keyboard';
 import { PluginListenerHandle } from '@capacitor/core';
+import { Subject, Subscription, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-direccion-picker',
@@ -2368,6 +3741,10 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   direccionActual: string | null = null;
   calleNumero: string | null = null; // lo que se pinta junto a la ciudad (vía+num) o "(Centro)"
   direccionCompacta = false;
+  mostrarNoResultados = false; // Control para mostrar "No hay resultados"
+  
+  private ultimaPrediccionTimestamp = 0; // Timestamp de la última predicción
+  private noResultadosTimeout: any = null; // Timeout para mostrar "No hay resultados"
 
   @ViewChild('direccionEl') direccionEl?: ElementRef<HTMLDivElement>;
   @ViewChild(IonModal) modal?: IonModal;
@@ -2382,7 +3759,15 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   private kbShowSub?: PluginListenerHandle;
   private kbHideSub?: PluginListenerHandle;
 
-  constructor(private ubicacionService: UbicacionService, private store: Store) {}
+  // Constante configurable para el tiempo de espera (en milisegundos)
+  private readonly TIEMPO_ESPERA_NO_RESULTADOS = 2000; // 1 segundo
+
+  constructor(
+    private ubicacionService: UbicacionService, 
+    private store: Store,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit() {
     const ubicacion = this.store.selectSnapshot(UsuarioState.ubicacion);
@@ -2404,17 +3789,53 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
     setTimeout(() => this.ajustarTamanoDireccion(), 0);
 
-    this.querySub = this.queryChanged
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((texto) => {
-        if (!texto.trim()) {
+    this.querySub = this.queryChanged.pipe(
+      // ⚠️ sin debounce ni distinct: el backend ya coalescea por sesión
+      switchMap((raw: string) => {
+        // evita 400 si está vacío; el resto lo decide el backend
+        if (raw == null || raw === '') {
           this.predicciones = [];
-          return;
+          return of<string[]>([]);
         }
-        this.ubicacionService.autocomplete(texto.trim()).subscribe((res) => {
-          this.predicciones = res || [];
-        });
+        return this.ubicacionService.autocomplete(raw);
+      })
+    ).subscribe((res) => {
+      // Ejecutamos dentro de NgZone y forzamos detección de cambios
+      this.ngZone.run(() => {
+        // Solo actualizamos las predicciones si hay resultados
+        if (res && res.length > 0) {
+          this.predicciones = res;
+          this.ultimaPrediccionTimestamp = Date.now();
+          this.mostrarNoResultados = false;
+          
+          // Cancelamos cualquier timeout pendiente de "no resultados"
+          if (this.noResultadosTimeout) {
+            clearTimeout(this.noResultadosTimeout);
+            this.noResultadosTimeout = null;
+          }
+          
+          console.log('Actualizando predicciones en UI:', this.predicciones);
+        } else if (res && res.length === 0) {
+          // Si no hay resultados, programamos mostrar "No hay resultados" después del tiempo configurado
+          if (this.noResultadosTimeout) {
+            clearTimeout(this.noResultadosTimeout);
+          }
+          
+          this.noResultadosTimeout = setTimeout(() => {
+            this.ngZone.run(() => {
+              // Solo actualizamos si ha pasado el tiempo configurado sin nuevas predicciones
+              if (Date.now() - this.ultimaPrediccionTimestamp >= this.TIEMPO_ESPERA_NO_RESULTADOS) {
+                this.predicciones = [];
+                this.mostrarNoResultados = true;
+                console.log(`Mostrando "No hay resultados" tras ${this.TIEMPO_ESPERA_NO_RESULTADOS/1000}s`);
+                this.cdr.detectChanges();
+              }
+            });
+          }, this.TIEMPO_ESPERA_NO_RESULTADOS);
+        }
+        this.cdr.detectChanges();
       });
+    });
 
     // Escuchar teclado y expandir al 100%
     Keyboard.addListener('keyboardDidShow', (e) => {
@@ -2433,6 +3854,11 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     // remove() devuelve Promise; no es necesario await aquí
     this.kbShowSub?.remove();
     this.kbHideSub?.remove();
+    
+    // Limpiamos el timeout si existe
+    if (this.noResultadosTimeout) {
+      clearTimeout(this.noResultadosTimeout);
+    }
   }
 
   togglePanel() {
@@ -2440,8 +3866,10 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     if (this.abierto) {
       this.query = '';
       this.predicciones = [];
+      this.mostrarNoResultados = false;
     } else {
       this.predicciones = [];
+      this.mostrarNoResultados = false;
     }
   }
 
@@ -2449,9 +3877,25 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     this.abierto = false;
     this.query = '';
     this.predicciones = [];
+    this.mostrarNoResultados = false;
+    
+    // Limpiamos el timeout si existe
+    if (this.noResultadosTimeout) {
+      clearTimeout(this.noResultadosTimeout);
+      this.noResultadosTimeout = null;
+    }
   }
 
   buscar() {
+    console.log('Buscando:', this.query);
+    
+    // Reiniciamos el estado de no resultados al buscar
+    if (this.noResultadosTimeout) {
+      clearTimeout(this.noResultadosTimeout);
+      this.noResultadosTimeout = null;
+    }
+    this.mostrarNoResultados = false;
+    
     this.queryChanged.next(this.query);
   }
 
@@ -2547,14 +3991,18 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   }
 
   private segEsCiudad(seg?: string | null, ciudad?: string | null): boolean {
-    if (!seg || !ciudad) return false;
+    if (!seg || !ciudad) {
+      return false;
+    }
     return this.normalizeBasic(seg) === this.normalizeBasic(ciudad);
   }
 
   private firstSegment(addr?: string | null): string | null {
-    if (!addr) return null;
-    const seg = addr.split(',')[0]?.trim() || '';
-    return seg || null;
+    if (!addr) {
+      return null;
+    }
+    const partes = addr.split(',');
+    return partes.length > 0 ? partes[0].trim() : null;
   }
 
   // Abreviador
@@ -2619,35 +4067,56 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
   private formatCalleNumero(res: UbicacionResultado): string {
-    const seg = this.firstSegment(res.direccion);
-    if (!seg) return '(Centro)';
-    if (this.segEsCiudad(seg, res.ciudad)) return '(Centro)';
-
-    const principal = this.abreviarDesdeVia(seg) || seg;
-    const yaTieneNumero = /\b\d/.test(principal);
-    const numero = this.extraerNumero(res.direccion);
-
-    return (!yaTieneNumero && numero) ? `${principal} ${numero}`.trim() : principal;
+    // Si no hay datos necesarios, devolver (Centro)
+    if (!res || !res.direccion) {
+      return '(Centro)';
+    }
+    
+    // Si tenemos los campos específicos, usarlos
+    if (res.via_tipo && res.via_nombre) {
+      const viaFormateada = `${res.via_tipo} ${res.via_nombre}`;
+      return res.numero ? `${viaFormateada}, ${res.numero}` : viaFormateada;
+    }
+    
+    // Si no, intentar extraer de la dirección completa
+    const partes = res.direccion.split(',');
+    if (partes.length > 1) {
+      // Asumimos que la primera parte es la calle y número
+      return partes[0].trim();
+    }
+    
+    // Si todo falla, devolver un fragmento de la dirección
+    return res.direccion.length > 30 ? 
+      res.direccion.substring(0, 30) + '...' : 
+      res.direccion;
   }
 
-  // Aplica el formateo y actualiza el chip superior
-  private updateCalleNumeroFromDireccion(res?: UbicacionResultado) {
-    if (res) {
-      this.calleNumero = this.formatCalleNumero(res) || '(Centro)';
-    } else {
-      const seg = this.firstSegment(this.direccionActual);
-      this.calleNumero = this.segEsCiudad(seg, this.ciudadActual)
-        ? '(Centro)'
-        : (seg || (this.ciudadActual ? '(Centro)' : null));
+  // Implementar el método updateCalleNumeroFromDireccion
+  private updateCalleNumeroFromDireccion(res: UbicacionResultado): void {
+    // Si no hay dirección, usar (Centro)
+    if (!res.direccion) {
+      this.calleNumero = '(Centro)';
+      return;
     }
+
+    // Si hay dirección, usar el formateo
+    this.calleNumero = this.formatCalleNumero(res);
+    
+    // Ajustar tamaño después de actualizar
     setTimeout(() => this.ajustarTamanoDireccion(), 0);
   }
 
-  private ajustarTamanoDireccion() {
-    const el = this.direccionEl?.nativeElement;
-    if (!el) { this.direccionCompacta = false; return; }
-    const overflow = el.scrollWidth > el.clientWidth + 1;
-    this.direccionCompacta = overflow;
+  // Implementar el método ajustarTamanoDireccion
+  private ajustarTamanoDireccion(): void {
+    if (!this.direccionEl || !this.calleNumero) return;
+    
+    const el = this.direccionEl.nativeElement;
+    const parentWidth = el.parentElement?.clientWidth;
+    
+    if (!parentWidth) return;
+    
+    // Si el ancho del elemento es mayor que el contenedor, activar modo compacto
+    this.direccionCompacta = el.scrollWidth > parentWidth * 0.8;
   }
 }
 
@@ -3658,7 +5127,7 @@ onResetClick(ev: Event) {
 }
 
 === app/components/sala-card/sala-card.component.html ===
-<ion-card class="sala-card">
+<ion-card class="sala-card" (click)="onOpen()">
   <!-- Mostrar el contenido real solo cuando la imagen se ha cargado completamente -->
   <ng-container *ngIf="!loadingImage; else skeletonTemplate">
     
@@ -4069,7 +5538,9 @@ import {
   OnDestroy,
   OnInit,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
+  Output,
+  EventEmitter 
 } from '@angular/core';
 import { Sala } from 'src/app/models/sala.model';
 import { CommonModule } from '@angular/common';
@@ -4096,6 +5567,7 @@ import { environment } from 'src/environments/environment';
 export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sala!: Sala;
   @ViewChild('favoriteIcon') favoriteIconRef!: ElementRef;
+  @Output() open = new EventEmitter<number>(); // <-- NUEVO
 
   isFavorito = false;
   loadingImage = true;
@@ -4243,6 +5715,14 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     }
     return 'N/A';
   }
+
+ 
+  
+  onOpen() {
+    // Si el click vino desde el icono favorito, ya hiciste stopPropagation() ahí
+    if (this.sala?.id_sala) this.open.emit(this.sala.id_sala);
+  }
 }
+
 
 

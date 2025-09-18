@@ -51,7 +51,8 @@ export interface Sala {
   codigo_google?: string | null;
   latitud?: number | null;
   longitud?: number | null;
-
+  // Mapa estático
+  mapa_estatico_url?: string; // URL del mapa estático generado en el backend
   // Empresa / reserva
   empresa?: string | null;
   tipo_reserva?: string | null;

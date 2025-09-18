@@ -187,7 +187,18 @@
         </div>
       </div>
 
-      <div class="map-placeholder"></div>
+      <!-- Mapa estático (si hay URL), con fallback al placeholder -->
+      <div class="map-container" *ngIf="sala?.mapa_estatico_url; else noMap">
+        <img class="map-img" 
+             [src]="sala.mapa_estatico_url.startsWith('http') ? sala.mapa_estatico_url : baseUrl + sala.mapa_estatico_url" 
+             alt="Mapa de {{ sala?.nombre }}" 
+             decoding="async" 
+             loading="lazy"
+             (click)="abrirEnMapas($event)" />
+      </div>
+      <ng-template #noMap>
+        <div class="map-placeholder"></div>
+      </ng-template>
       <div class="direccion-text" *ngIf="sala?.nombre_via">
         {{ sala?.tipo_via }} {{ sala?.nombre_via }} {{ sala?.numero }},
         {{ sala?.ciudad }} {{ sala?.codigo_postal }}

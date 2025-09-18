@@ -13,7 +13,7 @@ export interface UbicacionResultado {
   ciudad: string;
   lat: number;
   lng: number;
-  // Nuevos campos proporcionados por el backend (opcionales para compatibilidad)
+  // Campos opcionales (compatibilidad con backend enriquecido)
   via?: string | null;
   via_tipo?: string | null;
   via_nombre?: string | null;
@@ -30,35 +30,76 @@ export interface UbicacionResultado {
 @Injectable({ providedIn: 'root' })
 export class UbicacionService {
   private baseUrl = `${environment.apiUrl}/ubicacion`;
+  private sessionId = UbicacionService.ensureSessionId();
 
   constructor(private http: HttpClient) {}
 
-  /** Autocompleta mientras se escribe */
+  /**
+   * Autocompleta mientras se escribe.
+   * Importante: NO recortamos el input; enviamos tal cual (espacio final incluido).
+   * El backend hará coalescing/debounce por sesión y token-closing.
+   */
   autocomplete(input: string): Observable<string[]> {
-    const params = new HttpParams().set('input', input);
-    return this.http.get<string[]>(`${this.baseUrl}/autocomplete`, { params });
+    const params = new HttpParams().set('input', input ?? '');
+    return this.http.get<string[]>(`${this.baseUrl}/autocomplete`, {
+      params,
+      headers: { 'X-Session-Id': this.sessionId }
+    }).pipe(
+      tap(predictions => this.logAutocompletePredictions(input, predictions))
+    );
   }
 
   /** Geocodifica una dirección seleccionada */
   geocode(description: string): Observable<UbicacionResultado> {
     const params = new HttpParams().set('description', description);
     return this.http
-      .get<UbicacionResultado>(`${this.baseUrl}/geocode`, { params })
+      .get<UbicacionResultado>(`${this.baseUrl}/geocode`, {
+        params,
+        headers: { 'X-Session-Id': this.sessionId }
+      })
       .pipe(tap((res) => this.logUbicacionResultado('geocode', res)));
   }
 
   /** Desde coordenadas GPS */
   reverseGeocode(lat: number, lng: number): Observable<UbicacionResultado> {
-    const params = new HttpParams().set('lat', lat.toString()).set('lng', lng.toString());
+    const params = new HttpParams()
+      .set('lat', String(lat))
+      .set('lng', String(lng));
+
     return this.http
-      .get<UbicacionResultado>(`${this.baseUrl}/reverse`, { params })
+      .get<UbicacionResultado>(`${this.baseUrl}/reverse`, {
+        params,
+        headers: { 'X-Session-Id': this.sessionId }
+      })
       .pipe(tap((res) => this.logUbicacionResultado('reverse', res)));
+  }
+
+  // ======================================
+  // Utils
+  // ======================================
+
+  /** Genera/recupera un SessionId estable (persistido en localStorage) */
+  private static ensureSessionId(): string {
+    try {
+      const key = 'ef_session_id';
+      const existing = localStorage.getItem(key);
+      if (existing) return existing;
+
+      const generated = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+      localStorage.setItem(key, generated);
+      return generated;
+    } catch {
+      // Fallback (SSR / private mode)
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
   }
 
   // Log estructurado de todos los campos que puede devolver el backend
   private logUbicacionResultado(context: 'geocode' | 'reverse', res: UbicacionResultado) {
     try {
-      // agrupado y colapsado para no saturar la consola
       console.groupCollapsed(`UbicacionService:${context} UbicacionResultado`);
       console.log('direccion:', res.direccion);
       console.log('ciudad:', res.ciudad);
@@ -77,8 +118,20 @@ export class UbicacionService {
       console.log('place_id:', res.place_id ?? null);
       console.groupEnd();
     } catch {
-      // fallback simple por si algo falla
       console.log(`UbicacionService:${context} UbicacionResultado:`, res);
+    }
+  }
+
+  // Log de predicciones de autocompletado
+  private logAutocompletePredictions(input: string, predictions: string[]) {
+    try {
+      console.groupCollapsed(`UbicacionService:autocomplete [${input}]`);
+      console.log('Input:', input);
+      console.log('Cantidad de predicciones:', predictions.length);
+      console.log('Predicciones:', predictions);
+      console.groupEnd();
+    } catch {
+      console.log(`UbicacionService:autocomplete [${input}]`, predictions);
     }
   }
 }

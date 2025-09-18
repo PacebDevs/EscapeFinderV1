@@ -25,11 +25,65 @@
   top: calc(env(safe-area-inset-top) + 12px);
   left: 12px;
   z-index: 1000;
-  width: 36px; height: 36px; border-radius: 12px;
-  background: rgba(255,255,255,.85);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0,0,0,.06);
-  display: grid; place-items: center;
+  width: 36px; height: 36px;           /* mantiene tamaño/posición */
+  border-radius: 12px;
+  background: rgba(255,255,255,.78);   /* glass más suave */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 0; /* evita halo/blanco sobre imagen */
+  /* resto igual */
+}
+.btn-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(17,24,39,.10); /* contorno neutro */
+  pointer-events: none;
+}
+.btn-back ion-icon {
+  font-size: 20px;
+  color: var(--ef-title-color, #5D4037); /* marrón del título */
+}
+
+/* Hover (solo dispositivos con puntero) */
+@media (hover: hover) {
+  .btn-back:hover {
+    background: rgba(255,255,255,.92);
+    box-shadow:
+      0 6px 14px rgba(17,24,39,.10),
+      inset 0 1px 0 rgba(255,255,255,.6);
+  }
+}
+
+/* Active / Focus */
+.btn-back:active { transform: scale(.96); }
+.btn-back:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(93,64,55,.20),       /* anillo acorde al marrón */
+    0 4px 12px rgba(17,24,39,.08),
+    inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+/* Dark mode, coherente con el resto de la pantalla */
+@media (prefers-color-scheme: dark) {
+  .btn-back {
+    background: rgba(18,18,18,.60);
+    border-color: #2b2c2d;
+    box-shadow:
+      0 6px 16px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .btn-back ion-icon {
+    color: #E9DFDC; /* marrón claro */
+  }
+  .btn-back:focus-visible {
+    box-shadow:
+      0 0 0 3px rgba(233,223,220,.16),
+      0 6px 16px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
 }
 
 /* =========================
@@ -135,10 +189,20 @@ swiper-container::part(bullet-active) {
 /* =========================
    Mapa / dirección
    ========================= */
-.map-placeholder {
-  height: 200px; border-radius: 16px;
-  background: repeating-linear-gradient(45deg, #f6f7f9, #f6f7f9 10px, #eef2f7 10px, #eef2f7 20px);
+.map-container {
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
   border: 1px solid #eef1f5;
+  background: #f6f7f9;
+}
+
+.map-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer; /* clic para abrir en mapas */
 }
 .direccion-text { margin-top: 8px; color: #4b5563; }
 
@@ -177,8 +241,31 @@ swiper-container::part(bullet-active) {
 /* =========================
    Footer / CTA
    ========================= */
-.footer-reserva ion-toolbar { padding: 8px 12px; }
-.footer-gap { height: 88px; }
+.footer-reserva {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;                           /* pegado abajo */
+  z-index: 1100;                       /* por encima de todo */
+  background: transparent !important;  /* sin barra/fondo */
+  border: 0;
+  box-shadow: none;
+}
+.footer-reserva ion-toolbar {
+  --background: transparent;
+  background: transparent !important;
+  box-shadow: none;
+  border: 0;
+  --border-width: 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)); /* mantiene posición + safe area */
+}
+/* elimina hairlines (iOS) */
+.footer-reserva::before,
+.footer-reserva::after,
+.footer-reserva ion-toolbar::before,
+.footer-reserva ion-toolbar::after {
+  display: none;
+}
 
 .footer-reserva ion-button {
   --border-radius: 24px;

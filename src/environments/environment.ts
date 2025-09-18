@@ -5,11 +5,11 @@
 export const environment = {
   production: true,
   //Piso y casa de padres
-  apiUrl: 'http://192.168.1.131:3000/api',
-  imageURL: 'http://192.168.1.131:3000/'
+ apiUrl: 'http://192.168.1.131:3000/api',
+imageURL: 'http://192.168.1.131:3000/'
 //Internet
-  //apiUrl: 'https://eur-talented-lb-apache.trycloudflare.com/api',
-  //imageURL: 'https://eur-talented-lb-apache.trycloudflare.com/'
+  //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
+  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'

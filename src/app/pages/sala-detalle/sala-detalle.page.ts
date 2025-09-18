@@ -9,6 +9,8 @@ import { environment } from 'src/environments/environment';
 import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-sala-detalle',
@@ -88,7 +90,18 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     next: (s) => {
       if (this.cancelado) return;
       this.sala = s;
+      this.cargandoDatos = false;
+      
+      // Procesar URL del mapa estático
+      if (s.mapa_estatico_url && !s.mapa_estatico_url.startsWith('http')) {
+        s.mapa_estatico_url = this.baseUrl + s.mapa_estatico_url.replace(/^\//, '');
+      }
 
+      // Extraer solo accesibilidades aptas
+      this.accesibilidades = (s.caracteristicas || [])
+        .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
+        .map(c => c.nombre);
+      
       // Ya no evaluamos por nº de caracteres, siempre reset y luego medimos el DOM
       this.descExpanded = false;
       this.isDescOverflow = false;
@@ -96,13 +109,6 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
       this.hasPriceOverflow = (s.precios_por_jugadores?.length || 0) > 6;
 
       this.cargandoDatos = false;
-
-      // Accesibilidades: ahora como lista (no separadas por comas)
-      this.accesibilidades = (s.caracteristicas || [])
-        .filter(c => c.tipo === 'accesibilidad' && c.es_apta)
-        .map(c => c.nombre)
-        .filter(Boolean);
-      this.accesibilidadesAptas = ''; // limpiar el string antiguo (ya no se usa)
 
       // ---- Imágenes (DOM estable) ----
       const base = (u: string) =>
@@ -215,11 +221,54 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     return 'accessibility-outline';
   }
 
-  abrirEnMapas(event?: Event) {
+  async abrirEnMapas(event?: Event) {
     event?.preventDefault();
     event?.stopPropagation();
-    // TODO: implementar navegación a mapas (Google/Apple Maps)
-    console.log('Abrir en mapas clicado');
+
+    // Construir la dirección textual
+    const partes = [
+      this.sala?.tipo_via,
+      this.sala?.nombre_via,
+      this.sala?.numero,
+      this.sala?.ciudad,
+      this.sala?.codigo_postal
+    ]
+      .filter(Boolean)
+      .join(' ');
+    
+    const direccion = partes || this.sala?.nombre || '';
+    const q = encodeURIComponent(direccion);
+    
+    // URL para navegador web (fallback)
+    const webUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    
+    // Verificar la plataforma
+    const platform = Capacitor.getPlatform();
+    
+    try {
+      if (platform === 'ios') {
+        // En iOS, abrir Apple Maps (nativo)
+        window.location.href = `maps://?q=${q}`;
+        
+        // Fallback a navegador
+        setTimeout(() => {
+          window.open(webUrl, '_blank');
+        }, 500);
+      } else if (platform === 'android') {
+        // En Android, usar la URL web específica de Google Maps
+        const intentUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+        
+        // Simplemente usar window.open para Android
+        window.open(intentUrl, '_blank');
+      } else {
+        // En web
+        window.open(webUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error al abrir la aplicación de mapas:', error);
+      window.open(webUrl, '_blank');
+    }
   }
+
 
 }
