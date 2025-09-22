@@ -5,8 +5,8 @@
 export const environment = {
   production: true,
   //Piso y casa de padres
- apiUrl: 'http://192.168.1.131:3000/api',
-imageURL: 'http://192.168.1.131:3000/'
+ apiUrl: 'http://192.168.1.130:3000/api',
+imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
 //Internet
   //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
   //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
@@ -16,6 +16,9 @@ imageURL: 'http://192.168.1.131:3000/'
 /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
 //imageURL: 'http://192.168.1.200:3000/'
+/* Mapas*/
+tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+tilesAttribution: '© OpenStreetMap contributors'
 
 };
 

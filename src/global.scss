@@ -41,6 +41,9 @@
 @import "@ionic/angular/css/palettes/dark.system.css";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
 
+/* Leaflet styles */
+@import "~leaflet/dist/leaflet.css";
+
 
 ion-header,
 ion-toolbar {
@@ -67,3 +70,28 @@ ion-footer {
 }
 
 /* Dark mode (si usas dark.system.css) */
+
+
+/* Ajustes básicos del contenedor */
+.page-mapa {
+.map-wrap { position: relative; height: 100%; }
+#map { position: absolute; inset: 0; }
+
+
+/* Carrusel inferior */
+.carousel {
+position: absolute;
+left: 0; right: 0; bottom: 0;
+padding: 8px 0 12px;
+background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.20) 50%, rgba(0,0,0,.35) 100%);
+z-index: 401; /* por encima del mapa (Leaflet zIndex 400 para controles) */
+}
+.minicard {
+width: 240px; min-height: 120px;
+background: #fff; border-radius: 14px; overflow: hidden;
+box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
+.minicard.selected { outline: 2px solid var(--ion-color-primary); }
+.minicard .cover { width: 100%; height: 100px; object-fit: cover; display: block; }
+.minicard .body { padding: 8px 10px; }
+}

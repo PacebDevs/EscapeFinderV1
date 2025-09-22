@@ -330,8 +330,8 @@ export const environment = {
   //imageURL: 'http://192.168.1.131:3000/',
   //apiUrl: 'http://10.0.2.2:3000/api'
   //Internet
-  apiUrl: 'https://contemporary-melbourne-newman-moisture.trycloudflare.com/api',
-  imageURL: 'https://contemporary-melbourne-newman-moisture.trycloudflare.com/'
+  //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
+  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
 
   /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
@@ -348,11 +348,11 @@ export const environment = {
 export const environment = {
   production: true,
   //Piso y casa de padres
- apiUrl: 'http://192.168.1.131:3000/api',
-imageURL: 'http://192.168.1.131:3000/'
+ apiUrl: 'http://192.168.1.130:3000/api',
+imageURL: 'http://192.168.1.130:3000/'
 //Internet
-   //apiUrl: 'https://intervals-circuit-recipe-jam.trycloudflare.com/api',
-  //imageURL: 'https://intervals-circuit-recipe-jam.trycloudflare.com/'
+  //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
+  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'

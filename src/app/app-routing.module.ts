@@ -14,6 +14,10 @@ const routes: Routes = [
   {
     path: 'sala/:id',
     loadChildren: () => import('./pages/sala-detalle/sala-detalle.module').then( m => m.SalaDetallePageModule)
+  },
+  {
+    path: 'mapa',
+    loadChildren: () => import('./pages/mapa/mapa.module').then( m => m.MapaPageModule)
   }
 ];
 

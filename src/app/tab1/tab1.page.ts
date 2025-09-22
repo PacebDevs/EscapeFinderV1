@@ -393,7 +393,10 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onMapaClick() { 
-    console.log('🗺️ Click en botón de mapa (a implementar)'); 
+    // Lee los filtros actuales de tu UI/estado de la lista y pásalos tal cual como queryParams
+    // Ejemplo mínimo: si guardas filtros en this.filters
+    this.router.navigate(['/mapa'], { queryParams: { ...this.filters } });
+    console.log('🗺️ Click en botón de mapa (a implementar)');
   }
 
   onNotificacionesClick() { 
