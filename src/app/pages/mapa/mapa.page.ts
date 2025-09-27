@@ -1,4 +1,3 @@
-// src/app/pages/mapa/mapa.page.ts
 import { Component, OnDestroy, OnInit, NgZone, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -37,7 +36,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       this.route.queryParams.subscribe((qp: any) => {
         const f: FiltrosBusqueda = { ...qp };
 
-        // Arrays: si ya son array, respeta; si vienen como string CSV, parte
         const ensureArray = (v: any): string[] | undefined => {
           if (v === undefined || v === null || v === '') return undefined;
           if (Array.isArray(v)) return v;
@@ -52,12 +50,10 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         f.publico_objetivo = ensureArray(qp.publico_objetivo);
         f.tipo_sala = ensureArray(qp.tipo_sala);
 
-        // Booleans que podrían venir como string
         if (qp.actores !== undefined) {
           f.actores = qp.actores === true || qp.actores === 'true';
         }
 
-        // Numéricos
         const toNum = (v: any): number | null => {
           const n = Number(v);
           return Number.isFinite(n) ? n : null;
@@ -67,11 +63,9 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         f.precio = toNum(qp.precio);
         f.distancia_km = toNum(qp.distancia_km);
 
-        // Coords pueden venir como number/string/null
         f.lat = qp.lat !== undefined ? (typeof qp.lat === 'string' ? Number(qp.lat) : qp.lat) : null;
         f.lng = qp.lng !== undefined ? (typeof qp.lng === 'string' ? Number(qp.lng) : qp.lng) : null;
 
-        // Mantén ciudad/idioma/query tal cual (string o undefined)
         f.ciudad = qp.ciudad ? String(qp.ciudad).trim() : undefined;
         f.idioma = qp.idioma ? String(qp.idioma).trim() : undefined;
         f.query = qp.query ? String(qp.query) : undefined;
@@ -84,46 +78,112 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    // Asegura que el contenedor tenga altura real antes de inicializar Leaflet
+    this.setMapContainerSize();
     this.initMap();
+
+    // Recalcula tamaño tras pintado y en cambios de viewport
+    setTimeout(() => this.map?.invalidateSize(), 0);
+    window.addEventListener('resize', this._onResize, { passive: true });
   }
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
     this.moveEnd$.complete();
     if (this.map) this.map.remove();
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  private _onResize = () => {
+    this.setMapContainerSize();
+    if (this.map) this.map.invalidateSize();
+  };
+
+  /** Calcula y fija la altura del #map en píxeles (viewport - header - tabs - safe areas) */
+  private setMapContainerSize() {
+    const mapEl = document.getElementById('map') as HTMLElement | null;
+    if (!mapEl) return;
+
+    const headerEl = document.querySelector('ion-header.page-mapa') as HTMLElement | null;
+    const tabsEl = document.querySelector('ion-tab-bar[slot="bottom"]') as HTMLElement | null;
+
+    const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-top')) || 0;
+    const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-bottom')) || 0;
+
+    const headerH = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
+    const tabsH   = tabsEl   ? Math.round(tabsEl.getBoundingClientRect().height)   : 0;
+
+    const targetHeight = window.innerHeight - headerH - tabsH - safeTop - safeBottom;
+    mapEl.style.height = `${Math.max(200, targetHeight)}px`; // mínimo defensivo
+    mapEl.style.width = '100%';
   }
 
   private initMap() {
     if (this.map) return;
 
-    (L.Icon.Default as any).mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+    // Iconos personalizados desde /assets/icon
+    const defaultIcon = L.icon({
+      iconUrl: 'assets/icon/marker-icon.png',
+      iconRetinaUrl: 'assets/icon/marker-icon-2x.png',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
     });
 
     const lat0 = Number(this.filtros.lat) || 40.4168;
     const lng0 = Number(this.filtros.lng) || -3.7038;
     const zoom = this.filtros.ciudad ? 12 : 13;
 
-    this.map = L.map('map', { zoomControl: true, attributionControl: true })
-      .setView([lat0, lng0], zoom);
+    this.map = L.map('map', {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([lat0, lng0], zoom);
 
-    L.tileLayer(environment.tilesUrl, {
+    const tiles = L.tileLayer(environment.tilesUrl, {
       attribution: environment.tilesAttribution,
       maxZoom: 19
     }).addTo(this.map);
 
+    // Asegura repintado cuando los tiles terminan de cargar
+    tiles.on('load', () => this.map.invalidateSize());
+
     this.map.on('moveend', () => this.moveEnd$.next());
 
-    // Primera carga:
+    // Render de marcadores con el icono personalizado
+    this.renderMarkers = () => {
+      const currentIds = new Set(this.salas.map(s => s.id_sala));
+
+      for (const [id, marker] of this.markers.entries()) {
+        if (!currentIds.has(id)) {
+          marker.removeFrom(this.map);
+          this.markers.delete(id);
+        }
+      }
+
+      for (const s of this.salas) {
+        if (!s.latitud || !s.longitud) continue;
+        let m = this.markers.get(s.id_sala);
+        if (!m) {
+          m = L.marker([s.latitud, s.longitud], { icon: defaultIcon }).addTo(this.map);
+          m.bindPopup(`<b>${s.nombre}</b>${s.distancia_km ? `<br>📍 ${s.distancia_km.toFixed(1)} km` : ''}`);
+          m.on('click', () => this.onMarkerClick(s.id_sala));
+          this.markers.set(s.id_sala, m);
+        } else {
+          m.setLatLng([s.latitud, s.longitud]);
+        }
+        m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
+      }
+    };
+
+    // Primera carga de datos
     if (this.filtros.ciudad) {
       this.fetch({ ...this.filtros });
     } else if (this.filtros.lat != null && this.filtros.lng != null) {
-      // Si Tab1 nos pasa distancia_km la reutilizamos (misma semántica)
       const base: FiltrosBusqueda = { ...this.filtros };
       if (!base.distancia_km && !base.bbox && !base.radio_km) {
-        base.radio_km = 7; // fallback suave solo si no hay distancia ni bbox
+        base.radio_km = 7;
       }
       this.fetch(base);
     } else {
@@ -145,8 +205,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     const center = this.map.getCenter();
     const lat = Number(center.lat.toFixed(6));
     const lng = Number(center.lng.toFixed(6));
-
-    // Respetamos distancia_km si ya viene de Tab1; si no, usamos bbox
     const params: FiltrosBusqueda = { ...this.filtros, lat, lng, bbox };
     this.fetch(params);
   }
@@ -165,6 +223,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Se sobrescribe en initMap para usar defaultIcon
   private renderMarkers() {
     const currentIds = new Set(this.salas.map(s => s.id_sala));
     for (const [id, marker] of this.markers.entries()) {
@@ -173,7 +232,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         this.markers.delete(id);
       }
     }
-
     for (const s of this.salas) {
       if (!s.latitud || !s.longitud) continue;
       let m = this.markers.get(s.id_sala);

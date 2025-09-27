@@ -1,12 +1,7 @@
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * Mantengo tu base y añado los estilos necesarios para el mapa.
  */
 
 /* Core CSS required for Ionic components to work properly */
@@ -29,28 +24,23 @@
 @import 'swiper/css/pagination';
 @import 'swiper/css/navigation';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+/* Dark Mode (si lo usas) */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* Fuente */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
 
 /* Leaflet styles */
-@import "~leaflet/dist/leaflet.css";
+@import "leaflet/dist/leaflet.css";
 
-
+/* Header base (tu estilo) */
 ion-header,
 ion-toolbar {
   padding-top: var(--safe-area-inset-top, 0px);
   background: #fff;
 }
 
+/* Este padding global es útil para tabs, pero lo anularemos en la página de mapa */
 ion-content {
   --padding-top: 0px;
   --padding-bottom: calc(var(--safe-area-inset-bottom, 0px) + 80px); // 80px para la barra de tabs
@@ -61,37 +51,69 @@ ion-footer {
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
 
-/* Vars globales para tipografía y colores del título */
+/* Vars globales */
 :root {
-  --ef-title-color: #1F2937;   /* gris casi negro */
-  --ef-meta-color:  #64748B;   /* para .empresa */
+  --ef-title-color: #1F2937;
+  --ef-meta-color:  #64748B;
   --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
                    Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Dark mode (si usas dark.system.css) */
+/* ====== MAPA: alturas y overlay ====== */
 
+/* Cadena de alturas estable */
+ion-app, ion-router-outlet, ion-content { height: 100%; }
 
-/* Ajustes básicos del contenedor */
-.page-mapa {
-.map-wrap { position: relative; height: 100%; }
-#map { position: absolute; inset: 0; }
+/* Scoped por clase de la página */
+/* Por esto */
+ion-content.page-mapa,
+ion-content.page-mapa .map-wrap,
+ion-content.page-mapa #map { height: 100%; }
 
-
-/* Carrusel inferior */
-.carousel {
-position: absolute;
-left: 0; right: 0; bottom: 0;
-padding: 8px 0 12px;
-background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.20) 50%, rgba(0,0,0,.35) 100%);
-z-index: 401; /* por encima del mapa (Leaflet zIndex 400 para controles) */
+/* Anula paddings/offsets solo en esta página para que el mapa sea full */
+/* después */
+ion-content.page-mapa {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  --overflow: visible;            /* ✅ explícito para evitar el bug de stacking */
 }
-.minicard {
-width: 240px; min-height: 120px;
-background: #fff; border-radius: 14px; overflow: hidden;
-box-shadow: 0 6px 16px rgba(0,0,0,.15);
+
+html, body, ion-app, ion-router-outlet { height: 100%; }
+
+/* ---- MAPA (scoped por clase page-mapa) ---- */
+.page-mapa,
+.page-mapa ion-content {
+  height: 100%;
 }
-.minicard.selected { outline: 2px solid var(--ion-color-primary); }
-.minicard .cover { width: 100%; height: 100px; object-fit: cover; display: block; }
-.minicard .body { padding: 8px 10px; }
+
+/* Quita padding/offsets solo en la página de mapa para que el mapa pueda ocupar todo */
+.page-mapa ion-content {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  --overflow: hidden;
+}
+
+/* Contenedor y mapa */
+.page-mapa .map-wrap { position: relative; width: 100%; }
+.page-mapa #map { position: relative; width: 100%; /* la ALTURA la fija TS con px */ }
+
+/* Carrusel (overlay) */
+.page-mapa .carousel {
+  position: fixed; /* fijo al viewport para evitar recortes del shadow scroll */
+  left: 0; right: 0;
+  bottom: calc(var(--ion-safe-area-bottom, 0px) + 56px); /* ajusta si no hay tabs */
+  padding: 8px 0 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.20) 50%, rgba(0,0,0,.35) 100%);
+  z-index: 401;
+}
+
+/* Cards del carrusel */
+.page-mapa .minicard {
+  width: 240px; min-height: 120px;
+  background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
 }

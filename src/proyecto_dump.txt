@@ -2,12 +2,7 @@
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * Mantengo tu base y añado los estilos necesarios para el mapa.
  */
 
 /* Core CSS required for Ionic components to work properly */
@@ -30,25 +25,23 @@
 @import 'swiper/css/pagination';
 @import 'swiper/css/navigation';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+/* Dark Mode (si lo usas) */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/* Fuente */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
 
+/* Leaflet styles */
+@import "~leaflet/dist/leaflet.css";
 
+/* Header base (tu estilo) */
 ion-header,
 ion-toolbar {
   padding-top: var(--safe-area-inset-top, 0px);
   background: #fff;
 }
 
+/* Este padding global es útil para tabs, pero lo anularemos en la página de mapa */
 ion-content {
   --padding-top: 0px;
   --padding-bottom: calc(var(--safe-area-inset-bottom, 0px) + 80px); // 80px para la barra de tabs
@@ -59,16 +52,73 @@ ion-footer {
   padding-bottom: var(--safe-area-inset-bottom, 0px);
 }
 
-/* Vars globales para tipografía y colores del título */
+/* Vars globales */
 :root {
-  --ef-title-color: #1F2937;   /* gris casi negro */
-  --ef-meta-color:  #64748B;   /* para .empresa */
+  --ef-title-color: #1F2937;
+  --ef-meta-color:  #64748B;
   --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
                    Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Dark mode (si usas dark.system.css) */
+/* ====== MAPA: alturas y overlay ====== */
 
+/* Cadena de alturas estable */
+ion-app, ion-router-outlet, ion-content { height: 100%; }
+
+/* Scoped por clase de la página */
+.page-mapa,
+.page-mapa ion-content,
+.page-mapa .map-wrap,
+.page-mapa #map {
+  height: 100%;
+}
+
+/* Anula paddings/offsets solo en esta página para que el mapa sea full */
+.page-mapa ion-content {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  --overflow: hidden; /* evita scroll interno */
+}
+
+html, body, ion-app, ion-router-outlet { height: 100%; }
+
+/* ---- MAPA (scoped por clase page-mapa) ---- */
+.page-mapa,
+.page-mapa ion-content {
+  height: 100%;
+}
+
+/* Quita padding/offsets solo en la página de mapa para que el mapa pueda ocupar todo */
+.page-mapa ion-content {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  --overflow: hidden;
+}
+
+/* Contenedor y mapa */
+.page-mapa .map-wrap { position: relative; width: 100%; }
+.page-mapa #map { position: relative; width: 100%; /* la ALTURA la fija TS con px */ }
+
+/* Carrusel (overlay) */
+.page-mapa .carousel {
+  position: fixed; /* fijo al viewport para evitar recortes del shadow scroll */
+  left: 0; right: 0;
+  bottom: calc(var(--ion-safe-area-bottom, 0px) + 56px); /* ajusta si no hay tabs */
+  padding: 8px 0 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.20) 50%, rgba(0,0,0,.35) 100%);
+  z-index: 401;
+}
+
+/* Cards del carrusel */
+.page-mapa .minicard {
+  width: 240px; min-height: 120px;
+  background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
 
 === index.html ===
 <!DOCTYPE html>
@@ -211,6 +261,10 @@ const routes: Routes = [
   {
     path: 'sala/:id',
     loadChildren: () => import('./pages/sala-detalle/sala-detalle.module').then( m => m.SalaDetallePageModule)
+  },
+  {
+    path: 'mapa',
+    loadChildren: () => import('./pages/mapa/mapa.module').then( m => m.MapaPageModule)
   }
 ];
 
@@ -328,15 +382,18 @@ export const environment = {
   production: true,
   //apiUrl: 'http://192.168.1.131:3000/api',
   //imageURL: 'http://192.168.1.131:3000/',
-  //apiUrl: 'http://10.0.2.2:3000/api'
+  //apiUrl: 'http://10.0.2.2:3000/api',
   //Internet
   //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
-  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
+  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/',
 
   /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
-//imageURL: 'http://192.168.1.200:3000/'
+//imageURL: 'http://192.168.1.200:3000/',
 
+/*mapas*/
+tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+tilesAttribution: '© OpenStreetMap contributors'
 };
 
 
@@ -349,7 +406,7 @@ export const environment = {
   production: true,
   //Piso y casa de padres
  apiUrl: 'http://192.168.1.130:3000/api',
-imageURL: 'http://192.168.1.130:3000/'
+imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
 //Internet
   //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
   //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
@@ -359,6 +416,9 @@ imageURL: 'http://192.168.1.130:3000/'
 /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
 //imageURL: 'http://192.168.1.200:3000/'
+/* Mapas*/
+tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+tilesAttribution: '© OpenStreetMap contributors'
 
 };
 
@@ -504,6 +564,35 @@ import { ExploreContainerComponent } from './explore-container.component';
 export class ExploreContainerComponentModule {}
 
 
+=== app/models/filtros.model.ts ===
+// src/app/models/filtros.model.ts
+export interface FiltrosBusqueda {
+  query?: string;
+  ciudad?: string;
+  categorias?: string[];
+  dificultad?: string[];
+  accesibilidad?: string[];
+  restricciones_aptas?: string[];
+  publico_objetivo?: string[];
+  idioma?: string;
+  actores?: boolean | 'true' | 'false';
+
+  jugadores?: number | null;
+  tipo_sala?: string[];
+
+  precio?: number | null;         // precio por persona
+  distancia_km?: number | null;   // usado en Tab1
+
+  // coords pueden venir como number o string via queryParams
+  lat?: number | string | null;
+  lng?: number | string | null;
+
+  // mapa extra
+  bbox?: string;                  // "w,s,e,n"
+  radio_km?: number | string;     // opcional si decides usar círculo
+}
+
+
 === app/models/sala.model.ts ===
 export interface SalaCaracteristica {
   tipo: 'publico_objetivo' | 'restriccion' | 'accesibilidad' | string;
@@ -627,6 +716,53 @@ export class FavoritosService {
     return this.favoritos$.pipe(
       map(favoritos => favoritos.includes(id))
     );
+  }
+}
+
+
+=== app/services/map.service.ts ===
+// src/app/services/map.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { FiltrosBusqueda } from '../models/filtros.model';
+
+export interface SalaPinDTO {
+  id_sala: number;
+  nombre: string;
+  latitud: number | null;
+  longitud: number | null;
+  ciudad: string | null;
+  cover_url: string | null;
+  precio_min_pp: number | null;
+  distancia_km?: number | null;
+}
+
+@Injectable({ providedIn: 'root' })
+export class MapService {
+  private baseUrl = environment.apiUrl;
+  constructor(private http: HttpClient) {}
+
+  getSalasMap(filters: FiltrosBusqueda): Observable<SalaPinDTO[]> {
+    let params = new HttpParams();
+
+    Object.entries(filters || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return;
+
+      if (Array.isArray(v)) {
+        if (v.length) params = params.set(k, v.join(','));
+        return;
+      }
+      if (typeof v === 'boolean') {
+        params = params.set(k, v ? 'true' : 'false');
+        return;
+      }
+      // numbers o strings
+      params = params.set(k, String(v));
+    });
+
+    return this.http.get<SalaPinDTO[]>(`${this.baseUrl}/salas-map`, { params });
   }
 }
 
@@ -1673,7 +1809,10 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onMapaClick() { 
-    console.log('🗺️ Click en botón de mapa (a implementar)'); 
+    // Lee los filtros actuales de tu UI/estado de la lista y pásalos tal cual como queryParams
+    // Ejemplo mínimo: si guardas filtros en this.filters
+    this.router.navigate(['/mapa'], { queryParams: { ...this.filters } });
+    console.log('🗺️ Click en botón de mapa (a implementar)');
   }
 
   onNotificacionesClick() { 
@@ -2162,6 +2301,355 @@ updateSala({ patchState, getState }: StateContext<SalaStateModel>, { sala }: Upd
   );
   patchState({ salas });
 }
+}
+
+
+=== app/pages/mapa/mapa-routing.module.ts ===
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import { MapaPage } from './mapa.page';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: MapaPage
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+})
+export class MapaPageRoutingModule {}
+
+
+=== app/pages/mapa/mapa.module.ts ===
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { MapaPage } from './mapa.page';
+import { RouterModule, Routes } from '@angular/router';
+
+
+const routes: Routes = [{ path: '', component: MapaPage }];
+
+
+@NgModule({
+imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
+declarations: [MapaPage]
+})
+export class MapaPageModule {}
+
+=== app/pages/mapa/mapa.page.html ===
+<ion-header class="page-mapa">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mapa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content fullscreen class="page-mapa" [scrollY]="false">
+  <div class="map-wrap">
+    <div id="map"></div>
+
+
+    <!-- Carrusel inferior (Swiper está registrado en main.ts) -->
+    <div class="carousel">
+      <div class="swiper" id="swiper-minicards">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide" *ngFor="let s of salas" [class.selected]="s.id_sala === selectedId">
+            <div class="minicard" [attr.data-sala-id]="s.id_sala" (click)="onCardFocus(s.id_sala)">
+              <img class="cover" [src]="s.cover_url || 'assets/placeholder.jpg'" loading="lazy" alt="cover" />
+              <div class="body">
+                <div class="title">{{ s.nombre }}</div>
+                <div class="meta">
+                  <ng-container *ngIf="s.precio_min_pp as p">💶 {{ p | number:'1.0-0' }} €/pp</ng-container>
+                  <ng-container *ngIf="s.distancia_km != null"> · 📍 {{ s.distancia_km | number:'1.0-1' }}
+                    km</ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</ion-content>
+
+=== app/pages/mapa/mapa.page.scss ===
+
+
+=== app/pages/mapa/mapa.page.ts ===
+import { Component, OnDestroy, OnInit, NgZone, AfterViewInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as L from 'leaflet';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { MapService, SalaPinDTO } from 'src/app/services/map.service';
+import { environment } from 'src/environments/environment';
+import { FiltrosBusqueda } from 'src/app/models/filtros.model';
+
+@Component({
+  selector: 'app-mapa',
+  templateUrl: './mapa.page.html',
+  styleUrls: ['./mapa.page.scss'],
+  standalone: false
+})
+export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
+  salas: SalaPinDTO[] = [];
+  selectedId: number | null = null;
+  filtros: FiltrosBusqueda = {};
+
+  private map!: L.Map;
+  private markers = new Map<number, L.Marker>();
+  private moveEnd$ = new Subject<void>();
+  private subs: Subscription[] = [];
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private mapService: MapService,
+    private zone: NgZone
+  ) {}
+
+  ngOnInit(): void {
+    // Lee filtros del querystring y normaliza
+    this.subs.push(
+      this.route.queryParams.subscribe((qp: any) => {
+        const f: FiltrosBusqueda = { ...qp };
+
+        const ensureArray = (v: any): string[] | undefined => {
+          if (v === undefined || v === null || v === '') return undefined;
+          if (Array.isArray(v)) return v;
+          if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+          return undefined;
+        };
+
+        f.categorias = ensureArray(qp.categorias);
+        f.dificultad = ensureArray(qp.dificultad);
+        f.accesibilidad = ensureArray(qp.accesibilidad);
+        f.restricciones_aptas = ensureArray(qp.restricciones_aptas);
+        f.publico_objetivo = ensureArray(qp.publico_objetivo);
+        f.tipo_sala = ensureArray(qp.tipo_sala);
+
+        if (qp.actores !== undefined) {
+          f.actores = qp.actores === true || qp.actores === 'true';
+        }
+
+        const toNum = (v: any): number | null => {
+          const n = Number(v);
+          return Number.isFinite(n) ? n : null;
+        };
+
+        f.jugadores = toNum(qp.jugadores);
+        f.precio = toNum(qp.precio);
+        f.distancia_km = toNum(qp.distancia_km);
+
+        f.lat = qp.lat !== undefined ? (typeof qp.lat === 'string' ? Number(qp.lat) : qp.lat) : null;
+        f.lng = qp.lng !== undefined ? (typeof qp.lng === 'string' ? Number(qp.lng) : qp.lng) : null;
+
+        f.ciudad = qp.ciudad ? String(qp.ciudad).trim() : undefined;
+        f.idioma = qp.idioma ? String(qp.idioma).trim() : undefined;
+        f.query = qp.query ? String(qp.query) : undefined;
+
+        this.filtros = f;
+      })
+    );
+
+    this.subs.push(this.moveEnd$.pipe(debounceTime(400)).subscribe(() => this.fetchByViewport()));
+  }
+
+  ngAfterViewInit(): void {
+    // Asegura que el contenedor tenga altura real antes de inicializar Leaflet
+    this.setMapContainerSize();
+    this.initMap();
+
+    // Recalcula tamaño tras pintado y en cambios de viewport
+    setTimeout(() => this.map?.invalidateSize(), 0);
+    window.addEventListener('resize', this._onResize, { passive: true });
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+    this.moveEnd$.complete();
+    if (this.map) this.map.remove();
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  private _onResize = () => {
+    this.setMapContainerSize();
+    if (this.map) this.map.invalidateSize();
+  };
+
+  /** Calcula y fija la altura del #map en píxeles (viewport - header - tabs - safe areas) */
+  private setMapContainerSize() {
+    const mapEl = document.getElementById('map') as HTMLElement | null;
+    if (!mapEl) return;
+
+    const headerEl = document.querySelector('ion-header.page-mapa') as HTMLElement | null;
+    const tabsEl = document.querySelector('ion-tab-bar[slot="bottom"]') as HTMLElement | null;
+
+    const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-top')) || 0;
+    const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-bottom')) || 0;
+
+    const headerH = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
+    const tabsH   = tabsEl   ? Math.round(tabsEl.getBoundingClientRect().height)   : 0;
+
+    const targetHeight = window.innerHeight - headerH - tabsH - safeTop - safeBottom;
+    mapEl.style.height = `${Math.max(200, targetHeight)}px`; // mínimo defensivo
+    mapEl.style.width = '100%';
+  }
+
+  private initMap() {
+    if (this.map) return;
+
+    // Iconos personalizados desde /assets/icon
+    const defaultIcon = L.icon({
+      iconUrl: 'assets/icon/marker-icon.png',
+      iconRetinaUrl: 'assets/icon/marker-icon-2x.png',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    const lat0 = Number(this.filtros.lat) || 40.4168;
+    const lng0 = Number(this.filtros.lng) || -3.7038;
+    const zoom = this.filtros.ciudad ? 12 : 13;
+
+    this.map = L.map('map', {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([lat0, lng0], zoom);
+
+    const tiles = L.tileLayer(environment.tilesUrl, {
+      attribution: environment.tilesAttribution,
+      maxZoom: 19
+    }).addTo(this.map);
+
+    // Asegura repintado cuando los tiles terminan de cargar
+    tiles.on('load', () => this.map.invalidateSize());
+
+    this.map.on('moveend', () => this.moveEnd$.next());
+
+    // Render de marcadores con el icono personalizado
+    this.renderMarkers = () => {
+      const currentIds = new Set(this.salas.map(s => s.id_sala));
+
+      for (const [id, marker] of this.markers.entries()) {
+        if (!currentIds.has(id)) {
+          marker.removeFrom(this.map);
+          this.markers.delete(id);
+        }
+      }
+
+      for (const s of this.salas) {
+        if (!s.latitud || !s.longitud) continue;
+        let m = this.markers.get(s.id_sala);
+        if (!m) {
+          m = L.marker([s.latitud, s.longitud], { icon: defaultIcon }).addTo(this.map);
+          m.bindPopup(`<b>${s.nombre}</b>${s.distancia_km ? `<br>📍 ${s.distancia_km.toFixed(1)} km` : ''}`);
+          m.on('click', () => this.onMarkerClick(s.id_sala));
+          this.markers.set(s.id_sala, m);
+        } else {
+          m.setLatLng([s.latitud, s.longitud]);
+        }
+        m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
+      }
+    };
+
+    // Primera carga de datos
+    if (this.filtros.ciudad) {
+      this.fetch({ ...this.filtros });
+    } else if (this.filtros.lat != null && this.filtros.lng != null) {
+      const base: FiltrosBusqueda = { ...this.filtros };
+      if (!base.distancia_km && !base.bbox && !base.radio_km) {
+        base.radio_km = 7;
+      }
+      this.fetch(base);
+    } else {
+      this.fetchByViewport();
+    }
+  }
+
+  private getBBoxQuery() {
+    const b = this.map.getBounds();
+    const w = b.getWest();
+    const s = b.getSouth();
+    const e = b.getEast();
+    const n = b.getNorth();
+    return `${w.toFixed(6)},${s.toFixed(6)},${e.toFixed(6)},${n.toFixed(6)}`;
+  }
+
+  private fetchByViewport() {
+    const bbox = this.getBBoxQuery();
+    const center = this.map.getCenter();
+    const lat = Number(center.lat.toFixed(6));
+    const lng = Number(center.lng.toFixed(6));
+    const params: FiltrosBusqueda = { ...this.filtros, lat, lng, bbox };
+    this.fetch(params);
+  }
+
+  private fetch(params: FiltrosBusqueda) {
+    this.mapService.getSalasMap(params).subscribe({
+      next: (rows) => {
+        this.zone.run(() => {
+          this.salas = rows || [];
+          this.renderMarkers();
+        });
+      },
+      error: (err) => {
+        console.error('Error cargando salas del mapa', err);
+      }
+    });
+  }
+
+  // Se sobrescribe en initMap para usar defaultIcon
+  private renderMarkers() {
+    const currentIds = new Set(this.salas.map(s => s.id_sala));
+    for (const [id, marker] of this.markers.entries()) {
+      if (!currentIds.has(id)) {
+        marker.removeFrom(this.map);
+        this.markers.delete(id);
+      }
+    }
+    for (const s of this.salas) {
+      if (!s.latitud || !s.longitud) continue;
+      let m = this.markers.get(s.id_sala);
+      if (!m) {
+        m = L.marker([s.latitud, s.longitud]).addTo(this.map);
+        m.on('click', () => this.onMarkerClick(s.id_sala));
+        this.markers.set(s.id_sala, m);
+      } else {
+        m.setLatLng([s.latitud, s.longitud]);
+      }
+      m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
+    }
+  }
+
+  onMarkerClick(id: number) {
+    this.selectedId = id;
+    const el = document.querySelector(`[data-sala-id="${id}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    this.renderMarkers();
+  }
+
+  onCardFocus(id: number) {
+    this.selectedId = id;
+    const s = this.salas.find(x => x.id_sala === id);
+    if (s?.latitud && s?.longitud) {
+      this.map.panTo([s.latitud, s.longitud], { animate: true });
+    }
+    this.renderMarkers();
+  }
 }
 
 
