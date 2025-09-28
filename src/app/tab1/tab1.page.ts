@@ -392,10 +392,28 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     return sala.id_sala; 
   }
 
-  onMapaClick() { 
+  onMapaClick() {
     // Lee los filtros actuales de tu UI/estado de la lista y pásalos tal cual como queryParams
     // Ejemplo mínimo: si guardas filtros en this.filters
-    this.router.navigate(['/mapa'], { queryParams: { ...this.filters } });
+    const params = { ...this.filters };
+
+    const distanciaActiva =
+      params.distancia_km != null && params.distancia_km !== '' ? Number(params.distancia_km) :
+      params.distancia != null && params.distancia !== '' ? Number(params.distancia) : null;
+
+    if (distanciaActiva !== null && Number.isFinite(distanciaActiva)) {
+      if (this.latUsuario != null && this.lngUsuario != null) {
+        params.lat = this.latUsuario;
+        params.lng = this.lngUsuario;
+      } else if (this.filters?.lat != null && this.filters?.lng != null) {
+        params.lat = this.filters.lat;
+        params.lng = this.filters.lng;
+      }
+    }
+
+    delete (params as any).coordenadas;
+
+    this.router.navigate(['/mapa'], { queryParams: params });
     console.log('🗺️ Click en botón de mapa (a implementar)');
   }
 
