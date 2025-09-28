@@ -32,7 +32,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap');
 
 /* Leaflet styles */
-@import "~leaflet/dist/leaflet.css";
+@import "leaflet/dist/leaflet.css";
 
 /* Header base (tu estilo) */
 ion-header,
@@ -60,65 +60,10 @@ ion-footer {
                    Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* ====== MAPA: alturas y overlay ====== */
-
-/* Cadena de alturas estable */
-ion-app, ion-router-outlet, ion-content { height: 100%; }
-
-/* Scoped por clase de la página */
-.page-mapa,
-.page-mapa ion-content,
-.page-mapa .map-wrap,
-.page-mapa #map {
+html, body, ion-app, ion-router-outlet {
   height: 100%;
 }
 
-/* Anula paddings/offsets solo en esta página para que el mapa sea full */
-.page-mapa ion-content {
-  --padding-top: 0 !important;
-  --padding-bottom: 0 !important;
-  --offset-top: 0 !important;
-  --offset-bottom: 0 !important;
-  --overflow: hidden; /* evita scroll interno */
-}
-
-html, body, ion-app, ion-router-outlet { height: 100%; }
-
-/* ---- MAPA (scoped por clase page-mapa) ---- */
-.page-mapa,
-.page-mapa ion-content {
-  height: 100%;
-}
-
-/* Quita padding/offsets solo en la página de mapa para que el mapa pueda ocupar todo */
-.page-mapa ion-content {
-  --padding-top: 0 !important;
-  --padding-bottom: 0 !important;
-  --offset-top: 0 !important;
-  --offset-bottom: 0 !important;
-  --overflow: hidden;
-}
-
-/* Contenedor y mapa */
-.page-mapa .map-wrap { position: relative; width: 100%; }
-.page-mapa #map { position: relative; width: 100%; /* la ALTURA la fija TS con px */ }
-
-/* Carrusel (overlay) */
-.page-mapa .carousel {
-  position: fixed; /* fijo al viewport para evitar recortes del shadow scroll */
-  left: 0; right: 0;
-  bottom: calc(var(--ion-safe-area-bottom, 0px) + 56px); /* ajusta si no hay tabs */
-  padding: 8px 0 12px;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.20) 50%, rgba(0,0,0,.35) 100%);
-  z-index: 401;
-}
-
-/* Cards del carrusel */
-.page-mapa .minicard {
-  width: 240px; min-height: 120px;
-  background: #fff; border-radius: 14px; overflow: hidden;
-  box-shadow: 0 6px 16px rgba(0,0,0,.15);
-}
 
 === index.html ===
 <!DOCTYPE html>
@@ -380,12 +325,12 @@ export class AppModule {}
 === environments/environment.prod.ts ===
 export const environment = {
   production: true,
-  //apiUrl: 'http://192.168.1.131:3000/api',
-  //imageURL: 'http://192.168.1.131:3000/',
+ //apiUrl: 'http://192.168.1.130:3000/api',
+//imageURL: 'http://192.168.1.130:3000/',
   //apiUrl: 'http://10.0.2.2:3000/api',
   //Internet
-  //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
-  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/',
+  apiUrl: 'https://jar-kind-persian-votes.trycloudflare.com/api',
+  imageURL: 'https://jar-kind-persian-votes.trycloudflare.com/',
 
   /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
@@ -2384,7 +2329,115 @@ export class MapaPageModule {}
 </ion-content>
 
 === app/pages/mapa/mapa.page.scss ===
+:host {
+  display: block;
+  height: 100%;
+}
 
+ion-content.page-mapa {
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --offset-top: 0 !important;
+  --offset-bottom: 0 !important;
+  --overflow: hidden;
+  --background: #f4f5f8;
+
+  height: 100%;
+}
+
+.map-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+#map {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 320px;
+  background: #e0e4eb;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.carousel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
+  padding: 0 12px 12px;
+  z-index: 401;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.35) 100%);
+}
+
+.carousel .swiper {
+  padding: 0 4px;
+  pointer-events: auto;
+}
+
+.minicard {
+  width: 240px;
+  min-height: 120px;
+  display: flex;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+}
+
+.minicard .cover {
+  width: 84px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.minicard .body {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.minicard .title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ef-title-color, #1f2937);
+  line-height: 1.3;
+}
+
+.minicard .meta {
+  font-size: 13px;
+  color: var(--ef-meta-color, #64748b);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.swiper-slide.selected .minicard {
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  ion-content.page-mapa {
+    --background: #ffffff;
+  }
+
+  .carousel {
+    max-width: 640px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 24px;
+    border-radius: 16px;
+  }
+}
 
 === app/pages/mapa/mapa.page.ts ===
 import { Component, OnDestroy, OnInit, NgZone, AfterViewInit } from '@angular/core';

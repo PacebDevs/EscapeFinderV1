@@ -138,7 +138,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.map = L.map('map', {
       zoomControl: true,
-      attributionControl: true
+      attributionControl: true,
+      maxBoundsViscosity: 1.0
     }).setView([lat0, lng0], zoom);
 
     const tiles = L.tileLayer(environment.tilesUrl, {
@@ -175,6 +176,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         }
         m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
       }
+      this.updateMapBounds();
     };
 
     // Primera carga de datos
@@ -215,6 +217,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         this.zone.run(() => {
           this.salas = rows || [];
           this.renderMarkers();
+          
         });
       },
       error: (err) => {
@@ -243,6 +246,27 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         m.setLatLng([s.latitud, s.longitud]);
       }
       m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
+    }
+    this.updateMapBounds();
+  }
+
+  private updateMapBounds() {
+    if (!this.map) return;
+
+    const coords = this.salas
+      .filter(s => typeof s.latitud === 'number' && typeof s.longitud === 'number')
+      .map(s => L.latLng(s.latitud!, s.longitud!));
+
+    if (!coords.length) {
+      this.map.setMaxBounds(null as unknown as L.LatLngBoundsExpression);
+      return;
+    }
+
+    const bounds = L.latLngBounds(coords).pad(0.2);
+    this.map.setMaxBounds(bounds);
+
+    if (!bounds.contains(this.map.getCenter())) {
+      this.map.panInsideBounds(bounds, { animate: false });
     }
   }
 
