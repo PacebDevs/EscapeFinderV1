@@ -267,11 +267,15 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const bounds = L.latLngBounds(coords).pad(0.2);
-    this.map.setMaxBounds(bounds);
+        const bounds = L.latLngBounds(coords);
+    // Ampliamos de forma generosa los límites máximos para evitar que Leaflet
+    // intente recentrar el mapa al hacer zoom cuando el usuario se aproxima a
+    // los bordes de la nube de puntos.
+    const paddedBounds = bounds.pad(1.0);
+    this.map.setMaxBounds(paddedBounds);
 
-    if (!bounds.contains(this.map.getCenter())) {
-      this.map.panInsideBounds(bounds, { animate: false });
+    if (!paddedBounds.contains(this.map.getCenter())) {
+      this.map.panInsideBounds(paddedBounds, { animate: false });
     }
   }
 
