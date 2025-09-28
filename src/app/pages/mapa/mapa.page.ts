@@ -22,6 +22,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private markers = new Map<number, L.Marker>();
   private moveEnd$ = new Subject<void>();
   private subs: Subscription[] = [];
+  private hasFetchedOnce = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -212,6 +213,10 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private fetch(params: FiltrosBusqueda) {
+    if (this.hasFetchedOnce) {
+      return;
+    }
+    this.hasFetchedOnce = true;
     this.mapService.getSalasMap(params).subscribe({
       next: (rows) => {
         this.zone.run(() => {
