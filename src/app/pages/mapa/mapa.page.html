@@ -13,7 +13,12 @@
     <div id="map"></div>
      <div class="carousel">
       <div class="carousel-track" tabindex="0">
-        <div class="carousel-slide" *ngFor="let s of salas" [class.selected]="s.id_sala === selectedId">
+        <div
+          class="carousel-slide"
+          *ngFor="let s of salas"
+          [class.selected]="s.id_sala === selectedId"
+          [attr.data-sala-id]="s.id_sala"
+        >
           <app-sala-mini-card [sala]="s" (focusSala)="onCardFocus($event)"></app-sala-mini-card>
         </div>
       </div>
