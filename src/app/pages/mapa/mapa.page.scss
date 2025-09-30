@@ -92,6 +92,94 @@ ion-content.page-mapa {
   box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
   transform: translateY(-2px);
 }
+:host ::ng-deep .ef-marker-icon {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .ef-marker {
+  position: relative;
+  width: 30px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host ::ng-deep .ef-marker__pin {
+  width: 25px;
+  height: 41px;
+  background: url('/assets/icon/marker-icon.png') center/contain no-repeat;
+  
+}
+
+:host ::ng-deep .ef-marker__badge {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.25);
+}
+
+:host ::ng-deep .ef-popup {
+  min-width: 200px;
+  max-width: 240px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+:host ::ng-deep .ef-popup__title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+:host ::ng-deep .ef-popup__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+:host ::ng-deep .ef-popup__list li {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+:host ::ng-deep .ef-popup__list li:hover,
+:host ::ng-deep .ef-popup__list li:focus {
+  background: #e0f2fe;
+  color: #0f172a;
+}
+
+:host ::ng-deep .ef-popup__name {
+  font-weight: 600;
+  flex: 1;
+}
+
+:host ::ng-deep .ef-popup__distance {
+  font-size: 12px;
+  color: #475569;
+}
 
 @media (min-width: 768px) {
   ion-content.page-mapa {
