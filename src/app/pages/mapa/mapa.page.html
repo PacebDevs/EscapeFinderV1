@@ -11,29 +11,12 @@
 <ion-content fullscreen class="page-mapa" [scrollY]="false">
   <div class="map-wrap">
     <div id="map"></div>
-
-
-    <!-- Carrusel inferior (Swiper está registrado en main.ts) -->
-    <div class="carousel">
-      <div class="swiper" id="swiper-minicards">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide" *ngFor="let s of salas" [class.selected]="s.id_sala === selectedId">
-            <div class="minicard" [attr.data-sala-id]="s.id_sala" (click)="onCardFocus(s.id_sala)">
-              <img class="cover" [src]="s.cover_url || 'assets/placeholder.jpg'" loading="lazy" alt="cover" />
-              <div class="body">
-                <div class="title">{{ s.nombre }}</div>
-                <div class="meta">
-                  <ng-container *ngIf="s.precio_min_pp as p">💶 {{ p | number:'1.0-0' }} €/pp</ng-container>
-                  <ng-container *ngIf="s.distancia_km != null"> · 📍 {{ s.distancia_km | number:'1.0-1' }}
-                    km</ng-container>
-                </div>
-              </div>
-            </div>
-          </div>
+     <div class="carousel">
+      <div class="carousel-track" tabindex="0">
+        <div class="carousel-slide" *ngFor="let s of salas" [class.selected]="s.id_sala === selectedId">
+          <app-sala-mini-card [sala]="s" (focusSala)="onCardFocus($event)"></app-sala-mini-card>
         </div>
       </div>
     </div>
-
-
   </div>
 </ion-content>
