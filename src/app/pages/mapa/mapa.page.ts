@@ -386,8 +386,7 @@ private rebuildGruposPorCoord() {
 
   onMarkerClick(id: number) {
     this.selectedId = id;
-    const el = document.querySelector(`[data-sala-id="${id}"]`);
-    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    this.centerCardInCarousel(id);
     this.renderMarkers();
   }
 
@@ -398,5 +397,23 @@ private rebuildGruposPorCoord() {
       this.map.panTo([s.latitud, s.longitud], { animate: true });
     }
     this.renderMarkers();
+  }
+
+   private centerCardInCarousel(id: number, behavior: ScrollBehavior = 'smooth') {
+    requestAnimationFrame(() => {
+      const track = document.querySelector<HTMLElement>('.carousel-track');
+      const slide = document.querySelector<HTMLElement>(`.carousel-slide[data-sala-id="${id}"]`);
+      if (!track || !slide) return;
+
+      const slideRect = slide.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+      const currentScroll = track.scrollLeft;
+      const desiredScroll =
+        currentScroll + (slideRect.left - trackRect.left) - (trackRect.width - slideRect.width) / 2;
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const normalizedScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
+
+      track.scrollTo({ left: normalizedScroll, behavior });
+    });
   }
 }

@@ -61,7 +61,12 @@ ion-content.page-mapa {
 
 .carousel-slide {
   flex: 0 0 auto;
-  scroll-snap-align: start;
+    scroll-snap-align: center;
+  position: relative;
+}
+
+.carousel-slide.selected {
+  z-index: 2;
 }
 :host ::ng-deep .ef-marker-icon {
   background: transparent;

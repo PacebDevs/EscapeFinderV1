@@ -57,6 +57,6 @@
 }
 
 :host-context(.carousel-slide.selected) .minicard {
-  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
-  transform: translateY(-2px);
+ box-shadow: 0 16px 36px rgba(50, 219, 100, 0.42);
+  transform: translateY(-10px);
 }
