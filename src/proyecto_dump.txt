@@ -325,16 +325,8 @@ export class AppModule {}
 === environments/environment.prod.ts ===
 export const environment = {
   production: true,
- //apiUrl: 'http://192.168.1.130:3000/api',
-//imageURL: 'http://192.168.1.130:3000/',
-  //apiUrl: 'http://10.0.2.2:3000/api',
-  //Internet
-  apiUrl: 'https://jar-kind-persian-votes.trycloudflare.com/api',
-  imageURL: 'https://jar-kind-persian-votes.trycloudflare.com/',
-
-  /*PARCELA*/
-//apiUrl: 'http://192.168.1.200:3000/api',
-//imageURL: 'http://192.168.1.200:3000/',
+  apiUrl: 'https://factory-brochures-avi-legislature.trycloudflare.com/api',
+  imageURL: 'https://factory-brochures-avi-legislature.trycloudflare.com/',
 
 /*mapas*/
 tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -350,11 +342,11 @@ tilesAttribution: '© OpenStreetMap contributors'
 export const environment = {
   production: true,
   //Piso y casa de padres
- apiUrl: 'http://192.168.1.130:3000/api',
-imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
+ //apiUrl: 'http://192.168.1.130:3000/api',
+//imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
 //Internet
-  //apiUrl: 'https://kijiji-operated-see-reseller.trycloudflare.com/api',
-  //imageURL: 'https://kijiji-operated-see-reseller.trycloudflare.com/'
+  apiUrl: 'https://factory-brochures-avi-legislature.trycloudflare.com/api',
+  imageURL: 'https://factory-brochures-avi-legislature.trycloudflare.com/',
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'
@@ -1753,10 +1745,28 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     return sala.id_sala; 
   }
 
-  onMapaClick() { 
+  onMapaClick() {
     // Lee los filtros actuales de tu UI/estado de la lista y pásalos tal cual como queryParams
     // Ejemplo mínimo: si guardas filtros en this.filters
-    this.router.navigate(['/mapa'], { queryParams: { ...this.filters } });
+    const params = { ...this.filters };
+
+    const distanciaActiva =
+      params.distancia_km != null && params.distancia_km !== '' ? Number(params.distancia_km) :
+      params.distancia != null && params.distancia !== '' ? Number(params.distancia) : null;
+
+    if (distanciaActiva !== null && Number.isFinite(distanciaActiva)) {
+      if (this.latUsuario != null && this.lngUsuario != null) {
+        params.lat = this.latUsuario;
+        params.lng = this.lngUsuario;
+      } else if (this.filters?.lat != null && this.filters?.lng != null) {
+        params.lat = this.filters.lat;
+        params.lng = this.filters.lng;
+      }
+    }
+
+    delete (params as any).coordenadas;
+
+    this.router.navigate(['/mapa'], { queryParams: params });
     console.log('🗺️ Click en botón de mapa (a implementar)');
   }
 
@@ -2276,14 +2286,13 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { MapaPage } from './mapa.page';
 import { RouterModule, Routes } from '@angular/router';
-
+import { SalaMiniCardComponent } from 'src/app/components/sala-mini-card/sala-mini-card.component';
 
 const routes: Routes = [{ path: '', component: MapaPage }];
 
-
 @NgModule({
-imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes)],
-declarations: [MapaPage]
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), SalaMiniCardComponent],
+  declarations: [MapaPage]
 })
 export class MapaPageModule {}
 
@@ -2301,30 +2310,18 @@ export class MapaPageModule {}
 <ion-content fullscreen class="page-mapa" [scrollY]="false">
   <div class="map-wrap">
     <div id="map"></div>
-
-
-    <!-- Carrusel inferior (Swiper está registrado en main.ts) -->
-    <div class="carousel">
-      <div class="swiper" id="swiper-minicards">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide" *ngFor="let s of salas" [class.selected]="s.id_sala === selectedId">
-            <div class="minicard" [attr.data-sala-id]="s.id_sala" (click)="onCardFocus(s.id_sala)">
-              <img class="cover" [src]="s.cover_url || 'assets/placeholder.jpg'" loading="lazy" alt="cover" />
-              <div class="body">
-                <div class="title">{{ s.nombre }}</div>
-                <div class="meta">
-                  <ng-container *ngIf="s.precio_min_pp as p">💶 {{ p | number:'1.0-0' }} €/pp</ng-container>
-                  <ng-container *ngIf="s.distancia_km != null"> · 📍 {{ s.distancia_km | number:'1.0-1' }}
-                    km</ng-container>
-                </div>
-              </div>
-            </div>
-          </div>
+     <div class="carousel">
+      <div class="carousel-track" tabindex="0">
+        <div
+          class="carousel-slide"
+          *ngFor="let s of salas"
+          [class.selected]="s.id_sala === selectedId"
+          [attr.data-sala-id]="s.id_sala"
+        >
+          <app-sala-mini-card [sala]="s" (focusSala)="onCardFocus($event)"></app-sala-mini-card>
         </div>
       </div>
     </div>
-
-
   </div>
 </ion-content>
 
@@ -2371,57 +2368,116 @@ ion-content.page-mapa {
   padding: 0 12px 12px;
   z-index: 401;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.35) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0.35) 100%);
 }
 
-.carousel .swiper {
-  padding: 0 4px;
-  pointer-events: auto;
-}
-
-.minicard {
-  width: 240px;
-  min-height: 120px;
+.carousel-track {
   display: flex;
-  background: #ffffff;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 4px 8px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  pointer-events: auto;
+  scrollbar-width: none;
 }
 
-.minicard .cover {
-  width: 84px;
-  height: 100%;
-  object-fit: cover;
+.carousel-track::-webkit-scrollbar {
+  display: none;
 }
 
-.minicard .body {
-  flex: 1;
-  padding: 12px;
+.carousel-slide {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+:host ::ng-deep .ef-marker-icon {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .ef-marker {
+  position: relative;
+  width: 30px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host ::ng-deep .ef-marker__pin {
+  width: 25px;
+  height: 41px;
+  background: url('/assets/icon/marker-icon.png') center/contain no-repeat;
+  
+}
+
+:host ::ng-deep .ef-marker__badge {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.25);
+}
+
+:host ::ng-deep .ef-popup {
+  min-width: 200px;
+  max-width: 240px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+:host ::ng-deep .ef-popup__title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+:host ::ng-deep .ef-popup__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 6px;
+  max-height: 220px;
+  overflow: auto;
 }
 
-.minicard .title {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--ef-title-color, #1f2937);
-  line-height: 1.3;
-}
-
-.minicard .meta {
-  font-size: 13px;
-  color: var(--ef-meta-color, #64748b);
+:host ::ng-deep .ef-popup__list li {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.swiper-slide.selected .minicard {
-  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
-  transform: translateY(-2px);
+:host ::ng-deep .ef-popup__list li:hover,
+:host ::ng-deep .ef-popup__list li:focus {
+  background: #e0f2fe;
+  color: #0f172a;
+}
+
+:host ::ng-deep .ef-popup__name {
+  font-weight: 600;
+  flex: 1;
+}
+
+:host ::ng-deep .ef-popup__distance {
+  font-size: 12px;
+  color: #475569;
 }
 
 @media (min-width: 768px) {
@@ -2461,9 +2517,12 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   filtros: FiltrosBusqueda = {};
 
   private map!: L.Map;
-  private markers = new Map<number, L.Marker>();
+  private gruposPorCoord = new Map<string, SalaPinDTO[]>();
+  private markersPorGrupo = new Map<string, L.Marker>();
   private moveEnd$ = new Subject<void>();
   private subs: Subscription[] = [];
+  private hasFetchedOnce = false;
+  private singleMarkerIcon!: L.Icon;
 
   constructor(
     private route: ActivatedRoute,
@@ -2574,13 +2633,16 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       shadowSize: [41, 41]
     });
 
+    this.singleMarkerIcon = defaultIcon;
+
     const lat0 = Number(this.filtros.lat) || 40.4168;
     const lng0 = Number(this.filtros.lng) || -3.7038;
     const zoom = this.filtros.ciudad ? 12 : 13;
 
     this.map = L.map('map', {
       zoomControl: true,
-      attributionControl: true
+      attributionControl: true,
+      maxBoundsViscosity: 1.0
     }).setView([lat0, lng0], zoom);
 
     const tiles = L.tileLayer(environment.tilesUrl, {
@@ -2595,28 +2657,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     // Render de marcadores con el icono personalizado
     this.renderMarkers = () => {
-      const currentIds = new Set(this.salas.map(s => s.id_sala));
-
-      for (const [id, marker] of this.markers.entries()) {
-        if (!currentIds.has(id)) {
-          marker.removeFrom(this.map);
-          this.markers.delete(id);
-        }
-      }
-
-      for (const s of this.salas) {
-        if (!s.latitud || !s.longitud) continue;
-        let m = this.markers.get(s.id_sala);
-        if (!m) {
-          m = L.marker([s.latitud, s.longitud], { icon: defaultIcon }).addTo(this.map);
-          m.bindPopup(`<b>${s.nombre}</b>${s.distancia_km ? `<br>📍 ${s.distancia_km.toFixed(1)} km` : ''}`);
-          m.on('click', () => this.onMarkerClick(s.id_sala));
-          this.markers.set(s.id_sala, m);
-        } else {
-          m.setLatLng([s.latitud, s.longitud]);
-        }
-        m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
-      }
+        this.renderMarkersPorGrupo();
     };
 
     // Primera carga de datos
@@ -2652,11 +2693,18 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private fetch(params: FiltrosBusqueda) {
+    if (this.hasFetchedOnce) {
+      return;
+    }
+    this.hasFetchedOnce = true;
     this.mapService.getSalasMap(params).subscribe({
       next: (rows) => {
         this.zone.run(() => {
           this.salas = rows || [];
+          // Construcción de gruposPorCoord
+          this.rebuildGruposPorCoord();
           this.renderMarkers();
+          
         });
       },
       error: (err) => {
@@ -2667,24 +2715,170 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   // Se sobrescribe en initMap para usar defaultIcon
   private renderMarkers() {
-    const currentIds = new Set(this.salas.map(s => s.id_sala));
-    for (const [id, marker] of this.markers.entries()) {
-      if (!currentIds.has(id)) {
+    this.renderMarkersPorGrupo();
+  }
+
+  private renderMarkersPorGrupo() {
+    if (!this.map || !this.singleMarkerIcon) return;
+
+    // Render de markers por grupo
+    const keysActuales = new Set(this.gruposPorCoord.keys());
+    for (const [key, marker] of this.markersPorGrupo.entries()) {
+      if (!keysActuales.has(key)) {
         marker.removeFrom(this.map);
-        this.markers.delete(id);
+        this.markersPorGrupo.delete(key);
       }
     }
-    for (const s of this.salas) {
-      if (!s.latitud || !s.longitud) continue;
-      let m = this.markers.get(s.id_sala);
-      if (!m) {
-        m = L.marker([s.latitud, s.longitud]).addTo(this.map);
-        m.on('click', () => this.onMarkerClick(s.id_sala));
-        this.markers.set(s.id_sala, m);
+
+    for (const [key, salasDelGrupo] of this.gruposPorCoord.entries()) {
+      if (!salasDelGrupo.length) continue;
+      const [latStr, lngStr] = key.split(',');
+      const lat = Number(latStr);
+      const lng = Number(lngStr);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+      let marker = this.markersPorGrupo.get(key);
+      const count = salasDelGrupo.length;
+      const posicion = L.latLng(lat, lng);
+      const icon = count > 1 ? this.createClusterIcon(count) : this.singleMarkerIcon;
+
+      if (!marker) {
+        marker = L.marker(posicion, { icon }).addTo(this.map);
+        this.markersPorGrupo.set(key, marker);
       } else {
-        m.setLatLng([s.latitud, s.longitud]);
+        marker.setLatLng(posicion);
+        marker.setIcon(icon);
       }
-      m.setZIndexOffset(this.selectedId === s.id_sala ? 1000 : 0);
+
+      const markerRef = marker;
+      if (!markerRef) continue;
+
+      markerRef.off('click');
+      markerRef.off('popupopen');
+      markerRef.off('popupclose');
+      markerRef.unbindPopup();
+
+      const isSelected = this.selectedId != null && salasDelGrupo.some(s => s.id_sala === this.selectedId);
+      markerRef.setZIndexOffset(isSelected ? 1000 : 0);
+
+      if (count === 1) {
+        markerRef.on('click', () => this.onMarkerClick(salasDelGrupo[0].id_sala));
+      } else {
+        const salasOrdenadas = [...salasDelGrupo].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        const popupHtml = this.buildPopupContent(salasOrdenadas);
+        markerRef.bindPopup(popupHtml, { closeButton: true, maxWidth: 260 });
+
+        // Lógica del popup y navegación al carrusel
+        markerRef.on('popupopen', (event: L.PopupEvent) => {
+          const popupEl = event.popup.getElement();
+          if (!popupEl) return;
+          const listEl = popupEl.querySelector('.ef-popup__list');
+          if (!listEl) return;
+
+          const handleClick = (ev: Event) => {
+            const target = ev.target as HTMLElement | null;
+            const item = target?.closest('li[data-id-sala]') as HTMLElement | null;
+            if (!item) return;
+            const idSala = Number(item.dataset["idSala"]);
+            if (!Number.isFinite(idSala)) return;
+            markerRef.closePopup();
+            this.onMarkerClick(idSala);
+          };
+
+          listEl.addEventListener('click', handleClick);
+
+          markerRef.once('popupclose', () => {
+            listEl.removeEventListener('click', handleClick);
+          });
+        });
+      }
+    }
+
+    this.updateMapBounds();
+  }
+
+private rebuildGruposPorCoord() {
+    this.gruposPorCoord.clear();
+    for (const sala of this.salas) {
+      if (typeof sala.latitud !== 'number' || typeof sala.longitud !== 'number') continue;
+      const key = this.coordKey(sala.latitud, sala.longitud);
+      const grupo = this.gruposPorCoord.get(key);
+      if (grupo) {
+        grupo.push(sala);
+      } else {
+        this.gruposPorCoord.set(key, [sala]);
+      }
+    }
+  }
+
+  private coordKey(lat: number, lng: number): string {
+    const latRounded = lat.toFixed(6);
+    const lngRounded = lng.toFixed(6);
+    return `${latRounded},${lngRounded}`;
+  }
+
+  private createClusterIcon(count: number): L.DivIcon {
+    return L.divIcon({
+      html: `<div class="ef-marker"><div class="ef-marker__pin"></div><div class="ef-marker__badge">${count}</div></div>`,
+      className: 'ef-marker-icon',
+      iconSize: [30, 42],
+      iconAnchor: [12, 41],
+      popupAnchor: [0, -36]
+    });
+  }
+
+  private buildPopupContent(salas: SalaPinDTO[]): string {
+    const ciudades = new Set(
+      salas
+        .map(s => (s.ciudad ? s.ciudad.trim() : ''))
+        .filter(Boolean)
+    );
+
+    const tieneCiudadUnica = ciudades.size === 1;
+    const ciudad = tieneCiudadUnica ? Array.from(ciudades)[0] : null;
+    const titulo = ciudad ? `Salas en esta ubicación – ${ciudad}` : 'Salas en esta ubicación';
+
+    const items = salas
+      .map(s => {
+        const distancia = typeof s.distancia_km === 'number' ? `${s.distancia_km.toFixed(1)} km` : '';
+        return `
+          <li data-id-sala="${s.id_sala}">
+            <span class="ef-popup__name">${s.nombre}</span>
+            ${distancia ? `<span class="ef-popup__distance">${distancia}</span>` : ''}
+          </li>
+        `;
+      })
+      .join('');
+
+    return `
+      <div class="ef-popup">
+        <div class="ef-popup__title">${titulo}</div>
+        <ul class="ef-popup__list">${items}</ul>
+      </div>
+    `;
+  }
+
+  private updateMapBounds() {
+    if (!this.map) return;
+
+    const coords = this.salas
+      .filter(s => typeof s.latitud === 'number' && typeof s.longitud === 'number')
+      .map(s => L.latLng(s.latitud!, s.longitud!));
+
+    if (!coords.length) {
+      this.map.setMaxBounds(null as unknown as L.LatLngBoundsExpression);
+      return;
+    }
+
+        const bounds = L.latLngBounds(coords);
+    // Ampliamos de forma generosa los límites máximos para evitar que Leaflet
+    // intente recentrar el mapa al hacer zoom cuando el usuario se aproxima a
+    // los bordes de la nube de puntos.
+    const paddedBounds = bounds.pad(1.0);
+    this.map.setMaxBounds(paddedBounds);
+
+    if (!paddedBounds.contains(this.map.getCenter())) {
+      this.map.panInsideBounds(paddedBounds, { animate: false });
     }
   }
 
@@ -6042,33 +6236,6 @@ onResetClick(ev: Event) {
 }
 
 
-=== app/components/sala-card/sala-card.component.spec.ts ===
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-
-import { SalaCardComponent } from './sala-card.component';
-
-describe('SalaCardComponent', () => {
-  let component: SalaCardComponent;
-  let fixture: ComponentFixture<SalaCardComponent>;
-
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [ SalaCardComponent ],
-      imports: [IonicModule.forRoot()]
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(SalaCardComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  }));
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-
 === app/components/sala-card/sala-card.component.ts ===
 import {
   Component,
@@ -6266,4 +6433,124 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
 }
 
 
+
+=== app/components/sala-mini-card/sala-mini-card.component.html ===
+<article class="minicard" (click)="onClick()">
+  <img
+    class="cover"
+    [src]="imageSrc"
+    loading="lazy"
+    alt="Portada de la sala"
+  />
+  <div class="body">
+    <div class="title">{{ sala?.nombre }}</div>
+    <div class="meta">
+      <ng-container *ngIf="sala?.precio_min_pp as precio">💶 {{ precio | number: '1.0-0' }} €/pp</ng-container>
+      <ng-container *ngIf="sala?.distancia_km != null">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
+    </div>
+  </div>
+</article>
+
+=== app/components/sala-mini-card/sala-mini-card.component.scss ===
+:host {
+  display: block;
+}
+
+.minicard {
+  width: 232px;
+  min-height: 118px;
+  display: flex;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.minicard .cover {
+  width: 84px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.minicard .body {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.minicard .title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ef-title-color, #1f2937);
+  line-height: 1.3;
+}
+
+.minicard .meta {
+  font-size: 13px;
+  color: var(--ef-meta-color, #64748b);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+:host-context(.carousel-slide.selected) .minicard {
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
+  transform: translateY(-2px);
+}
+
+=== app/components/sala-mini-card/sala-mini-card.component.ts ===
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, SimpleChanges, OnChanges } from '@angular/core';
+import { SalaPinDTO } from 'src/app/services/map.service';
+import { environment } from 'src/environments/environment';
+
+@Component({
+  selector: 'app-sala-mini-card',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './sala-mini-card.component.html',
+  styleUrls: ['./sala-mini-card.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class SalaMiniCardComponent implements OnChanges{
+  @Input() sala!: SalaPinDTO;
+  @Output() focusSala = new EventEmitter<number>();
+
+  imageSrc = 'assets/placeholder.jpg';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sala']) {
+      this.updateImageSrc();
+    }
+  }
+
+  private updateImageSrc(): void {
+    const cover = this.sala?.cover_url?.trim();
+    if (!cover) {
+      this.imageSrc = 'assets/placeholder.jpg';
+      return;
+    }
+
+    const isAbsolute = /^https?:\/\//i.test(cover);
+    if (isAbsolute) {
+      this.imageSrc = cover;
+      return;
+    }
+
+    const base = environment.imageURL.replace(/\/$/, '');
+    const path = cover.replace(/^\//, '');
+    this.imageSrc = `${base}/${path}`;
+  }
+
+  onClick(): void {
+    if (this.sala?.id_sala != null) {
+      this.focusSala.emit(this.sala.id_sala);
+    }
+  }
+}
 
