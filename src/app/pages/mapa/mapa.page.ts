@@ -142,7 +142,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     const zoom = this.filtros.ciudad ? 12 : 13;
 
     this.map = L.map('map', {
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: true,
       maxBoundsViscosity: 1.0
     }).setView([lat0, lng0], zoom);

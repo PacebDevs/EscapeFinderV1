@@ -1,15 +1,16 @@
 <article class="minicard" (click)="onClick()">
-  <img
-    class="cover"
-    [src]="imageSrc"
-    loading="lazy"
-    alt="Portada de la sala"
-  />
+ <figure class="cover">
+    <img
+      [src]="imageSrc"
+      loading="lazy"
+      alt="Portada de la sala"
+    />
+  </figure>
   <div class="body">
     <div class="title">{{ sala?.nombre }}</div>
     <div class="meta">
       <ng-container *ngIf="sala?.precio_min_pp as precio">💶 {{ precio | number: '1.0-0' }} €/pp</ng-container>
-      <ng-container *ngIf="sala?.distancia_km != null">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
+       <ng-container *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
     </div>
   </div>
 </article>
