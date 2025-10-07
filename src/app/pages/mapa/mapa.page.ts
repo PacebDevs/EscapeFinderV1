@@ -406,29 +406,16 @@ private rebuildGruposPorCoord() {
       const slide = document.querySelector<HTMLElement>(`.carousel-slide[data-sala-id="${id}"]`);
       if (!track || !slide) return;
 
-      // Desactiva snap durante el scroll programático para que no “corrija” tu posición
-      const prevSnap = track.style.scrollSnapType;
-      track.style.scrollSnapType = 'none';
-
-      const trackWidth = track.clientWidth;
-      const slideWidth = slide.offsetWidth;
-      const slideOffset = slide.offsetLeft; // pos. del slide dentro del track
-
-      // Centro deseado del slide en medio del track
-      let desiredScroll = slideOffset - (trackWidth / 2 - slideWidth / 2);
-
+      const slideRect = slide.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+      const currentScroll = track.scrollLeft;
+      const desiredScroll =
+        currentScroll + (slideRect.left - trackRect.left) - (trackRect.width - slideRect.width) / 2;
       const maxScroll = track.scrollWidth - track.clientWidth;
-      const normalized = Math.max(0, Math.min(desiredScroll, maxScroll));
+      const normalizedScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
 
-      track.scrollTo({ left: normalized, behavior });
-
-      // Rehabilita snap en el siguiente frame (cuando ya aplicó el scroll)
-      requestAnimationFrame(() => {
-        track.style.scrollSnapType = prevSnap || ''; // vuelve al valor inline previo
-      });
+      track.scrollTo({ left: normalizedScroll, behavior });
     });
   }
-
-
 
 }

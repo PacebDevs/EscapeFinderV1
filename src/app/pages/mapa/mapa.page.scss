@@ -70,7 +70,7 @@ ion-content.page-mapa {
 
 .carousel-slide {
   flex: 0 0 auto;
-  scroll-snap-align: start;
+  scroll-snap-align: center;
 }
 :host ::ng-deep .ef-marker-icon {
   background: transparent;
