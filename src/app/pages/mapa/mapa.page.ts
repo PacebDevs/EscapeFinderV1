@@ -392,6 +392,7 @@ private rebuildGruposPorCoord() {
 
   onCardFocus(id: number) {
     this.selectedId = id;
+     this.centerCardInCarousel(id);
     const s = this.salas.find(x => x.id_sala === id);
     if (s?.latitud && s?.longitud) {
       this.map.panTo([s.latitud, s.longitud], { animate: true });
