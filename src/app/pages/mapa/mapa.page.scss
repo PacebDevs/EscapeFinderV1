@@ -51,12 +51,10 @@ ion-content.page-mapa {
 
 .carousel-track {
   display: flex;
-  gap: 12px;
+  gap: clamp(10px, 2.8vw, 20px);
   overflow-x: auto;
   overflow-y: visible !important; /* Esto es importante: permite que el contenido sea visible fuera de los límites verticales */
-  padding: 4px 4px 8px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: clamp(6px, 1.4vw, 12px) clamp(6px, 4vw, 20px) clamp(10px, 2vw, 18px);
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;

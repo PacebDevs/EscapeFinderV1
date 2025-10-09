@@ -1,10 +1,17 @@
 :host {
   display: block;
+  --minicard-width: clamp(220px, 65vw, 320px);
+  --minicard-min-height: clamp(112px, calc(var(--minicard-width) * 0.48), 188px);
+  --minicard-padding: clamp(10px, 3vw, 18px);
+  --minicard-gap: clamp(6px, 2vw, 14px);
+  --minicard-title-size: clamp(14px, 1.8vw, 18px);
+  --minicard-meta-size: clamp(12px, 1.6vw, 14px);
+  --minicard-cover-width: clamp(74px, calc(var(--minicard-width) * 0.28), 112px);
 }
 
 .minicard {
-  width: 232px;
-  min-height: 118px;
+  width: var(--minicard-width);
+  min-height: var(--minicard-min-height);
   display: flex;
   background: #ffffff;
   border-radius: 14px;
@@ -14,8 +21,8 @@
 }
 
 .minicard .cover {
-  width: 84px;
-  min-width: 84px;
+  width: var(--minicard-cover-width);
+  min-width: var(--minicard-cover-width);
   margin: 0;
   display: flex;
   align-items: center;
@@ -33,30 +40,30 @@
 
 .minicard .body {
   flex: 1;
-  padding: 12px;
+  padding: var(--minicard-padding);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
+  gap: var(--minicard-gap);
 }
 
 .minicard .title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--minicard-title-size);
   color: var(--ef-title-color, #1f2937);
   line-height: 1.3;
 }
 
 .minicard .meta {
-  font-size: 13px;
+  font-size: var(--minicard-meta-size);
   color: var(--ef-meta-color, #64748b);
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: clamp(4px, 1.4vw, 10px);
   align-items: center;
 }
 
 :host-context(.carousel-slide.selected) .minicard {
- box-shadow: 0 16px 36px rgba(50, 219, 100, 0.42);
+  box-shadow: 0 16px 36px rgba(50, 219, 100, 0.42);
   transform: translateY(-10px);
 }
