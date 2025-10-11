@@ -164,11 +164,11 @@ ion-content.page-mapa {
     --background: #ffffff;
   }
 
-  .carousel {
-    max-width: 640px;
+.carousel {
+    left: 0;
+    right: 0;
+    width: min(100%, 95vw);
     margin: 0 auto;
-    left: 50%;
-    transform: translateX(-50%);
     bottom: 24px;
     border-radius: 16px;
   }
