@@ -24,7 +24,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private moveEnd$ = new Subject<void>();
   private subs: Subscription[] = [];
   private hasFetchedOnce = false;
-  private singleMarkerIcon!: L.Icon;
+  private markerIcon!: L.Icon;
 
   constructor(
     private route: ActivatedRoute,
@@ -81,11 +81,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Asegura que el contenedor tenga altura real antes de inicializar Leaflet
     this.setMapContainerSize();
     this.initMap();
-
-    // Recalcula tamaño tras pintado y en cambios de viewport
     setTimeout(() => this.map?.invalidateSize(), 0);
     window.addEventListener('resize', this._onResize, { passive: true });
   }
@@ -102,7 +99,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) this.map.invalidateSize();
   };
 
-  /** Calcula y fija la altura del #map en píxeles (viewport - header - tabs - safe areas) */
   private setMapContainerSize() {
     const mapEl = document.getElementById('map') as HTMLElement | null;
     if (!mapEl) return;
@@ -117,15 +113,14 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     const tabsH   = tabsEl   ? Math.round(tabsEl.getBoundingClientRect().height)   : 0;
 
     const targetHeight = window.innerHeight - headerH - tabsH - safeTop - safeBottom;
-    mapEl.style.height = `${Math.max(200, targetHeight)}px`; // mínimo defensivo
+    mapEl.style.height = `${Math.max(200, targetHeight)}px`;
     mapEl.style.width = '100%';
   }
 
   private initMap() {
     if (this.map) return;
 
-    // Iconos personalizados desde /assets/icon
-    const defaultIcon = L.icon({
+    this.markerIcon = L.icon({
       iconUrl: 'assets/icon/marker-icon.png',
       iconRetinaUrl: 'assets/icon/marker-icon-2x.png',
       shadowUrl: 'assets/icon/marker-shadow.png',
@@ -134,8 +129,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       popupAnchor: [1, -34],
       shadowSize: [41, 41]
     });
-
-    this.singleMarkerIcon = defaultIcon;
 
     const lat0 = Number(this.filtros.lat) || 40.4168;
     const lng0 = Number(this.filtros.lng) || -3.7038;
@@ -152,17 +145,10 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       maxZoom: 19
     }).addTo(this.map);
 
-    // Asegura repintado cuando los tiles terminan de cargar
     tiles.on('load', () => this.map.invalidateSize());
 
     this.map.on('moveend', () => this.moveEnd$.next());
 
-    // Render de marcadores con el icono personalizado
-    this.renderMarkers = () => {
-        this.renderMarkersPorGrupo();
-    };
-
-    // Primera carga de datos
     if (this.filtros.ciudad) {
       this.fetch({ ...this.filtros });
     } else if (this.filtros.lat != null && this.filtros.lng != null) {
@@ -203,10 +189,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       next: (rows) => {
         this.zone.run(() => {
           this.salas = rows || [];
-          // Construcción de gruposPorCoord
           this.rebuildGruposPorCoord();
           this.renderMarkers();
-          
         });
       },
       error: (err) => {
@@ -215,15 +199,9 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Se sobrescribe en initMap para usar defaultIcon
   private renderMarkers() {
-    this.renderMarkersPorGrupo();
-  }
+    if (!this.map || !this.markerIcon) return;
 
-  private renderMarkersPorGrupo() {
-    if (!this.map || !this.singleMarkerIcon) return;
-
-    // Render de markers por grupo
     const keysActuales = new Set(this.gruposPorCoord.keys());
     for (const [key, marker] of this.markersPorGrupo.entries()) {
       if (!keysActuales.has(key)) {
@@ -242,14 +220,13 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       let marker = this.markersPorGrupo.get(key);
       const count = salasDelGrupo.length;
       const posicion = L.latLng(lat, lng);
-      const icon = count > 1 ? this.createClusterIcon(count) : this.singleMarkerIcon;
 
       if (!marker) {
-        marker = L.marker(posicion, { icon }).addTo(this.map);
+        marker = L.marker(posicion, { icon: this.markerIcon }).addTo(this.map);
         this.markersPorGrupo.set(key, marker);
       } else {
         marker.setLatLng(posicion);
-        marker.setIcon(icon);
+        marker.setIcon(this.markerIcon);
       }
 
       const markerRef = marker;
@@ -270,7 +247,6 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         const popupHtml = this.buildPopupContent(salasOrdenadas);
         markerRef.bindPopup(popupHtml, { closeButton: true, maxWidth: 260 });
 
-        // Lógica del popup y navegación al carrusel
         markerRef.on('popupopen', (event: L.PopupEvent) => {
           const popupEl = event.popup.getElement();
           if (!popupEl) return;
@@ -299,7 +275,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.updateMapBounds();
   }
 
-private rebuildGruposPorCoord() {
+  private rebuildGruposPorCoord() {
     this.gruposPorCoord.clear();
     for (const sala of this.salas) {
       if (typeof sala.latitud !== 'number' || typeof sala.longitud !== 'number') continue;
@@ -317,16 +293,6 @@ private rebuildGruposPorCoord() {
     const latRounded = lat.toFixed(6);
     const lngRounded = lng.toFixed(6);
     return `${latRounded},${lngRounded}`;
-  }
-
-  private createClusterIcon(count: number): L.DivIcon {
-    return L.divIcon({
-      html: `<div class="ef-marker"><div class="ef-marker__pin"></div><div class="ef-marker__badge">${count}</div></div>`,
-      className: 'ef-marker-icon',
-      iconSize: [30, 42],
-      iconAnchor: [12, 41],
-      popupAnchor: [0, -36]
-    });
   }
 
   private buildPopupContent(salas: SalaPinDTO[]): string {
@@ -372,10 +338,7 @@ private rebuildGruposPorCoord() {
       return;
     }
 
-        const bounds = L.latLngBounds(coords);
-    // Ampliamos de forma generosa los límites máximos para evitar que Leaflet
-    // intente recentrar el mapa al hacer zoom cuando el usuario se aproxima a
-    // los bordes de la nube de puntos.
+    const bounds = L.latLngBounds(coords);
     const paddedBounds = bounds.pad(1.0);
     this.map.setMaxBounds(paddedBounds);
 
@@ -392,7 +355,7 @@ private rebuildGruposPorCoord() {
 
   onCardFocus(id: number) {
     this.selectedId = id;
-     this.centerCardInCarousel(id);
+    this.centerCardInCarousel(id);
     const s = this.salas.find(x => x.id_sala === id);
     if (s?.latitud && s?.longitud) {
       this.map.panTo([s.latitud, s.longitud], { animate: true });
@@ -400,7 +363,7 @@ private rebuildGruposPorCoord() {
     this.renderMarkers();
   }
 
-   private centerCardInCarousel(id: number, behavior: ScrollBehavior = 'smooth') {
+  private centerCardInCarousel(id: number, behavior: ScrollBehavior = 'smooth') {
     requestAnimationFrame(() => {
       const track = document.querySelector<HTMLElement>('.carousel-track');
       const slide = document.querySelector<HTMLElement>(`.carousel-slide[data-sala-id="${id}"]`);
@@ -417,5 +380,4 @@ private rebuildGruposPorCoord() {
       track.scrollTo({ left: normalizedScroll, behavior });
     });
   }
-
 }

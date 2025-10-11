@@ -43,17 +43,13 @@ ion-content.page-mapa {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0.35) 100%);
 }
 
-.carousel-container {
-  padding-top: 15px; /* Espacio adicional para acomodar la elevación */
-  padding-bottom: 15px; /* Espacio consistente en la parte inferior */
-  margin-top: -5px; /* Compensar el padding para mantener alineación visual */
-}
-
 .carousel-track {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: clamp(10px, 2.8vw, 20px);
   overflow-x: auto;
-  overflow-y: visible !important; /* Esto es importante: permite que el contenido sea visible fuera de los límites verticales */
+  overflow-y: visible !important;
   padding: clamp(10px, 2.4vw, 20px) clamp(6px, 4vw, 20px);
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -69,7 +65,11 @@ ion-content.page-mapa {
 .carousel-slide {
   flex: 0 0 auto;
   scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 :host ::ng-deep .ef-marker-icon {
   background: transparent;
   border: none;
@@ -164,7 +164,7 @@ ion-content.page-mapa {
     --background: #ffffff;
   }
 
-.carousel {
+  .carousel {
     left: 0;
     right: 0;
     width: min(100%, 95vw);
