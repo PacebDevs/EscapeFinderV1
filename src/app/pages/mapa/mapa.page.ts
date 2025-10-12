@@ -131,14 +131,14 @@ const baseMarkerIcon = L.icon({
       shadowSize: [41, 41]
     });
 
-        const selectedMarkerIcon = L.icon({
-      iconUrl: 'assets/icon/marker-escape-purple.svg',
-      iconRetinaUrl: 'assets/icon/marker-escape-purple.svg',
+ const selectedMarkerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-escape-purple-selected.svg',
+      iconRetinaUrl: 'assets/icon/marker-escape-purple-selected.svg',
       shadowUrl: 'assets/icon/marker-shadow.png',
-      iconSize: [42, 60],
-      iconAnchor: [21, 60],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
+      iconSize: [48, 68],
+      iconAnchor: [24, 68],
+      popupAnchor: [1, -50],
+      shadowSize: [54, 54]
     });
 
     this.markerIcon = baseMarkerIcon;
