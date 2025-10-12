@@ -5,11 +5,11 @@
 export const environment = {
   production: true,
   //Piso y casa de padres
- //apiUrl: 'http://192.168.1.130:3000/api',
-//imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
+ apiUrl: 'http://192.168.1.130:3000/api',
+imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
 //Internet
-  apiUrl: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/api',
-  imageURL: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/',
+ // apiUrl: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/api',
+  //imageURL: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/',
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/'

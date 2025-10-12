@@ -25,6 +25,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private subs: Subscription[] = [];
   private hasFetchedOnce = false;
   private markerIcon!: L.Icon;
+  private selectedMarkerIcon!: L.Icon;
 
   constructor(
     private route: ActivatedRoute,
@@ -120,15 +121,28 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private initMap() {
     if (this.map) return;
 
-    this.markerIcon = L.icon({
-      iconUrl: 'assets/icon/marker-icon.png',
-      iconRetinaUrl: 'assets/icon/marker-icon-2x.png',
+const baseMarkerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-escape-purple.svg',
+      iconRetinaUrl: 'assets/icon/marker-escape-purple.svg',
       shadowUrl: 'assets/icon/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
+      iconSize: [36, 52],
+      iconAnchor: [18, 52],
       popupAnchor: [1, -34],
       shadowSize: [41, 41]
     });
+
+        const selectedMarkerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-escape-purple.svg',
+      iconRetinaUrl: 'assets/icon/marker-escape-purple.svg',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize: [42, 60],
+      iconAnchor: [21, 60],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    this.markerIcon = baseMarkerIcon;
+    this.selectedMarkerIcon = selectedMarkerIcon;
 
     const lat0 = Number(this.filtros.lat) || 40.4168;
     const lng0 = Number(this.filtros.lng) || -3.7038;
@@ -221,8 +235,10 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       const count = salasDelGrupo.length;
       const posicion = L.latLng(lat, lng);
 
+      const isSelected = this.selectedId != null && salasDelGrupo.some(s => s.id_sala === this.selectedId);
+
       if (!marker) {
-        marker = L.marker(posicion, { icon: this.markerIcon }).addTo(this.map);
+          marker = L.marker(posicion, { icon: isSelected ? this.selectedMarkerIcon : this.markerIcon }).addTo(this.map);
         this.markersPorGrupo.set(key, marker);
       } else {
         marker.setLatLng(posicion);
@@ -237,7 +253,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       markerRef.off('popupclose');
       markerRef.unbindPopup();
 
-      const isSelected = this.selectedId != null && salasDelGrupo.some(s => s.id_sala === this.selectedId);
+      markerRef.setIcon(isSelected ? this.selectedMarkerIcon : this.markerIcon);
       markerRef.setZIndexOffset(isSelected ? 1000 : 0);
 
       if (count === 1) {
