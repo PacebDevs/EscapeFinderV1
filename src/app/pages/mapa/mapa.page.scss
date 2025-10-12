@@ -167,9 +167,33 @@ ion-content.page-mapa {
   .carousel {
     left: 0;
     right: 0;
-    width: min(100%, 95vw);
+    width: min(100%, 880px);
     margin: 0 auto;
-    bottom: 24px;
+    bottom: 28px;
     border-radius: 16px;
+    padding: 36px 32px;
+  }
+
+  .carousel-track {
+    gap: 24px;
+    padding: 20px 32px;
+    max-width: min(100%, 880px);
+    margin: 0 auto;
+  }
+}
+
+
+@media (min-width: 1024px) {
+  .carousel {
+    width: min(100%, 1040px);
+    bottom: 36px;
+    padding: 40px 40px;
+    border-radius: 20px;
+  }
+
+  .carousel-track {
+    gap: 28px;
+    padding: 24px 40px;
+    max-width: min(100%, 1040px);
   }
 }

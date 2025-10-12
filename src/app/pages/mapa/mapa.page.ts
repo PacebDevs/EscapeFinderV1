@@ -97,7 +97,11 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private _onResize = () => {
     this.setMapContainerSize();
-    if (this.map) this.map.invalidateSize();
+     if (this.map) {
+      this.map.invalidateSize();
+      this.createMarkerIcons();
+      this.renderMarkers();
+    }
   };
 
   private setMapContainerSize() {
@@ -120,29 +124,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private initMap() {
     if (this.map) return;
+  this.createMarkerIcons();
 
-const baseMarkerIcon = L.icon({
-      iconUrl: 'assets/icon/marker-escape-purple.svg',
-      iconRetinaUrl: 'assets/icon/marker-escape-purple.svg',
-      shadowUrl: 'assets/icon/marker-shadow.png',
-      iconSize: [36, 52],
-      iconAnchor: [18, 52],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    });
-
- const selectedMarkerIcon = L.icon({
-      iconUrl: 'assets/icon/marker-escape-purple-selected.svg',
-      iconRetinaUrl: 'assets/icon/marker-escape-purple-selected.svg',
-      shadowUrl: 'assets/icon/marker-shadow.png',
-      iconSize: [48, 68],
-      iconAnchor: [24, 68],
-      popupAnchor: [1, -50],
-      shadowSize: [54, 54]
-    });
-
-    this.markerIcon = baseMarkerIcon;
-    this.selectedMarkerIcon = selectedMarkerIcon;
 
     const lat0 = Number(this.filtros.lat) || 40.4168;
     const lng0 = Number(this.filtros.lng) || -3.7038;
@@ -174,6 +157,41 @@ const baseMarkerIcon = L.icon({
     } else {
       this.fetchByViewport();
     }
+  }
+  private createMarkerIcons() {
+    const width = window.innerWidth || 0;
+    const isTabletOrDesktop = width >= 768;
+
+    const iconSize = isTabletOrDesktop ? [54, 74] : [34, 50];
+    const selectedIconSize = isTabletOrDesktop ? [66, 90] : [44, 64];
+    console.log("tamaño iconos", iconSize, selectedIconSize);
+    const iconAnchor: L.PointTuple = [Math.round(iconSize[0] / 2), iconSize[1]];
+    const selectedIconAnchor: L.PointTuple = [Math.round(selectedIconSize[0] / 2), selectedIconSize[1]];
+
+    const shadowScale = isTabletOrDesktop ? 1.2 : 1.0;
+    const baseShadow = Math.round(40 * shadowScale);
+    const baseShadowSize: L.PointTuple = [baseShadow, baseShadow];
+    const selectedShadow = Math.round(baseShadow * 1.15);
+
+    this.markerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-escape-purple.svg',
+      iconRetinaUrl: 'assets/icon/marker-escape-purple.svg',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize,
+      iconAnchor,
+      popupAnchor: [1, -Math.round(iconSize[1] * 0.65)],
+      shadowSize: baseShadowSize
+    });
+
+    this.selectedMarkerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-escape-purple-selected.svg',
+      iconRetinaUrl: 'assets/icon/marker-escape-purple-selected.svg',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize: selectedIconSize,
+      iconAnchor: selectedIconAnchor,
+      popupAnchor: [1, -Math.round(selectedIconSize[1] * 0.74)],
+      shadowSize: [selectedShadow, selectedShadow]
+    });
   }
 
   private getBBoxQuery() {

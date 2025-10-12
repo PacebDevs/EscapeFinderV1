@@ -9,6 +9,30 @@
   --minicard-cover-width: clamp(74px, calc(var(--minicard-width) * 0.28), 112px);
 }
 
+@media (min-width: 768px) {
+  :host {
+    --minicard-width: clamp(320px, 42vw, 420px);
+    --minicard-min-height: clamp(180px, calc(var(--minicard-width) * 0.52), 260px);
+    --minicard-padding: clamp(16px, 3vw, 26px);
+    --minicard-gap: clamp(10px, 2.4vw, 20px);
+    --minicard-title-size: clamp(18px, 2.6vw, 26px);
+    --minicard-meta-size: clamp(14px, 2.2vw, 20px);
+    --minicard-cover-width: clamp(120px, calc(var(--minicard-width) * 0.3), 168px);
+  }
+}
+
+@media (min-width: 1024px) {
+  :host {
+    --minicard-width: clamp(380px, 32vw, 480px);
+    --minicard-min-height: clamp(220px, calc(var(--minicard-width) * 0.54), 320px);
+    --minicard-padding: clamp(20px, 2.4vw, 32px);
+    --minicard-gap: clamp(12px, 2vw, 24px);
+    --minicard-title-size: clamp(20px, 2.2vw, 30px);
+    --minicard-meta-size: clamp(16px, 2vw, 22px);
+    --minicard-cover-width: clamp(150px, calc(var(--minicard-width) * 0.32), 200px);
+  }
+}
+
 .minicard {
   width: var(--minicard-width);
   min-height: var(--minicard-min-height);
