@@ -16,6 +16,24 @@ export class SalaMiniCardComponent implements OnChanges{
   @Output() focusSala = new EventEmitter<number>();
 
   imageSrc = 'assets/placeholder.jpg';
+  
+  get direccionLabel(): string | null {
+    const sala = this.sala;
+    if (!sala) {
+      return null;
+    }
+
+    const direccion = sala.direccion?.trim();
+    const nombreVia = sala.nombre_via?.trim();
+    const ciudad = sala.ciudad?.trim();
+
+    const base = direccion || nombreVia;
+    if (base && ciudad) {
+      return base.includes(ciudad) ? base : `${base} · ${ciudad}`;
+    }
+
+    return base || ciudad || null;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sala']) {

@@ -6,6 +6,7 @@
   --minicard-gap: clamp(6px, 2vw, 14px);
   --minicard-title-size: clamp(14px, 1.8vw, 18px);
   --minicard-meta-size: clamp(12px, 1.6vw, 14px);
+  --minicard-address-size: clamp(12px, 1.4vw, 14px);
   --minicard-cover-width: clamp(74px, calc(var(--minicard-width) * 0.28), 112px);
 }
 
@@ -17,6 +18,7 @@
     --minicard-gap: clamp(10px, 2.4vw, 20px);
     --minicard-title-size: clamp(18px, 2.6vw, 26px);
     --minicard-meta-size: clamp(14px, 2.2vw, 20px);
+    --minicard-address-size: clamp(13px, 1.8vw, 18px);
     --minicard-cover-width: clamp(120px, calc(var(--minicard-width) * 0.3), 168px);
   }
 }
@@ -29,6 +31,7 @@
     --minicard-gap: clamp(12px, 2vw, 24px);
     --minicard-title-size: clamp(20px, 2.2vw, 30px);
     --minicard-meta-size: clamp(16px, 2vw, 22px);
+    --minicard-address-size: clamp(14px, 1.6vw, 20px);
     --minicard-cover-width: clamp(150px, calc(var(--minicard-width) * 0.32), 200px);
   }
 }
@@ -68,14 +71,29 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   gap: var(--minicard-gap);
 }
 
 .minicard .title {
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.6vw, 6px);
+}
+
+.minicard .title__name {
+  font-weight: 800;
   font-size: var(--minicard-title-size);
-  color: var(--ef-title-color, #1f2937);
-  line-height: 1.3;
+  color: #5d4037;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.minicard .title__address {
+  font-weight: 600;
+  font-size: var(--minicard-address-size);
+  color: #6b7280;
+  line-height: 1.25;
 }
 
 .minicard .meta {
