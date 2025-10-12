@@ -238,11 +238,11 @@ const baseMarkerIcon = L.icon({
       const isSelected = this.selectedId != null && salasDelGrupo.some(s => s.id_sala === this.selectedId);
 
       if (!marker) {
-          marker = L.marker(posicion, { icon: isSelected ? this.selectedMarkerIcon : this.markerIcon }).addTo(this.map);
+        marker = L.marker(posicion, { icon: isSelected ? this.selectedMarkerIcon : this.markerIcon }).addTo(this.map);
         this.markersPorGrupo.set(key, marker);
       } else {
         marker.setLatLng(posicion);
-        marker.setIcon(this.markerIcon);
+        marker.setIcon(isSelected ? this.selectedMarkerIcon : this.markerIcon);
       }
 
       const markerRef = marker;
@@ -253,7 +253,6 @@ const baseMarkerIcon = L.icon({
       markerRef.off('popupclose');
       markerRef.unbindPopup();
 
-      markerRef.setIcon(isSelected ? this.selectedMarkerIcon : this.markerIcon);
       markerRef.setZIndexOffset(isSelected ? 1000 : 0);
 
       if (count === 1) {
@@ -289,6 +288,11 @@ const baseMarkerIcon = L.icon({
     }
 
     this.updateMapBounds();
+    
+    // Centrar la primera card al cargar inicialmente
+    if (this.salas.length > 0 && !this.selectedId) {
+      setTimeout(() => this.centerFirstCard(), 100);
+    }
   }
 
   private rebuildGruposPorCoord() {
@@ -379,21 +383,34 @@ const baseMarkerIcon = L.icon({
     this.renderMarkers();
   }
 
+  private centerFirstCard() {
+    const track = document.querySelector<HTMLElement>('.carousel-track');
+    if (!track) return;
+    track.scrollTo({ left: 0, behavior: 'auto' });
+  }
+
   private centerCardInCarousel(id: number, behavior: ScrollBehavior = 'smooth') {
-    requestAnimationFrame(() => {
-      const track = document.querySelector<HTMLElement>('.carousel-track');
-      const slide = document.querySelector<HTMLElement>(`.carousel-slide[data-sala-id="${id}"]`);
-      if (!track || !slide) return;
+    // Esperar a que Angular renderice la card
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        const track = document.querySelector<HTMLElement>('.carousel-track');
+        const slide = document.querySelector<HTMLElement>(`.carousel-slide[data-sala-id="${id}"]`);
+        
+        if (!track || !slide) {
+          console.warn(`No se encontró la card para la sala ${id}`);
+          return;
+        }
 
-      const slideRect = slide.getBoundingClientRect();
-      const trackRect = track.getBoundingClientRect();
-      const currentScroll = track.scrollLeft;
-      const desiredScroll =
-        currentScroll + (slideRect.left - trackRect.left) - (trackRect.width - slideRect.width) / 2;
-      const maxScroll = track.scrollWidth - track.clientWidth;
-      const normalizedScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
+        const slideRect = slide.getBoundingClientRect();
+        const trackRect = track.getBoundingClientRect();
+        const currentScroll = track.scrollLeft;
+        const desiredScroll =
+          currentScroll + (slideRect.left - trackRect.left) - (trackRect.width - slideRect.width) / 2;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        const normalizedScroll = Math.max(0, Math.min(desiredScroll, maxScroll));
 
-      track.scrollTo({ left: normalizedScroll, behavior });
-    });
+        track.scrollTo({ left: normalizedScroll, behavior });
+      });
+    }, 50);
   }
 }
