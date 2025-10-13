@@ -270,31 +270,6 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     return texto; // exacto del backend
   }
 
-  // =========================
-  // 🔽 Formateo del “chip” (vía + número) con fallback "(Centro)" desde 'direccion'
-  // =========================
-
-  private normalizeBasic(s?: string | null): string {
-    return (s || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .trim();
-  }
-
-  private segEsCiudad(seg?: string | null, ciudad?: string | null): boolean {
-    if (!seg || !ciudad) {
-      return false;
-    }
-    return this.normalizeBasic(seg) === this.normalizeBasic(ciudad);
-  }
-
-  private firstSegment(addr?: string | null): string | null {
-    if (!addr) {
-      return null;
-    }
-    const partes = addr.split(',');
-    return partes.length > 0 ? partes[0].trim() : null;
-  }
 
 
   // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
