@@ -11,12 +11,16 @@ export interface SalaPinDTO {
   categorias?: string[];
   latitud: number | null;
   longitud: number | null;
-  direccion?: string | null;
-  nombre_via?: string | null;
   ciudad: string | null;
   cover_url: string | null;
   precio_min_pp: number | null;
   distancia_km?: number | null;
+  tipo_via?: string | null;
+  nombre_via?: string | null;
+  numero?: string | null;
+  ampliacion?: string | null;
+  codigo_postal?: string | null;
+
 }
 
 @Injectable({ providedIn: 'root' })

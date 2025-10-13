@@ -11,7 +11,7 @@ import { UsuarioState } from '../states/usuario.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { ChangeDetectionStrategy } from '@angular/core';
-import { DireccionPickerComponent } from '../components/direccion-picker/direccion-picker.component';
+
 
 @Component({
   selector: 'app-tab1',

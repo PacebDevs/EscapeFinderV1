@@ -23,11 +23,14 @@ export class SalaMiniCardComponent implements OnChanges{
       return null;
     }
 
-    const direccion = sala.direccion?.trim();
+    const tipoVia = sala.tipo_via?.trim();
+    const numero = sala.numero?.trim();
+    const ampliacion = sala.ampliacion?.trim();
+    const codigoPostal = sala.codigo_postal?.trim();
     const nombreVia = sala.nombre_via?.trim();
     const ciudad = sala.ciudad?.trim();
 
-    const base = direccion || nombreVia;
+    const base =  tipoVia + " " + nombreVia;
     if (base && ciudad) {
       return base.includes(ciudad) ? base : `${base} · ${ciudad}`;
     }

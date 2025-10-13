@@ -296,65 +296,6 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     return partes.length > 0 ? partes[0].trim() : null;
   }
 
-  // Abreviador
-  private normalizeToken(s: string): string {
-    return (s || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/\./g, '')
-      .replace(/\s+/g, '');
-  }
-
-  private abreviarToken(token: string): string {
-    const k = this.normalizeToken(token);
-    switch (k) {
-      case 'calle': case 'c': case 'c/': return 'C/';
-      case 'avenida': case 'avda': case 'av': return 'Avda.';
-      case 'paseo': case 'pº': case 'ps': return 'Pº';
-      case 'plaza': case 'pl': return 'Pl.';
-      case 'camino': case 'cmno': return 'Cno.';
-      case 'carretera': case 'ctra': return 'Ctra.';
-      case 'ronda': return 'Rda.';
-      case 'travesia': case 'trav': return 'Trva.';
-      case 'bulevar': case 'boulevard': case 'blvr': return 'Blvr';
-      case 'pasaje': case 'pje': return 'Pje.';
-      case 'glorieta': case 'gta': return 'Gta.';
-      case 'via': return 'Vía';
-      case 'carrer': return 'C/';
-      case 'passeig': case 'pg': return 'Pº';
-      default:
-        return token.charAt(0).toUpperCase() + token.slice(1);
-    }
-  }
-
-  // Detecta el tipo de vía en el inicio y lo abrevia. Devuelve "C/ Pizarro" o null.
-  private abreviarDesdeVia(viaCompleta: string): string | null {
-    const re = /^\s*(c\/|c\.|calle|avenida|avda\.?|av\.?|paseo|pº|ps\.?|plaza|pl\.?|camino|carretera|ctra\.?|ronda|v[íi]a|traves[íi]a|trav\.?|bulevar|boulevard|blvr|carrer|passeig|pg|pasaje|pje\.?|glorieta|gta\.?)\s+(de\s+|del\s+|la\s+|los\s+|las\s+)?(.+)$/i;
-    const m = viaCompleta.match(re);
-    if (!m) return null;
-    const token = m[1];
-    const resto = m[3].trim();
-    const abbr = this.abreviarToken(token);
-    return `${abbr} ${resto}`.trim();
-  }
-
-  // Extrae número de la dirección (fin del primer tramo o inicio del segundo), evitando CP de 5 dígitos
-  private extraerNumero(direccion?: string | null): string | null {
-    if (!direccion) return null;
-    const partes = direccion.split(',').map(p => p.trim()).filter(Boolean);
-    const seg1 = partes[0] || '';
-    const seg2 = partes[1] || '';
-
-    // número al final del primer segmento
-    const m1 = seg1.match(/(\d+[A-Za-zºª\-\/]?)\s*$/);
-    if (m1) return m1[1];
-
-    // número al inicio del segundo segmento (evitar CP 5 dígitos)
-    const m2 = seg2.match(/^(\d+[A-Za-zºª\-\/]?)(?!\d)\b/);
-    if (m2 && !/^\d{5}$/.test(m2[1])) return m2[1];
-
-    return null;
-  }
 
   // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
   private formatCalleNumero(res: UbicacionResultado): string {
