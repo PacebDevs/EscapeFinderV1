@@ -274,22 +274,22 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
   private formatCalleNumero(res: UbicacionResultado): string {
-    // Si no hay datos necesarios, devolver (Centro)
-    if (!res || !res.direccion) {
+    
+    // Verificar si la dirección solo contiene la ciudad (para mostrar "(Centro)")
+    const partes = res.direccion.split(',');
+    const primeraParte = partes[0].trim();
+    const numero = partes[1]?.trim(); 
+    
+    // Si la primera parte de la dirección es igual a la ciudad, mostrar "(Centro)"
+    if (res.ciudad && primeraParte.toLowerCase() === res.ciudad.toLowerCase()) {
       return '(Centro)';
     }
     
-    // Si tenemos los campos específicos, usarlos
-    if (res.via_tipo && res.via_nombre) {
-      const viaFormateada = `${res.via_tipo} ${res.via_nombre}`;
-      return res.numero ? `${viaFormateada}, ${res.numero}` : viaFormateada;
-    }
-    
-    // Si no, intentar extraer de la dirección completa
-    const partes = res.direccion.split(',');
+    // Si no, usar la primera parte de la dirección (calle y número)
     if (partes.length > 1) {
-      // Asumimos que la primera parte es la calle y número
-      return partes[0].trim();
+      // Verificar si el número es realmente un número
+      const esNumero = numero && /^\d+[a-zA-Z]?$/.test(numero);
+      return primeraParte + (esNumero ? ", " + numero : "");
     }
     
     // Si todo falla, devolver un fragmento de la dirección

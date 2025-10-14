@@ -2,11 +2,13 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, SimpleChanges, OnChanges } from '@angular/core';
 import { SalaPinDTO } from 'src/app/services/map.service';
 import { environment } from 'src/environments/environment';
+import { ViaAbrevPipe } from 'src/app/pipes/via-abrev.pipe'; 
+
 
 @Component({
   selector: 'app-sala-mini-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ViaAbrevPipe],
   templateUrl: './sala-mini-card.component.html',
   styleUrls: ['./sala-mini-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

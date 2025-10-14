@@ -7,9 +7,11 @@
     />
   </figure>
   <div class="body">
-    <div class="title" *ngIf="sala?.nombre || direccionLabel">
-      <div class="title__name" *ngIf="sala?.nombre">{{ sala?.nombre }}</div>
-      <div class="title__address" *ngIf="direccionLabel">{{ direccionLabel }}</div>
+    <div class="title" *ngIf="sala?.nombre">
+      <div class="title__name">{{ sala?.nombre }}</div>
+      <div class="title__address" *ngIf="sala?.tipo_via && sala?.nombre_via">
+        {{ sala?.tipo_via | viaAbrev }} {{ sala?.nombre_via }}{{ sala?.numero ? ', ' + sala?.numero : '' }}
+      </div>
     </div>
     <div class="meta">
       <ng-container *ngIf="sala?.precio_min_pp as precio">💶 {{ precio | number: '1.0-0' }} €/pp</ng-container>
