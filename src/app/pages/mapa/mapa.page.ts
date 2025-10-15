@@ -401,6 +401,18 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.renderMarkers();
   }
 
+  irASala(id: number, event?: Event) {
+    event?.stopPropagation();
+    if (id == null) {
+      return;
+    }
+    if (this.selectedId !== id) {
+      this.selectedId = id;
+    }
+    this.router.navigate(['/sala', id]);
+  }
+
+
   private centerFirstCard() {
     const track = document.querySelector<HTMLElement>('.carousel-track');
     if (!track) return;

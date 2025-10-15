@@ -11,7 +11,7 @@
 <ion-content fullscreen class="page-mapa" [scrollY]="false">
   <div class="map-wrap">
     <div id="map"></div>
-     <div class="carousel">
+    <div class="carousel">
       <div class="carousel-track" tabindex="0">
         <div
           class="carousel-slide"
@@ -19,7 +19,23 @@
           [class.selected]="s.id_sala === selectedId"
           [attr.data-sala-id]="s.id_sala"
         >
-          <app-sala-mini-card [sala]="s" (focusSala)="onCardFocus($event)"></app-sala-mini-card>
+          <div class="slide-content">
+            <ion-button
+              *ngIf="s.id_sala === selectedId"
+              class="go-to-room-btn"
+              fill="solid"
+              size="small"
+              type="button"
+              (click)="irASala(s.id_sala, $event)"
+            >
+              Ir a la sala
+              <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+            </ion-button>
+            <app-sala-mini-card
+              [sala]="s"
+              (focusSala)="onCardFocus($event)"
+            ></app-sala-mini-card>
+          </div>
         </div>
       </div>
     </div>
