@@ -610,6 +610,24 @@ export interface UsuarioStateModel {
   lng: number | null;
 }
 
+=== app/pipes/via-abrev.pipe.ts ===
+// src/app/pipes/via-abrev.pipe.ts
+import { Pipe, PipeTransform } from '@angular/core';
+import { abrevTipoVia } from '../utils/sala.utils';
+
+@Pipe({
+  name: 'viaAbrev',
+  standalone: true,
+  pure: true
+})
+export class ViaAbrevPipe implements PipeTransform {
+  transform(tipoVia?: string | null, fallbackOriginal: boolean = true): string | null {
+    const r = abrevTipoVia(tipoVia);
+    return r ?? (fallbackOriginal ? (tipoVia ?? null) : null);
+  }
+}
+
+
 === app/services/favoritos.service.ts ===
 // src/app/services/favoritos.service.ts
 import { Injectable } from '@angular/core';
@@ -668,12 +686,19 @@ import { FiltrosBusqueda } from '../models/filtros.model';
 export interface SalaPinDTO {
   id_sala: number;
   nombre: string;
+  categorias?: string[];
   latitud: number | null;
   longitud: number | null;
   ciudad: string | null;
   cover_url: string | null;
   precio_min_pp: number | null;
   distancia_km?: number | null;
+  tipo_via?: string | null;
+  nombre_via?: string | null;
+  numero?: string | null;
+  ampliacion?: string | null;
+  codigo_postal?: string | null;
+
 }
 
 @Injectable({ providedIn: 'root' })
@@ -1364,7 +1389,7 @@ import { UsuarioState } from '../states/usuario.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { ChangeDetectionStrategy } from '@angular/core';
-import { DireccionPickerComponent } from '../components/direccion-picker/direccion-picker.component';
+
 
 @Component({
   selector: 'app-tab1',
@@ -2166,6 +2191,133 @@ export function enrichSala(sala: Sala): Sala {
   };
 }
 
+/**
+ * Utilidades para abreviar tipos de vía y construir etiquetas de dirección.
+ * - Normaliza (lower + sin acentos) para buscar en el diccionario.
+ * - Devuelve el original si no hay match (no rompe datos).
+ * - Cobertura ES/CAT/GL/EU + variantes y abreviaturas comunes.
+ */
+
+export function norm(str: string): string {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Diccionario de tipos de vía -> abreviatura
+ * Las CLAVES deben ir normalizadas (sin acentos y en minúsculas).
+ */
+const MAP: Record<string, string> = {
+  // --- Castellano ---
+  'calle': 'C.',
+  'c/': 'C.',
+  'c.': 'C.',
+  'avenida': 'Av.',
+  'av': 'Av.',
+  'av.': 'Av.',
+  'plaza': 'Pl.',
+  'pza': 'Pl.',
+  'pza.': 'Pl.',
+  'paseo': 'P.º',
+  'pso': 'P.º',
+  'p.': 'P.º',
+  'carretera': 'Ctra.',
+  'ctra': 'Ctra.',
+  'ctra.': 'Ctra.',
+  'camino': 'Cno.',
+  'cno': 'Cno.',
+  'cno.': 'Cno.',
+  'travesia': 'Trv.',
+  'travesía': 'Trv.',
+  'trva': 'Trv.',
+  'trva.': 'Trv.',
+  'ronda': 'Rda.',
+  'glorieta': 'Gta.',
+  'pasaje': 'Pje.',
+  'callejon': 'Clj.',
+  'callejón': 'Clj.',
+  'bulevar': 'Blvr.',
+  'bulebard': 'Blvr.',
+  'urbanizacion': 'Urb.',
+  'urbanización': 'Urb.',
+  'poligono': 'Pol.',
+  'polígono': 'Pol.',
+  'via': 'Vía',
+  'via pecuaria': 'Vía Pec.',
+  'costanilla': 'Cta.',
+  'cuesta': 'Cta.',
+  'barrio': 'B.º',
+  'barriada': 'Bda.',
+  'vereda': 'Ver.',
+  'parque': 'Pq.',
+  'parc': 'Pq.',
+
+  // --- Catalán / Valenciano ---
+  'carrer': 'C.',
+  'avinguda': 'Av.',
+  'passeig': 'Pg.',
+  'pg.': 'Pg.',
+  'plaça': 'Pl.',
+  'placa': 'Pl.',
+  'travessera': 'Trv.',
+  'travessia': 'Trv.',
+  'rambla': 'Rbla.',
+  'camí': 'Cno.',
+  'cami': 'Cno.',
+  'ronda (cat)': 'Rda.', // a veces llega ya como “Ronda”
+
+  // --- Gallego ---
+  'rua': 'R.',
+  'rúa': 'R.',
+  'praza': 'Pza.',
+  'estrada': 'Estr.',
+  'carreiro': 'Crro.',
+  'camiño': 'Cno.',
+  'camino (gl)': 'Cno.',
+
+  // --- Euskera (formas más habituales que vemos en datos bilingües) ---
+  'kalea': 'K.',
+  'hiribidea': 'Hbda.',     // (avda.)
+  'etorbidea': 'Etorb.',    // (avda.)
+  'plaza (eu)': 'Pl.',      // muchos datos ya vienen en castellano
+  'pasealekua': 'P.º',
+};
+
+/**
+ * Abrevia un tipo de vía. Si no hay match, devuelve el original.
+ */
+export function abrevTipoVia(raw?: string | null): string | null {
+  if (!raw) return null;
+  const v = norm(raw);
+  return MAP[v] ?? raw;
+}
+
+/**
+ * Construye la etiqueta compacta para mostrar en UI:
+ *   "<abrev tipo> <nombre> <numero> · <ciudad>"
+ * Evita repetir ciudad si ya viene embebida en la vía.
+ */
+export function buildDireccionLabel(
+  tipo_via?: string | null,
+  nombre_via?: string | null,
+  numero?: string | null,
+  ciudad?: string | null
+): string | null {
+  const tv = abrevTipoVia(tipo_via?.trim() || null);
+  const via = [tv, nombre_via?.trim(), numero?.trim()]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const c = (ciudad || '').trim();
+  if (via && c) return via.includes(c) ? via : `${via} · ${c}`;
+  return via || c || null;
+}
+
 === app/states/salas/salas.actions.ts ===
 export class GetSalas {
   static readonly type = '[Sala] Get';
@@ -2310,7 +2462,7 @@ export class MapaPageModule {}
 <ion-content fullscreen class="page-mapa" [scrollY]="false">
   <div class="map-wrap">
     <div id="map"></div>
-     <div class="carousel">
+    <div class="carousel">
       <div class="carousel-track" tabindex="0">
         <div
           class="carousel-slide"
@@ -2318,7 +2470,23 @@ export class MapaPageModule {}
           [class.selected]="s.id_sala === selectedId"
           [attr.data-sala-id]="s.id_sala"
         >
-          <app-sala-mini-card [sala]="s" (focusSala)="onCardFocus($event)"></app-sala-mini-card>
+          <div class="slide-content">
+            <ion-button
+              *ngIf="s.id_sala === selectedId"
+              class="go-to-room-btn"
+              fill="solid"
+              size="small"
+              type="button"
+              (click)="irASala(s.id_sala, $event)"
+            >
+              Ir a la sala
+              <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+            </ion-button>
+            <app-sala-mini-card
+              [sala]="s"
+              (focusSala)="onCardFocus($event)"
+            ></app-sala-mini-card>
+          </div>
         </div>
       </div>
     </div>
@@ -2373,7 +2541,7 @@ ion-content.page-mapa {
 
 .carousel-track {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start; // Cambiado de center a flex-start
   gap: clamp(10px, 2.8vw, 20px);
   overflow-x: auto;
@@ -2396,6 +2564,44 @@ ion-content.page-mapa {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.carousel-slide .slide-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 2vw, 14px);
+}
+
+ion-button.go-to-room-btn {
+  align-self: center;
+  pointer-events: auto;
+  margin-bottom: clamp(2px, 1.6vw, 10px);
+  width: clamp(150px, 70%, 240px);
+  --border-radius: 999px;
+  --background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 100%);
+  --background-hover: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+  --color: #ffffff;
+  --padding-start: clamp(14px, 3vw, 20px);
+  --padding-end: clamp(14px, 3vw, 20px);
+  --padding-top: clamp(8px, 2vw, 12px);
+  --padding-bottom: clamp(8px, 2vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: clamp(13px, 2.6vw, 15px);
+  box-shadow: 0 14px 32px rgba(79, 70, 229, 0.28);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.carousel-slide.selected ion-button.go-to-room-btn {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(79, 70, 229, 0.36);
+}
+
+ion-button.go-to-room-btn ion-icon {
+  font-size: 18px;
+  margin-left: 4px;
 }
 
 :host ::ng-deep .ef-marker-icon {
@@ -2930,6 +3136,18 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     }
     this.renderMarkers();
   }
+
+  irASala(id: number, event?: Event) {
+    event?.stopPropagation();
+    if (id == null) {
+      return;
+    }
+    if (this.selectedId !== id) {
+      this.selectedId = id;
+    }
+    this.router.navigate(['/sala', id]);
+  }
+
 
   private centerFirstCard() {
     const track = document.querySelector<HTMLElement>('.carousel-track');
@@ -4778,110 +4996,26 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     return texto; // exacto del backend
   }
 
-  // =========================
-  // 🔽 Formateo del “chip” (vía + número) con fallback "(Centro)" desde 'direccion'
-  // =========================
 
-  private normalizeBasic(s?: string | null): string {
-    return (s || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .trim();
-  }
-
-  private segEsCiudad(seg?: string | null, ciudad?: string | null): boolean {
-    if (!seg || !ciudad) {
-      return false;
-    }
-    return this.normalizeBasic(seg) === this.normalizeBasic(ciudad);
-  }
-
-  private firstSegment(addr?: string | null): string | null {
-    if (!addr) {
-      return null;
-    }
-    const partes = addr.split(',');
-    return partes.length > 0 ? partes[0].trim() : null;
-  }
-
-  // Abreviador
-  private normalizeToken(s: string): string {
-    return (s || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/\./g, '')
-      .replace(/\s+/g, '');
-  }
-
-  private abreviarToken(token: string): string {
-    const k = this.normalizeToken(token);
-    switch (k) {
-      case 'calle': case 'c': case 'c/': return 'C/';
-      case 'avenida': case 'avda': case 'av': return 'Avda.';
-      case 'paseo': case 'pº': case 'ps': return 'Pº';
-      case 'plaza': case 'pl': return 'Pl.';
-      case 'camino': case 'cmno': return 'Cno.';
-      case 'carretera': case 'ctra': return 'Ctra.';
-      case 'ronda': return 'Rda.';
-      case 'travesia': case 'trav': return 'Trva.';
-      case 'bulevar': case 'boulevard': case 'blvr': return 'Blvr';
-      case 'pasaje': case 'pje': return 'Pje.';
-      case 'glorieta': case 'gta': return 'Gta.';
-      case 'via': return 'Vía';
-      case 'carrer': return 'C/';
-      case 'passeig': case 'pg': return 'Pº';
-      default:
-        return token.charAt(0).toUpperCase() + token.slice(1);
-    }
-  }
-
-  // Detecta el tipo de vía en el inicio y lo abrevia. Devuelve "C/ Pizarro" o null.
-  private abreviarDesdeVia(viaCompleta: string): string | null {
-    const re = /^\s*(c\/|c\.|calle|avenida|avda\.?|av\.?|paseo|pº|ps\.?|plaza|pl\.?|camino|carretera|ctra\.?|ronda|v[íi]a|traves[íi]a|trav\.?|bulevar|boulevard|blvr|carrer|passeig|pg|pasaje|pje\.?|glorieta|gta\.?)\s+(de\s+|del\s+|la\s+|los\s+|las\s+)?(.+)$/i;
-    const m = viaCompleta.match(re);
-    if (!m) return null;
-    const token = m[1];
-    const resto = m[3].trim();
-    const abbr = this.abreviarToken(token);
-    return `${abbr} ${resto}`.trim();
-  }
-
-  // Extrae número de la dirección (fin del primer tramo o inicio del segundo), evitando CP de 5 dígitos
-  private extraerNumero(direccion?: string | null): string | null {
-    if (!direccion) return null;
-    const partes = direccion.split(',').map(p => p.trim()).filter(Boolean);
-    const seg1 = partes[0] || '';
-    const seg2 = partes[1] || '';
-
-    // número al final del primer segmento
-    const m1 = seg1.match(/(\d+[A-Za-zºª\-\/]?)\s*$/);
-    if (m1) return m1[1];
-
-    // número al inicio del segundo segmento (evitar CP 5 dígitos)
-    const m2 = seg2.match(/^(\d+[A-Za-zºª\-\/]?)(?!\d)\b/);
-    if (m2 && !/^\d{5}$/.test(m2[1])) return m2[1];
-
-    return null;
-  }
 
   // Construye "calle abreviada + número" o "(Centro)" desde res.direccion y res.ciudad
   private formatCalleNumero(res: UbicacionResultado): string {
-    // Si no hay datos necesarios, devolver (Centro)
-    if (!res || !res.direccion) {
+    
+    // Verificar si la dirección solo contiene la ciudad (para mostrar "(Centro)")
+    const partes = res.direccion.split(',');
+    const primeraParte = partes[0].trim();
+    const numero = partes[1]?.trim(); 
+    
+    // Si la primera parte de la dirección es igual a la ciudad, mostrar "(Centro)"
+    if (res.ciudad && primeraParte.toLowerCase() === res.ciudad.toLowerCase()) {
       return '(Centro)';
     }
     
-    // Si tenemos los campos específicos, usarlos
-    if (res.via_tipo && res.via_nombre) {
-      const viaFormateada = `${res.via_tipo} ${res.via_nombre}`;
-      return res.numero ? `${viaFormateada}, ${res.numero}` : viaFormateada;
-    }
-    
-    // Si no, intentar extraer de la dirección completa
-    const partes = res.direccion.split(',');
+    // Si no, usar la primera parte de la dirección (calle y número)
     if (partes.length > 1) {
-      // Asumimos que la primera parte es la calle y número
-      return partes[0].trim();
+      // Verificar si el número es realmente un número
+      const esNumero = numero && /^\d+[a-zA-Z]?$/.test(numero);
+      return primeraParte + (esNumero ? ", " + numero : "");
     }
     
     // Si todo falla, devolver un fragmento de la dirección
@@ -6500,7 +6634,7 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
 
 === app/components/sala-mini-card/sala-mini-card.component.html ===
 <article class="minicard" (click)="onClick()">
- <figure class="cover">
+  <figure class="cover">
     <img
       [src]="imageSrc"
       loading="lazy"
@@ -6508,10 +6642,15 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     />
   </figure>
   <div class="body">
-    <div class="title">{{ sala?.nombre }}</div>
+    <div class="title" *ngIf="sala?.nombre">
+      <div class="title__name">{{ sala?.nombre }}</div>
+      <div class="title__address" *ngIf="sala?.tipo_via && sala?.nombre_via">
+        {{ sala?.tipo_via | viaAbrev }} {{ sala?.nombre_via }}{{ sala?.numero ? ', ' + sala?.numero : '' }}
+      </div>
+    </div>
     <div class="meta">
       <ng-container *ngIf="sala?.precio_min_pp as precio">💶 {{ precio | number: '1.0-0' }} €/pp</ng-container>
-       <ng-container *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
+      <ng-container *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
     </div>
   </div>
 </article>
@@ -6525,6 +6664,7 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   --minicard-gap: clamp(6px, 2vw, 14px);
   --minicard-title-size: clamp(14px, 1.8vw, 18px);
   --minicard-meta-size: clamp(12px, 1.6vw, 14px);
+  --minicard-address-size: clamp(12px, 1.4vw, 14px);
   --minicard-cover-width: clamp(74px, calc(var(--minicard-width) * 0.28), 112px);
 }
 
@@ -6536,6 +6676,7 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     --minicard-gap: clamp(10px, 2.4vw, 20px);
     --minicard-title-size: clamp(18px, 2.6vw, 26px);
     --minicard-meta-size: clamp(14px, 2.2vw, 20px);
+    --minicard-address-size: clamp(13px, 1.8vw, 18px);
     --minicard-cover-width: clamp(120px, calc(var(--minicard-width) * 0.3), 168px);
   }
 }
@@ -6548,6 +6689,7 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     --minicard-gap: clamp(12px, 2vw, 24px);
     --minicard-title-size: clamp(20px, 2.2vw, 30px);
     --minicard-meta-size: clamp(16px, 2vw, 22px);
+    --minicard-address-size: clamp(14px, 1.6vw, 20px);
     --minicard-cover-width: clamp(150px, calc(var(--minicard-width) * 0.32), 200px);
   }
 }
@@ -6587,14 +6729,29 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   gap: var(--minicard-gap);
 }
 
 .minicard .title {
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.6vw, 6px);
+}
+
+.minicard .title__name {
+  font-weight: 800;
   font-size: var(--minicard-title-size);
-  color: var(--ef-title-color, #1f2937);
-  line-height: 1.3;
+  color: #5d4037;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.minicard .title__address {
+  font-weight: 600;
+  font-size: var(--minicard-address-size);
+  color: #6b7280;
+  line-height: 1.25;
 }
 
 .minicard .meta {
@@ -6616,11 +6773,13 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, SimpleChanges, OnChanges } from '@angular/core';
 import { SalaPinDTO } from 'src/app/services/map.service';
 import { environment } from 'src/environments/environment';
+import { ViaAbrevPipe } from 'src/app/pipes/via-abrev.pipe'; 
+
 
 @Component({
   selector: 'app-sala-mini-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ViaAbrevPipe],
   templateUrl: './sala-mini-card.component.html',
   styleUrls: ['./sala-mini-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -6630,6 +6789,27 @@ export class SalaMiniCardComponent implements OnChanges{
   @Output() focusSala = new EventEmitter<number>();
 
   imageSrc = 'assets/placeholder.jpg';
+  
+  get direccionLabel(): string | null {
+    const sala = this.sala;
+    if (!sala) {
+      return null;
+    }
+
+    const tipoVia = sala.tipo_via?.trim();
+    const numero = sala.numero?.trim();
+    const ampliacion = sala.ampliacion?.trim();
+    const codigoPostal = sala.codigo_postal?.trim();
+    const nombreVia = sala.nombre_via?.trim();
+    const ciudad = sala.ciudad?.trim();
+
+    const base =  tipoVia + " " + nombreVia;
+    if (base && ciudad) {
+      return base.includes(ciudad) ? base : `${base} · ${ciudad}`;
+    }
+
+    return base || ciudad || null;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['sala']) {

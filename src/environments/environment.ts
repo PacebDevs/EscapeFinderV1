@@ -6,7 +6,7 @@ export const environment = {
   production: true,
   //Piso y casa de padres
  apiUrl: 'http://192.168.1.130:3000/api',
-imageURL: 'http://192.168.1.130:3000/', // <-- Add comma here
+imageURL: 'http://192.168.1.130:3000/', 
 //Internet
  // apiUrl: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/api',
   //imageURL: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/',
