@@ -45,7 +45,7 @@ ion-content.page-mapa {
 
 .carousel-track {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start; // Cambiado de center a flex-start
   gap: clamp(10px, 2.8vw, 20px);
   overflow-x: auto;
