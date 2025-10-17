@@ -20,6 +20,7 @@ export interface SalaPinDTO {
   numero?: string | null;
   ampliacion?: string | null;
   codigo_postal?: string | null;
+  dificultad?: string | null;
 
 }
 
