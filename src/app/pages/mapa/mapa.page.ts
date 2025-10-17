@@ -6,6 +6,8 @@ import { debounceTime } from 'rxjs/operators';
 import { MapService, SalaPinDTO } from 'src/app/services/map.service';
 import { environment } from 'src/environments/environment';
 import { FiltrosBusqueda } from 'src/app/models/filtros.model';
+import { Store } from '@ngxs/store';
+import { UsuarioState } from 'src/app/states/usuario.state';
 
 @Component({
   selector: 'app-mapa',
@@ -26,12 +28,16 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private hasFetchedOnce = false;
   private markerIcon!: L.Icon;
   private selectedMarkerIcon!: L.Icon;
+  private userMarkerIcon!: L.Icon;
+  private userMarker?: L.Marker;
+  private userLocation?: { lat: number; lng: number };
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private mapService: MapService,
-    private zone: NgZone
+    private zone: NgZone,
+    private store: Store
   ) {}
 
   ngOnInit(): void {
@@ -79,6 +85,18 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     );
 
     this.subs.push(this.moveEnd$.pipe(debounceTime(400)).subscribe(() => this.fetchByViewport()));
+     this.subs.push(
+      this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+        const lat = ubicacion?.lat;
+        const lng = ubicacion?.lng;
+        if (Number.isFinite(lat ?? NaN) && Number.isFinite(lng ?? NaN)) {
+          this.userLocation = { lat: lat as number, lng: lng as number };
+        } else {
+          this.userLocation = undefined;
+        }
+        this.renderUserMarker();
+      })
+    );
   }
 
   ngAfterViewInit(): void {
@@ -97,10 +115,11 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private _onResize = () => {
     this.setMapContainerSize();
-     if (this.map) {
+      if (this.map) {
       this.map.invalidateSize();
       this.createMarkerIcons();
       this.renderMarkers();
+      this.renderUserMarker();
     }
   };
 
@@ -145,6 +164,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     tiles.on('load', () => this.map.invalidateSize());
 
     this.map.on('moveend', () => this.moveEnd$.next());
+
+     this.renderUserMarker();
 
     if (this.filtros.ciudad) {
       this.fetch({ ...this.filtros });
@@ -192,6 +213,50 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       popupAnchor: [1, -Math.round(selectedIconSize[1] * 0.74)],
       shadowSize: [selectedShadow, selectedShadow]
     });
+    this.userMarkerIcon = L.icon({
+      iconUrl: 'assets/icon/marker-user-escape-teal.svg',
+      iconRetinaUrl: 'assets/icon/marker-user-escape-teal.svg',
+      shadowUrl: 'assets/icon/marker-shadow.png',
+      iconSize,
+      iconAnchor,
+      popupAnchor: [1, -Math.round(iconSize[1] * 0.65)],
+      shadowSize: baseShadowSize
+    });
+
+    if (this.userMarker) {
+      this.userMarker.setIcon(this.userMarkerIcon);
+    }
+  }
+
+  private renderUserMarker() {
+    if (!this.map || !this.userMarkerIcon) return;
+
+    const lat = this.userLocation?.lat;
+    const lng = this.userLocation?.lng;
+
+    if (!Number.isFinite(lat ?? NaN) || !Number.isFinite(lng ?? NaN)) {
+      if (this.userMarker) {
+        this.userMarker.removeFrom(this.map);
+        this.userMarker = undefined;
+      }
+      return;
+    }
+
+    const position = L.latLng(lat as number, lng as number);
+
+    if (!this.userMarker) {
+      this.userMarker = L.marker(position, {
+        icon: this.userMarkerIcon,
+        zIndexOffset: 2000
+      }).addTo(this.map);
+    } else {
+      this.userMarker.setLatLng(position);
+      this.userMarker.setIcon(this.userMarkerIcon);
+      this.userMarker.setZIndexOffset(2000);
+      if (!this.map.hasLayer(this.userMarker)) {
+        this.userMarker.addTo(this.map);
+      }
+    }
   }
 
   private getBBoxQuery() {
