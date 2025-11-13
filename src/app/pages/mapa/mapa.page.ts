@@ -405,6 +405,20 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         .filter(Boolean)
     );
 
+    // Empresa única (si existe en los datos del pin)
+    const empresas = new Set(
+      salas
+        .map(s => {
+          const anyS = s as any;
+          const nombreEmpresa =
+            anyS?.nombre_empresa ??
+            '';
+          return typeof nombreEmpresa === 'string' ? nombreEmpresa.trim() : '';
+        })
+        .filter(Boolean)
+    );
+    const empresaUnica = empresas.size === 1 ? Array.from(empresas)[0] : null;
+
     const tieneCiudadUnica = ciudades.size === 1;
     const ciudad = tieneCiudadUnica ? Array.from(ciudades)[0] : null;
     const titulo = ciudad ? `Salas en esta ubicación – ${ciudad}` : 'Salas en esta ubicación';
@@ -423,6 +437,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     return `
       <div class="ef-popup">
+        ${empresaUnica ? `<div class="ef-popup__company">${empresaUnica}</div>` : ''}
         <div class="ef-popup__title">${titulo}</div>
         <ul class="ef-popup__list">${items}</ul>
       </div>

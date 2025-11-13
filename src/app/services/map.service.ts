@@ -8,7 +8,7 @@ import { FiltrosBusqueda } from '../models/filtros.model';
 export interface SalaPinDTO {
   id_sala: number;
   nombre: string;
-  categorias?: string[];
+  categoria?: string;
   latitud: number | null;
   longitud: number | null;
   ciudad: string | null;
@@ -21,6 +21,7 @@ export interface SalaPinDTO {
   ampliacion?: string | null;
   codigo_postal?: string | null;
   dificultad?: string | null;
+  nombre_empresa?: string | null;
 
 }
 

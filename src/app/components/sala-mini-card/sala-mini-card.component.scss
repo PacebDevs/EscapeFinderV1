@@ -96,13 +96,24 @@
   line-height: 1.25;
 }
 
-.minicard .meta {
-  font-size: var(--minicard-meta-size);
-  color: var(--ef-meta-color, #64748b);
+.minicard .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(4px, 1.4vw, 10px);
+  gap: clamp(6px, 1.6vw, 12px);
   align-items: center;
+  font-size: var(--minicard-meta-size);
+}
+
+.minicard .chip {
+  display: inline-flex;
+  align-items: center;
+  padding: clamp(4px, 1vw, 6px) clamp(8px, 1.6vw, 12px);
+  border-radius: 9999px;
+  background: #f1f1f1;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 :host-context(.carousel-slide.selected) .minicard {

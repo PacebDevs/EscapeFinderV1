@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://192.168.1.130:3000/api',
-  imageURL: 'http://192.168.1.130:3000/', 
+  apiUrl: 'https://governor-reads-kenny-demonstrates.trycloudflare.com/api',
+  imageURL: 'https://governor-reads-kenny-demonstrates.trycloudflare.com/',
 
 /*mapas*/
 tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',

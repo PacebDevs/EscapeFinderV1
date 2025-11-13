@@ -5,14 +5,14 @@
 export const environment = {
   production: true,
   //Piso y casa de padres
- apiUrl: 'http://192.168.1.130:3000/api',
-imageURL: 'http://192.168.1.130:3000/', 
+ //apiUrl: 'http://192.168.1.131:3000/api',
+//imageURL: 'http://192.168.1.131:3000/', 
 //Internet
- // apiUrl: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/api',
-  //imageURL: 'https://skirt-linked-neighborhood-baltimore.trycloudflare.com/',
+// apiUrl: 'https://governor-reads-kenny-demonstrates.trycloudflare.com/api',
+//imageURL: 'https://governor-reads-kenny-demonstrates.trycloudflare.com/',
  //Parcela
-//apiUrl: 'http://localhost:3000/api',
-//imageURL: 'http://localhost:3000/'
+apiUrl: 'http://localhost:3000/api',
+imageURL: 'http://localhost:3000/',
 /*PARCELA*/
 //apiUrl: 'http://192.168.1.200:3000/api',
 //imageURL: 'http://192.168.1.200:3000/'

@@ -13,9 +13,27 @@
         {{ sala?.tipo_via | viaAbrev }} {{ sala?.nombre_via }}{{ sala?.numero ? ', ' + sala?.numero : '' }}
       </div>
     </div>
-    <div class="meta">
-      <ng-container *ngIf="sala?.precio_min_pp as precio">💶 {{ precio | number: '1.0-0' }} €/pp</ng-container>
-      <ng-container *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">· 📍 {{ sala?.distancia_km | number: '1.0-1' }} km</ng-container>
+    <div
+      class="chips"
+      *ngIf="
+        sala?.categoria?.length ||
+        sala?.dificultad ||
+        sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined ||
+        sala?.distancia_km !== null && sala?.distancia_km !== undefined
+      "
+    >
+      <div class="chip" *ngIf="sala?.categoria?.length">
+        {{ sala?.categoria }}
+      </div>
+      <div class="chip" *ngIf="sala?.dificultad">
+        {{ sala?.dificultad }}
+      </div>
+      <div class="chip" *ngIf="sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined">
+       {{ sala?.precio_min_pp | number: '1.0-0' }} €/pp
+      </div>
+      <div class="chip" *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">
+        {{ sala?.distancia_km | number: '1.0-1' }} km
+      </div>
     </div>
   </div>
 </article>
