@@ -179,9 +179,17 @@ ion-button.go-to-room-btn ion-icon {
   color: #1f2937;
 }
 
-:host ::ng-deep .ef-popup__title {
+:host ::ng-deep .ef-popup__company {
+  font-size: 18px;
   font-weight: 700;
+  color: #7c3aed;
+}
+
+:host ::ng-deep .ef-popup__title {
+  font-size: 12px;
+  font-weight: 600;
   margin-bottom: 8px;
+  color: #475569;
 }
 
 :host ::ng-deep .ef-popup__list {

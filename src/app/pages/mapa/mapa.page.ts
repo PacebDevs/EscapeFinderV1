@@ -425,11 +425,9 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     const items = salas
       .map(s => {
-        const distancia = typeof s.distancia_km === 'number' ? `${s.distancia_km.toFixed(1)} km` : '';
         return `
           <li data-id-sala="${s.id_sala}">
             <span class="ef-popup__name">${s.nombre}</span>
-            ${distancia ? `<span class="ef-popup__distance">${distancia}</span>` : ''}
           </li>
         `;
       })
