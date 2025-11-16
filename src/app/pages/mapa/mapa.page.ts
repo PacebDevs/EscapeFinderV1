@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 import { FiltrosBusqueda } from 'src/app/models/filtros.model';
 import { Store } from '@ngxs/store';
 import { UsuarioState } from 'src/app/states/usuario.state';
+import { CATEGORIAS } from 'src/app/constants/categorias.const';
 
 @Component({
   selector: 'app-mapa',
@@ -398,36 +399,56 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     return `${latRounded},${lngRounded}`;
   }
 
-  private buildPopupContent(salas: SalaPinDTO[]): string {
-    const ciudades = new Set(
-      salas
-        .map(s => (s.ciudad ? s.ciudad.trim() : ''))
-        .filter(Boolean)
-    );
+  private normalizeCategoria(cat: string | undefined | null): string {
+    if (!cat) return '';
+    return cat
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Elimina acentos
+      .replace(/[^a-z0-9\s]/g, '') // Elimina caracteres especiales
+      .replace(/\s+/g, ' '); // Normaliza espacios
+  }
 
-    // Empresa única (si existe en los datos del pin)
+  private buildPopupContent(salas: SalaPinDTO[]): string {
     const empresas = new Set(
       salas
         .map(s => {
           const anyS = s as any;
-          const nombreEmpresa =
-            anyS?.nombre_empresa ??
-            '';
+          const nombreEmpresa = anyS?.nombre_empresa ?? '';
           return typeof nombreEmpresa === 'string' ? nombreEmpresa.trim() : '';
         })
         .filter(Boolean)
     );
     const empresaUnica = empresas.size === 1 ? Array.from(empresas)[0] : null;
 
-    const tieneCiudadUnica = ciudades.size === 1;
-    const ciudad = tieneCiudadUnica ? Array.from(ciudades)[0] : null;
-    const titulo = ciudad ? `Salas en esta ubicación – ${ciudad}` : 'Salas en esta ubicación';
+    const totalSalas = salas.length;
+    const leyenda = `★ ${totalSalas} ${totalSalas === 1 ? 'sala' : 'salas'} en esta ubicación`;
+    const headingText = empresaUnica || 'Salas en esta ubicación';
+
+    const categoriaIconMap = new Map<string, string>();
+    for (const categoria of CATEGORIAS) {
+      const key = this.normalizeCategoria(categoria.valor);
+      if (!key) continue;
+      categoriaIconMap.set(key, categoria.icono);
+    }
+
+    const iconoPorDefecto = 'assets/categorias/varita-magica.png';
 
     const items = salas
       .map(s => {
+        const categoriaKey = this.normalizeCategoria(s.categoria);
+        const icono = categoriaIconMap.get(categoriaKey) || iconoPorDefecto;
+        const iconoSeguro = this.escapeHtml(icono);
+        const categoriaTexto = s.categoria ? `Icono ${s.categoria}` : 'Icono sala';
+        const categoriaSeguro = this.escapeHtml(categoriaTexto);
+        const nombreSeguro = this.escapeHtml(s.nombre || '');
+        const idSeguro = this.escapeHtml(String(s.id_sala ?? ''));
+
         return `
-          <li data-id-sala="${s.id_sala}">
-            <span class="ef-popup__name">${s.nombre}</span>
+          <li data-id-sala="${idSeguro}" class="ef-popup__item">
+            <img class="ef-popup__item-icon" src="${iconoSeguro}" alt="${categoriaSeguro}" />
+            <span class="ef-popup__name">${nombreSeguro}</span>
           </li>
         `;
       })
@@ -435,11 +456,21 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     return `
       <div class="ef-popup">
-        ${empresaUnica ? `<div class="ef-popup__company">${empresaUnica}</div>` : ''}
-        <div class="ef-popup__title">${titulo}</div>
+        <div class="ef-popup__heading"><strong>${this.escapeHtml(headingText)}</strong></div>
+        <div class="ef-popup__subtitle">${this.escapeHtml(leyenda)}</div>
+        <div class="ef-popup__divider"></div>
         <ul class="ef-popup__list">${items}</ul>
       </div>
     `;
+  }
+  private escapeHtml(value: string | number | null | undefined): string {
+    const str = value == null ? '' : String(value);
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   private updateMapBounds() {

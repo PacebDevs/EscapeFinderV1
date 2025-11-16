@@ -65,6 +65,8 @@ isAccesibilidadOpen = false;
 isRestriccionesOpen = false;
 isPublicoObjetivoOpen = false; // 👈 Nuevo: para controlar el desplegable
 _tieneUbicacion: boolean = false;
+distanciaValores: number[] = [];
+distanciaIndex: number = 0;
 
   constructor(private modalCtrl: ModalController, private store: Store) {}
 
@@ -107,6 +109,45 @@ _tieneUbicacion: boolean = false;
     this.isAccesibilidadOpen = this.filtros.accesibilidad.length > 0;
     this.isRestriccionesOpen = this.filtros.restricciones_aptas.length > 0;
     this.isPublicoObjetivoOpen = this.filtros.publico_objetivo.length > 0;
+
+    this.generarDistanciaValores();
+    this.sincronizarDistanciaIndex();
+  }
+
+  private generarDistanciaValores() {
+    const valores: number[] = [0];
+    
+    // 1-10: de 1 en 1
+    for (let i = 1; i <= 10; i++) {
+      valores.push(i);
+    }
+    
+    // 11-30: de 2 en 2
+    for (let i = 12; i <= 30; i += 2) {
+      valores.push(i);
+    }
+    
+    // 31-50: de 3 en 3
+    for (let i = 33; i <= 50; i += 3) {
+      valores.push(i);
+    }
+    
+    // 51-100: de 5 en 5
+    for (let i = 55; i <= 100; i += 5) {
+      valores.push(i);
+    }
+    
+    this.distanciaValores = valores;
+  }
+
+  private sincronizarDistanciaIndex() {
+    if (!this.filtros.distancia_km) {
+      this.distanciaIndex = 0;
+      return;
+    }
+    
+    const idx = this.distanciaValores.findIndex(v => v >= this.filtros.distancia_km!);
+    this.distanciaIndex = idx >= 0 ? idx : this.distanciaValores.length - 1;
   }
 
   dismiss() {
@@ -222,6 +263,19 @@ onDistanciaChange(event: any) {
   this.filtros.distancia_km = value === 0 ? undefined : value;
 }
 
+onDistanciaRangeChange(event: any) {
+    const idx = event.detail.value;
+    this.distanciaIndex = idx;
+    this.filtros.distancia_km = this.distanciaValores[idx] || undefined;
+  }
+
+  get distanciaLabel(): string {
+    const km = this.distanciaValores[this.distanciaIndex];
+    if (!km) {
+      return `Todas las salas de ${this.filtros.ciudad || 'la ciudad'}`;
+    }
+    return `${km} km de radio`;
+  }
 
   get hasActiveFilters(): boolean {
   const f = this.filtros || {};

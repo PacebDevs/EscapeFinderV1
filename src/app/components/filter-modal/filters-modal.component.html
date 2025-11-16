@@ -81,25 +81,20 @@
   </div>
 
   <ion-range
-    min="0"
-    max="150"
-    step="5"
+    [min]="0"
+    [max]="distanciaValores.length - 1"
+    [step]="1"
     snaps="true"
-    [(ngModel)]="filtros.distancia_km"
+    [(ngModel)]="distanciaIndex"
     [disabled]="!_tieneUbicacion"
-    (ionChange)="onDistanciaChange($event)">
+    (ionInput)="onDistanciaRangeChange($event)"
+    (ionChange)="onDistanciaRangeChange($event)">
   </ion-range>
 
   <div *ngIf="_tieneUbicacion" class="precio-limites-con-texto">
-    <span>0 KM</span>
-    <span class="precio-label">
-      {{
-        filtros.distancia_km
-          ? filtros.distancia_km + ' km de radio'
-          : 'Todas las salas de ' + filtros.ciudad
-      }}
-    </span>
-    <span>150 KM</span>
+    <span>0 km</span>
+    <span class="precio-label">{{ distanciaLabel }}</span>
+    <span>100 km</span>
   </div>
 </div>
 

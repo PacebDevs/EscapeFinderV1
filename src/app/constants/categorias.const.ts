@@ -16,5 +16,5 @@ export interface Categoria {
     { nombre: 'Policíaca',        valor: 'policiaca',        icono: 'assets/categorias/police-car.png' },
     { nombre: 'Criminal',         valor: 'criminal',         icono: 'assets/categorias/money-bag_02.png' },
     { nombre: 'Adultos',          valor: 'adultos',          icono: 'assets/categorias/wine.png' },
-    { nombre: 'Niños',            valor: 'ninos',            icono: 'assets/categorias/cubes.png' },
+    { nombre: 'Niños',            valor: 'kids',             icono: 'assets/categorias/cubes.png' },
   ];
