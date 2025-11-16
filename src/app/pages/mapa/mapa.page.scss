@@ -296,6 +296,43 @@ host ::ng-deep .ef-popup__subtitle ion-icon,
   outline-offset: 3px;
 }
 
+:host ::ng-deep .ef-user-popup-wrapper .leaflet-popup-content-wrapper {
+  background: linear-gradient(135deg, #0f172a 0%, #111827 60%, #1e293b 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.45);
+  color: #f8fafc;
+  padding: 18px 20px;
+}
+
+:host ::ng-deep .ef-user-popup-wrapper .leaflet-popup-tip {
+  background: #111827;
+}
+
+:host ::ng-deep .ef-user-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+:host ::ng-deep .ef-user-popup__tag {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5eead4;
+}
+
+:host ::ng-deep .ef-user-popup__address {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+:host ::ng-deep .ef-user-popup__hint {
+  font-size: 12px;
+  color: rgba(248, 250, 252, 0.8);
+}
+
 @media (min-width: 768px) {
   ion-content.page-mapa {
     --background: #ffffff;

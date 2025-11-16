@@ -3,4 +3,5 @@ export interface UsuarioStateModel {
   ciudad: string | null;
   lat: number | null;
   lng: number | null;
+  direccionCompacta: string | null;
 }

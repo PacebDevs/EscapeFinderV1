@@ -32,6 +32,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   private userMarkerIcon!: L.Icon;
   private userMarker?: L.Marker;
   private userLocation?: { lat: number; lng: number };
+  private userAddress: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -95,6 +96,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.userLocation = undefined;
         }
+        this.userAddress = ubicacion?.direccionCompacta ?? null;
         this.renderUserMarker();
       })
     );
@@ -258,6 +260,37 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
         this.userMarker.addTo(this.map);
       }
     }
+
+    this.userMarker.bindPopup(
+      this.buildUserMarkerPopupContent(),
+      this.getUserMarkerPopupOptions()
+    );
+    this.userMarker.off('click');
+    this.userMarker.on('click', () => this.userMarker?.openPopup());
+  }
+
+  private buildUserMarkerPopupContent(): string {
+    const direccion = this.userAddress
+      ? this.escapeHtml(this.userAddress)
+      : 'Dirección no disponible';
+    return `
+      <div class="ef-user-popup">
+        <div class="ef-user-popup__tag">Tu ubicación</div>
+        <div class="ef-user-popup__address">${direccion}</div>
+        <div class="ef-user-popup__hint">Basado en tu selección reciente</div>
+      </div>
+    `;
+  }
+
+  private getUserMarkerPopupOptions(): L.PopupOptions {
+    const iconSize = (this.userMarkerIcon.options.iconSize as L.PointTuple | undefined) ?? [0, 0];
+    const iconHeight = iconSize[1] ?? 0;
+    return {
+      className: 'ef-user-popup-wrapper',
+      closeButton: true,
+      maxWidth: 280,
+      offset: L.point(0, -Math.round(iconHeight * 0.45))
+    };
   }
 
   private getBBoxQuery() {

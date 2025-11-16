@@ -68,6 +68,11 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
     if (ubicacion?.direccion) {
       this.direccionActual = ubicacion.direccion;
+    }
+
+    if (ubicacion?.direccionCompacta) {
+      this.calleNumero = ubicacion.direccionCompacta;
+    } else if (ubicacion?.direccion) {
       this.updateCalleNumeroFromDireccion({
         direccion: ubicacion.direccion,
         ciudad: ubicacion.ciudad || null,
@@ -200,12 +205,14 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.predicciones = [];
 
         this.updateCalleNumeroFromDireccion(res);
+        const direccionCompacta = this.calleNumero ?? null;
 
         this.store.dispatch(new SetUbicacionUsuario({
           direccion: res.direccion,
           ciudad: res.ciudad,
           lat: res.lat,
-          lng: res.lng
+          lng: res.lng,
+          direccionCompacta
         }));
         this.ciudadSeleccionada.emit(res.ciudad);
       },
@@ -234,12 +241,14 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.predicciones = [];
 
           this.updateCalleNumeroFromDireccion(res);
+          const direccionCompacta = this.calleNumero ?? null;
 
           this.store.dispatch(new SetUbicacionUsuario({
             direccion: res.direccion,
             ciudad: res.ciudad,
             lat: res.lat,
-            lng: res.lng
+            lng: res.lng,
+            direccionCompacta
           }));
         },
         error: (err) => {
