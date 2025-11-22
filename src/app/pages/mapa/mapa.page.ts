@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, NgZone, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NavController } from '@ionic/angular';
 import * as L from 'leaflet';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -37,6 +38,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private navCtrl: NavController,
     private mapService: MapService,
     private zone: NgZone,
     private store: Store
@@ -554,6 +556,13 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/sala', id]);
   }
 
+  volver() {
+    if (window.history.length > 1) {
+      this.navCtrl.back();
+    } else {
+      this.router.navigateByUrl('/tabs/tab1', { replaceUrl: true });
+    }
+  }
 
   private centerFirstCard() {
     const track = document.querySelector<HTMLElement>('.carousel-track');

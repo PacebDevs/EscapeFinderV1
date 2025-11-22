@@ -1,14 +1,7 @@
-<ion-header class="page-mapa">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/" text="Volver"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Mapa</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-
 <ion-content fullscreen class="page-mapa" [scrollY]="false">
+  <button class="btn-back" (click)="volver()" aria-label="Volver">
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </button>
   <div class="map-wrap">
     <div id="map"></div>
     <div class="carousel">
