@@ -1,0 +1,99 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="login-content">
+  <div class="login-container">
+    <!-- Logo y título -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <ion-icon name="key-outline"></ion-icon>
+      </div>
+      <h1>EscapeFinder</h1>
+      <p>Encuentra tu próxima aventura</p>
+    </div>
+
+    <!-- Formulario de login -->
+    <form class="login-form" (ngSubmit)="onLogin()">
+      <!-- Email -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="mail-outline" slot="start"></ion-icon>
+          <ion-input
+            type="email"
+            placeholder="Email"
+            [(ngModel)]="email"
+            name="email"
+            autocomplete="email"
+            [clearInput]="true"
+          ></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Contraseña"
+            [(ngModel)]="password"
+            name="password"
+            autocomplete="current-password"
+          ></ion-input>
+          <ion-icon
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            slot="end"
+            (click)="togglePassword()"
+            class="password-toggle"
+          ></ion-icon>
+        </ion-item>
+      </div>
+
+      <!-- Botón de login -->
+      <ion-button
+        expand="block"
+        type="submit"
+        class="login-button"
+      >
+        Iniciar Sesión
+      </ion-button>
+    </form>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span>o continúa con</span>
+    </div>
+
+    <!-- Login social -->
+    <div class="social-login">
+      <ion-button
+        fill="outline"
+        class="social-button google"
+        (click)="loginWithGoogle()"
+      >
+        <ion-icon slot="start" name="logo-google"></ion-icon>
+        Google
+      </ion-button>
+
+      <ion-button
+        fill="outline"
+        class="social-button apple"
+        (click)="loginWithApple()"
+      >
+        <ion-icon slot="start" name="logo-apple"></ion-icon>
+        Apple
+      </ion-button>
+    </div>
+
+    <!-- Link a registro -->
+    <div class="register-link">
+      <p>
+        ¿No tienes cuenta?
+        <a (click)="goToRegister()">Regístrate aquí</a>
+      </p>
+    </div>
+  </div>
+</ion-content>

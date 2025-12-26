@@ -1,0 +1,209 @@
+.register-content {
+  --background: linear-gradient(135deg, #5d4037 0%, #8d6e63 100%);
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 24px;
+  padding-top: 40px;
+}
+
+// Header section
+.header-section {
+  position: relative;
+  text-align: center;
+  margin-bottom: 32px;
+
+  .back-button {
+    position: absolute;
+    left: -12px;
+    top: -8px;
+    --color: white;
+    --background-hover: rgba(255, 255, 255, 0.1);
+    z-index: 10;
+
+    ion-icon {
+      font-size: 28px;
+    }
+  }
+
+  .logo-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    ion-icon {
+      font-size: 36px;
+      color: white;
+    }
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+}
+
+// Formulario
+.register-form {
+  margin-bottom: 20px;
+}
+
+.input-group {
+  margin-bottom: 16px;
+
+  .field-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 6px 0 0 16px;
+    font-style: italic;
+  }
+}
+
+.input-item {
+  --background: rgba(255, 255, 255, 0.95);
+  --border-radius: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 54px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  &.required {
+    --background: rgba(255, 255, 255, 0.98);
+  }
+
+  ion-icon {
+    color: #5d4037;
+    font-size: 22px;
+    margin-right: 12px;
+  }
+
+  ion-input {
+    --color: #333;
+    --placeholder-color: #999;
+    font-size: 15px;
+  }
+
+  .password-toggle {
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.register-button {
+  --background: white;
+  --background-hover: #f5f5f5;
+  --color: #5d4037;
+  --border-radius: 16px;
+  height: 56px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+// Términos y condiciones
+.terms-section {
+  margin: 16px 0;
+  padding: 0 8px;
+
+  .terms-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+    line-height: 1.5;
+
+    .terms-link {
+      color: white;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+  }
+}
+
+// Link a login
+.login-link {
+  text-align: center;
+  margin-top: 16px;
+  padding-bottom: 24px;
+
+  p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+
+    a {
+      color: white;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+
+      &:hover {
+        border-bottom-color: white;
+      }
+    }
+  }
+}
+
+// Responsive - pantallas pequeñas
+@media (max-height: 700px) {
+  .register-container {
+    padding-top: 20px;
+  }
+
+  .header-section {
+    margin-bottom: 20px;
+
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 12px;
+
+      ion-icon {
+        font-size: 30px;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+  }
+
+  .input-group {
+    margin-bottom: 12px;
+  }
+
+  .input-item {
+    --min-height: 50px;
+  }
+}

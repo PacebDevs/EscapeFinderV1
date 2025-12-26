@@ -1,0 +1,182 @@
+.login-content {
+  --background: linear-gradient(135deg, #5d4037 0%, #8d6e63 100%);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 24px;
+}
+
+// Logo section
+.logo-section {
+  text-align: center;
+  margin-bottom: 48px;
+
+  .logo-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    ion-icon {
+      font-size: 40px;
+      color: white;
+    }
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+  }
+}
+
+// Formulario
+.login-form {
+  margin-bottom: 24px;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-item {
+  --background: rgba(255, 255, 255, 0.95);
+  --border-radius: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 56px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  ion-icon {
+    color: #5d4037;
+    font-size: 22px;
+    margin-right: 12px;
+  }
+
+  ion-input {
+    --color: #333;
+    --placeholder-color: #999;
+    font-size: 16px;
+  }
+
+  .password-toggle {
+    cursor: pointer;
+    margin-left: 8px;
+  }
+}
+
+.login-button {
+  --background: white;
+  --background-hover: #f5f5f5;
+  --color: #5d4037;
+  --border-radius: 16px;
+  height: 56px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+// Divider
+.divider {
+  text-align: center;
+  margin: 32px 0;
+  position: relative;
+
+  span {
+    background: linear-gradient(135deg, #5d4037 0%, #8d6e63 100%);
+    padding: 0 16px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+    font-weight: 500;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Social login
+.social-login {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.social-button {
+  flex: 1;
+  --border-color: rgba(255, 255, 255, 0.6);
+  --border-width: 2px;
+  --color: white;
+  --border-radius: 16px;
+  height: 56px;
+  font-weight: 600;
+  font-size: 15px;
+  text-transform: none;
+
+  ion-icon {
+    font-size: 22px;
+  }
+
+  &.google {
+    --background-hover: rgba(255, 255, 255, 0.1);
+  }
+
+  &.apple {
+    --background-hover: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Link registro
+.register-link {
+  text-align: center;
+  margin-top: 16px;
+
+  p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+    font-weight: 500;
+
+    a {
+      color: white;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+      padding-bottom: 2px;
+      transition: border-color 0.2s;
+
+      &:hover {
+        border-bottom-color: white;
+      }
+    }
+  }
+}

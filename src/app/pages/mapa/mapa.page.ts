@@ -553,7 +553,8 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.selectedId !== id) {
       this.selectedId = id;
     }
-    this.router.navigate(['/sala', id]);
+
+    this.router.navigate(['/sala-detalle', id]);
   }
 
   volver() {

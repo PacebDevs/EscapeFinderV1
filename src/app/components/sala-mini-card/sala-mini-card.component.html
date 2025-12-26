@@ -22,16 +22,16 @@
         sala?.distancia_km !== null && sala?.distancia_km !== undefined
       "
     >
-      <div class="chip" *ngIf="sala?.categoria?.length">
+      <div class="chip chip-categoria" *ngIf="sala?.categoria?.length">
         {{ sala?.categoria }}
       </div>
-      <div class="chip" *ngIf="sala?.dificultad">
+      <div class="chip chip-dificultad" *ngIf="sala?.dificultad">
         {{ sala?.dificultad }}
       </div>
-      <div class="chip" *ngIf="sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined">
+      <div class="chip chip-precio" *ngIf="sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined">
        {{ sala?.precio_min_pp | number: '1.0-0' }} €/pp
       </div>
-      <div class="chip" *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">
+      <div class="chip chip-distancia" *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">
         {{ sala?.distancia_km | number: '1.0-1' }} km
       </div>
     </div>

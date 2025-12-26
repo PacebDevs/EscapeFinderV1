@@ -8,8 +8,8 @@ export const environment = {
  apiUrl: 'http://localhost:3000/api',
 imageURL: 'http://localhost:3000/', 
 //Internet
-//apiUrl: 'https://conducting-atlanta-estimates-nor.trycloudflare.com/api',
-//imageURL: 'https://conducting-atlanta-estimates-nor.trycloudflare.com/',
+//apiUrl: 'https://complex-favors-consult-logistics.trycloudflare.com/api',
+//imageURL: 'https://complex-favors-consult-logistics.trycloudflare.com/',
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/',

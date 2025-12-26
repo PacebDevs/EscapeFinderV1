@@ -1,61 +1,50 @@
 :host {
   display: block;
-  --minicard-width: clamp(220px, 65vw, 320px);
-  --minicard-min-height: clamp(112px, calc(var(--minicard-width) * 0.48), 188px);
-  --minicard-padding: clamp(10px, 3vw, 18px);
-  --minicard-gap: clamp(6px, 2vw, 14px);
-  --minicard-title-size: clamp(14px, 1.8vw, 18px);
-  --minicard-meta-size: clamp(12px, 1.6vw, 14px);
-  --minicard-address-size: clamp(12px, 1.4vw, 14px);
-  --minicard-cover-width: clamp(74px, calc(var(--minicard-width) * 0.28), 112px);
+  --minicard-width: clamp(260px, 72vw, 360px);
+  --minicard-height: clamp(140px, 36vw, 200px);
+  --minicard-padding: clamp(12px, 3vw, 16px);
+  --minicard-gap: clamp(8px, 2vw, 12px);
+  --minicard-title-size: clamp(14px, 2vw, 17px);
+  --minicard-meta-size: clamp(11px, 1.5vw, 13px);
+  --minicard-address-size: clamp(11px, 1.5vw, 13px);
+  --minicard-cover-width: clamp(90px, 30%, 120px);
 }
 
 @media (min-width: 768px) {
   :host {
-    --minicard-width: clamp(320px, 42vw, 420px);
-    --minicard-min-height: clamp(180px, calc(var(--minicard-width) * 0.52), 260px);
-    --minicard-padding: clamp(16px, 3vw, 26px);
-    --minicard-gap: clamp(10px, 2.4vw, 20px);
-    --minicard-title-size: clamp(18px, 2.6vw, 26px);
-    --minicard-meta-size: clamp(14px, 2.2vw, 20px);
-    --minicard-address-size: clamp(13px, 1.8vw, 18px);
-    --minicard-cover-width: clamp(120px, calc(var(--minicard-width) * 0.3), 168px);
+    --minicard-width: clamp(340px, 45vw, 440px);
+    --minicard-height: clamp(190px, 24vw, 260px);
+    --minicard-cover-width: clamp(110px, 32%, 145px);
   }
 }
 
 @media (min-width: 1024px) {
   :host {
-    --minicard-width: clamp(380px, 32vw, 480px);
-    --minicard-min-height: clamp(220px, calc(var(--minicard-width) * 0.54), 320px);
-    --minicard-padding: clamp(20px, 2.4vw, 32px);
-    --minicard-gap: clamp(12px, 2vw, 24px);
-    --minicard-title-size: clamp(20px, 2.2vw, 30px);
-    --minicard-meta-size: clamp(16px, 2vw, 22px);
-    --minicard-address-size: clamp(14px, 1.6vw, 20px);
-    --minicard-cover-width: clamp(150px, calc(var(--minicard-width) * 0.32), 200px);
+    --minicard-width: 420px;
+    --minicard-height: 240px;
+    --minicard-cover-width: 140px;
   }
 }
 
 .minicard {
   width: var(--minicard-width);
-  min-height: var(--minicard-min-height);
+  height: var(--minicard-height);
   display: flex;
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
 
 .minicard .cover {
+  flex: 0 0 var(--minicard-cover-width);
   width: var(--minicard-cover-width);
-  min-width: var(--minicard-cover-width);
+  height: 100%;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ef-minicard-cover-bg, #0f172a);
+  padding: 0;
   overflow: hidden;
+  background: #e5e7eb;
 }
 
 .minicard .cover img {
@@ -67,56 +56,101 @@
 
 .minicard .body {
   flex: 1;
-  padding: var(--minicard-padding);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
+  padding: var(--minicard-padding);
   gap: var(--minicard-gap);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .minicard .title {
   display: flex;
   flex-direction: column;
-  gap: clamp(2px, 0.6vw, 6px);
+  gap: 4px;
+  flex: 0 0 auto;
 }
 
 .minicard .title__name {
   font-weight: 800;
   font-size: var(--minicard-title-size);
   color: #5d4037;
-  line-height: 1.2;
+  line-height: 1.3;
   letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  max-height: calc(var(--minicard-title-size) * 1.3 * 2);
 }
 
 .minicard .title__address {
   font-weight: 600;
   font-size: var(--minicard-address-size);
   color: #6b7280;
-  line-height: 1.25;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .minicard .chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(6px, 1.6vw, 12px);
-  align-items: center;
-  font-size: var(--minicard-meta-size);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(6px, 1.5vw, 8px);
+  margin-top: auto;
 }
 
 .minicard .chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: clamp(4px, 1vw, 6px) clamp(8px, 1.6vw, 12px);
-  border-radius: 9999px;
+  justify-content: center;
+  padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 10px);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: var(--minicard-meta-size);
+  line-height: 1.2;
+  min-height: clamp(20px, 8vw, 36px);
   background: #f1f1f1;
   border: 1px solid #e5e7eb;
   color: #4b5563;
-  font-weight: 600;
-  line-height: 1.1;
+  text-align: center;
+}
+
+.minicard .chip span {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.minicard .chip-categoria {
+  background: #ede7f6;
+  color: #5e35b1;
+  border-color: #d1c4e9;
+}
+
+.minicard .chip-dificultad {
+  background: #fff3e0;
+  color: #ef6c00;
+  border-color: #ffe0b2;
+}
+
+.minicard .chip-precio {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.minicard .chip-distancia {
+  background: #fce4ec;
+  color: #ad1457;
+  border-color: #f8bbd0;
 }
 
 :host-context(.carousel-slide.selected) .minicard {
   box-shadow: 0 16px 36px rgba(50, 219, 100, 0.42);
-  transform: translateY(-10px);
+  transform: translateY(-8px);
 }

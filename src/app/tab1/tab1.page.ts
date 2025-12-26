@@ -435,6 +435,6 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   }
 
   abrirSalaDetalle(id: number) {
-    this.router.navigate(['/sala', id]);
+    this.router.navigate(['/sala-detalle', id]);
   }
 }

@@ -1,0 +1,147 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>register</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="register-content">
+  <div class="register-container">
+    
+    <!-- Header con botón de volver -->
+    <div class="header-section">
+      <ion-button 
+        fill="clear" 
+        class="back-button" 
+        (click)="goToLogin()"
+      >
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+      
+      <div class="logo-icon">
+        <ion-icon name="person-add-outline"></ion-icon>
+      </div>
+      
+      <h1>Crear cuenta</h1>
+      <p>Únete a EscapeFinder</p>
+    </div>
+
+    <!-- Formulario de registro -->
+    <form class="register-form" (ngSubmit)="onRegister()">
+      
+      <!-- Nombre (opcional) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="person-outline" slot="start"></ion-icon>
+          <ion-input
+            type="text"
+            placeholder="Nombre"
+            [(ngModel)]="nombre"
+            name="nombre"
+            autocomplete="given-name"
+            [clearInput]="true"
+          ></ion-input>
+        </ion-item>
+        <p class="field-hint">Opcional</p>
+      </div>
+
+      <!-- Apellidos (opcional) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="people-outline" slot="start"></ion-icon>
+          <ion-input
+            type="text"
+            placeholder="Apellidos"
+            [(ngModel)]="apellidos"
+            name="apellidos"
+            autocomplete="family-name"
+            [clearInput]="true"
+          ></ion-input>
+        </ion-item>
+        <p class="field-hint">Opcional</p>
+      </div>
+
+      <!-- Email (obligatorio) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item required">
+          <ion-icon name="mail-outline" slot="start"></ion-icon>
+          <ion-input
+            type="email"
+            placeholder="Email *"
+            [(ngModel)]="email"
+            name="email"
+            autocomplete="email"
+            [clearInput]="true"
+          ></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Contraseña (obligatoria) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item required">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Contraseña *"
+            [(ngModel)]="password"
+            name="password"
+            autocomplete="new-password"
+          ></ion-input>
+          <ion-icon
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            slot="end"
+            (click)="togglePassword()"
+            class="password-toggle"
+          ></ion-icon>
+        </ion-item>
+        <p class="field-hint">Mínimo 8 caracteres</p>
+      </div>
+
+      <!-- Confirmar contraseña (obligatoria) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item required">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <ion-input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            placeholder="Confirmar contraseña *"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            autocomplete="new-password"
+          ></ion-input>
+          <ion-icon
+            [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"
+            slot="end"
+            (click)="toggleConfirmPassword()"
+            class="password-toggle"
+          ></ion-icon>
+        </ion-item>
+      </div>
+
+      <!-- Botón de registro -->
+      <ion-button
+        expand="block"
+        type="submit"
+        class="register-button"
+      >
+        Crear Cuenta
+      </ion-button>
+    </form>
+
+    <!-- Términos y condiciones -->
+    <div class="terms-section">
+      <p class="terms-text">
+        Al registrarte, aceptas nuestros
+        <a href="#" class="terms-link">Términos y Condiciones</a>
+        y
+        <a href="#" class="terms-link">Política de Privacidad</a>
+      </p>
+    </div>
+
+    <!-- Link a login -->
+    <div class="login-link">
+      <p>
+        ¿Ya tienes cuenta?
+        <a (click)="goToLogin()">Inicia sesión aquí</a>
+      </p>
+    </div>
+  </div>
+</ion-content>
