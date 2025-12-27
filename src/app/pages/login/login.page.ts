@@ -77,24 +77,56 @@ export class LoginPage {
   }
 
   /**
-   * Login con Google (placeholder)
+   * Login con Google
    */
   async loginWithGoogle() {
+    const loading = await this.loadingController.create({
+      message: 'Autenticando con Google...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
     try {
       await this.authService.loginWithGoogle();
-    } catch (error) {
-      this.showAlert('Próximamente', 'Login con Google estará disponible pronto');
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      console.error('❌ Error en Google login:', error);
+      
+      // Si el usuario canceló, no mostramos error
+      if (error?.error === 'popup_closed_by_user' || error?.error === 'POPUP_CLOSED') {
+        return;
+      }
+      
+      const mensaje = error?.message || error?.error?.error || 'Error al iniciar sesión con Google';
+      this.showAlert('Error', mensaje);
     }
   }
 
   /**
-   * Login con Apple (placeholder)
+   * Login con Apple
    */
   async loginWithApple() {
+    const loading = await this.loadingController.create({
+      message: 'Autenticando con Apple...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
     try {
       await this.authService.loginWithApple();
-    } catch (error) {
-      this.showAlert('Próximamente', 'Login con Apple estará disponible pronto');
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      console.error('❌ Error en Apple login:', error);
+      
+      // Si el usuario canceló, no mostramos error
+      if (error?.error === '1001') {
+        return;
+      }
+      
+      const mensaje = error?.message || error?.error?.error || 'Error al iniciar sesión con Apple';
+      this.showAlert('Error', mensaje);
     }
   }
 
