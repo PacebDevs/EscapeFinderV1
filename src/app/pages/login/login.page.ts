@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AlertController, LoadingController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-login',
@@ -9,10 +10,15 @@ import { AlertController, LoadingController } from '@ionic/angular';
   styleUrls: ['./login.page.scss'],
   standalone: false
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   email = '';
   password = '';
   showPassword = false;
+
+  // Disponibilidad de métodos OAuth según plataforma
+  showGoogleLogin = false;
+  showAppleLogin = false;
+  showSocialLogin = false;
 
   constructor(
     private authService: AuthService,
@@ -20,6 +26,32 @@ export class LoginPage {
     private alertController: AlertController,
     private loadingController: LoadingController
   ) {}
+
+  ngOnInit() {
+    this.detectPlatform();
+  }
+
+  /**
+   * Detecta la plataforma y habilita métodos OAuth disponibles
+   */
+  private detectPlatform() {
+    const platform = Capacitor.getPlatform();
+    
+    if (platform === 'android') {
+      this.showGoogleLogin = true;
+      this.showAppleLogin = false; // Apple Sign-In no disponible en Android
+    } else if (platform === 'ios') {
+      this.showGoogleLogin = true;
+      this.showAppleLogin = true; // Ambos disponibles en iOS
+    } else {
+      // Web: OAuth no funciona correctamente, ocultamos ambos
+      this.showGoogleLogin = false;
+      this.showAppleLogin = false;
+    }
+
+    // Mostrar sección social solo si hay al menos un método disponible
+    this.showSocialLogin = this.showGoogleLogin || this.showAppleLogin;
+  }
 
   /**
    * Maneja el submit del formulario

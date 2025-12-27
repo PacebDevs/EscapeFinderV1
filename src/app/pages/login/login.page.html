@@ -67,14 +67,15 @@
       <a (click)="goToForgotPassword()">¿Olvidaste tu contraseña?</a>
     </div>
 
-    <!-- Divider -->
-    <div class="divider">
+    <!-- Divider - Solo si hay métodos sociales disponibles -->
+    <div class="divider" *ngIf="showSocialLogin">
       <span>o continúa con</span>
     </div>
 
-    <!-- Login social -->
-    <div class="social-login">
+    <!-- Login social - Grid adaptativo según plataforma -->
+    <div class="social-login" *ngIf="showSocialLogin" [class.single-button]="!showAppleLogin">
       <ion-button
+        *ngIf="showGoogleLogin"
         fill="outline"
         class="social-button google"
         (click)="loginWithGoogle()"
@@ -84,6 +85,7 @@
       </ion-button>
 
       <ion-button
+        *ngIf="showAppleLogin"
         fill="outline"
         class="social-button apple"
         (click)="loginWithApple()"
