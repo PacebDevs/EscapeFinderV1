@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.escapefinder.app',
   appName: 'EscapeFinderV1',
   webDir: 'www',
   server: {
@@ -12,10 +12,20 @@ const config: CapacitorConfig = {
     // → permite peticiones HTTP y WS desde página HTTP
     allowMixedContent: true
   },
-    plugins: {
+  plugins: {
     EdgeToEdge: {
       backgroundColor: "#ffffff",
     },
+    App: {
+      appUrlOpen: {
+        enabled: true
+      }
+    },
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '1060771506181-dgebe2a776lm7i9ldu0fmn5ucrb07o64.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true
+    }
   },
 };
 

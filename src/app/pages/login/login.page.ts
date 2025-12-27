@@ -63,6 +63,13 @@ export class LoginPage {
   }
 
   /**
+   * Navega a la página de recuperar contraseña
+   */
+  goToForgotPassword() {
+    this.router.navigate(['/forgot-password']);
+  }
+
+  /**
    * Toggle para mostrar/ocultar contraseña
    */
   togglePassword() {

@@ -1,0 +1,32 @@
+<ion-content>
+  <div class="verify-container">
+    <div class="verify-card">
+      <!-- Estado: Verificando -->
+      <div *ngIf="verifying" class="status-container">
+        <ion-spinner name="circular" class="spinner"></ion-spinner>
+        <h2>Verificando tu email...</h2>
+        <p>Por favor espera un momento</p>
+      </div>
+
+      <!-- Estado: Éxito -->
+      <div *ngIf="!verifying && success" class="status-container">
+        <ion-icon name="checkmark-circle" class="icon-success"></ion-icon>
+        <h2>¡Email verificado!</h2>
+        <p>Tu cuenta ha sido verificada correctamente</p>
+        <ion-button expand="block" (click)="goToLogin()" class="login-button">
+          Iniciar sesión
+        </ion-button>
+      </div>
+
+      <!-- Estado: Error -->
+      <div *ngIf="!verifying && !success" class="status-container">
+        <ion-icon name="close-circle" class="icon-error"></ion-icon>
+        <h2>Error al verificar</h2>
+        <p>{{ errorMessage }}</p>
+        <ion-button expand="block" (click)="goToLogin()" class="login-button">
+          Volver al inicio
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

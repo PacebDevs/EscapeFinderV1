@@ -1,0 +1,60 @@
+.verify-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.verify-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.status-container {
+  text-align: center;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 20px 0 10px 0;
+    color: #333;
+  }
+
+  p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  color: #667eea;
+}
+
+.icon-success {
+  font-size: 80px;
+  color: #10dc60;
+}
+
+.icon-error {
+  font-size: 80px;
+  color: #f04141;
+}
+
+.login-button {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --border-radius: 12px;
+  margin-top: 20px;
+  font-weight: 600;
+  text-transform: none;
+  height: 50px;
+}

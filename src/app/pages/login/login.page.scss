@@ -97,6 +97,29 @@
   letter-spacing: 0.5px;
 }
 
+// Link recuperar contraseña
+.forgot-password-link {
+  text-align: center;
+  margin-top: 16px;
+  margin-bottom: 8px;
+
+  a {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    padding-bottom: 2px;
+    transition: all 0.2s;
+
+    &:hover {
+      color: white;
+      border-bottom-color: white;
+    }
+  }
+}
+
 // Divider
 .divider {
   text-align: center;
