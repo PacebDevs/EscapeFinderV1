@@ -1,0 +1,28 @@
+<svg viewBox="0 0 280 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ojo exterior -->
+  <path
+    d="M12 60
+       C48 26 232 26 268 60
+       C232 94 48 94 12 60Z"
+    fill="none"
+    stroke="#B89B4F"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- Ojo interior -->
+  <path
+    d="M48 60
+       C78 40 202 40 232 60
+       C202 80 78 80 48 60Z"
+    fill="none"
+    stroke="#B89B4F"
+    stroke-width="4"
+    opacity="0.65"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- Cerradura integrada -->
+  <circle cx="140" cy="58" r="12" fill="#8F7634"/>
+  <rect x="134" y="58" width="12" height="26" rx="3" fill="#8F7634"/>
+</svg>
