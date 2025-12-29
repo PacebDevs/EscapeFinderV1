@@ -92,7 +92,7 @@ export class Tab2Page implements OnInit, OnDestroy {
    */
   abrirSalaDetalle(id_sala: number) {
     console.log('📖 Abrir detalle sala:', id_sala);
-    this.router.navigate(['/detalle-sala', id_sala]);
+    this.router.navigate(['/sala-detalle', id_sala]);
   }
 
   /**

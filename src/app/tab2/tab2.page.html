@@ -1,10 +1,4 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>Mis Favoritos</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
+<ion-content class="favoritos-content">
   <!-- Pull to refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content
@@ -14,6 +8,14 @@
       refreshingText="Actualizando...">
     </ion-refresher-content>
   </ion-refresher>
+
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="page-title">Mis Favoritos</h1>
+    <p class="page-subtitle" *ngIf="(favoritos$ | async) as favoritos">
+      {{ favoritos.length }} {{ favoritos.length === 1 ? 'sala guardada' : 'salas guardadas' }}
+    </p>
+  </div>
 
   <!-- Loading -->
   <div class="loading-container" *ngIf="loading">
@@ -38,10 +40,12 @@
   <!-- Estado vacío -->
   <ng-template #noFavoritos>
     <div class="empty-state">
-      <ion-icon name="heart-dislike-outline" class="empty-icon"></ion-icon>
+      <div class="empty-icon-wrapper">
+        <ion-icon name="heart-dislike-outline" class="empty-icon"></ion-icon>
+      </div>
       <h2>No tienes favoritos aún</h2>
       <p>Explora salas y guarda tus favoritas tocando el corazón</p>
-      <ion-button fill="solid" color="primary" routerLink="/tabs/tab1">
+      <ion-button fill="solid" routerLink="/tabs/tab1" class="explore-btn">
         <ion-icon name="compass-outline" slot="start"></ion-icon>
         Explorar Salas
       </ion-button>
