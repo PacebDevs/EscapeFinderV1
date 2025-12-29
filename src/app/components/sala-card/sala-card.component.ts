@@ -15,8 +15,10 @@ import { Sala } from 'src/app/models/sala.model';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { FavoritosService } from 'src/app/services/favoritos.service';
-import { Subscription } from 'rxjs';
+import { Store, Select } from '@ngxs/store';
+import { FavoritosState, ToggleFavorito } from 'src/app/states/favoritos.state';
+import { Observable, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 /**
@@ -36,7 +38,7 @@ import { environment } from 'src/environments/environment';
 export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sala!: Sala;
   @ViewChild('favoriteIcon') favoriteIconRef!: ElementRef;
-  @Output() open = new EventEmitter<number>(); // <-- NUEVO
+  @Output() open = new EventEmitter<number>();
 
   isFavorito = false;
   loadingImage = true;
@@ -53,7 +55,7 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   private urlImage = environment.imageURL;
 
   constructor(
-    private favoritosService: FavoritosService,
+    private store: Store,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -63,12 +65,13 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
   ngOnInit() {
     this.resetCard(); // inicialización de imagen y skeleton
 
-    this.favoritoSub = this.favoritosService
-      .getFavoritoStatusStream(this.sala.id_sala)
-      .subscribe(isFav => {
-        this.isFavorito = isFav;
-        this.cdr.markForCheck();
-      });
+    // Suscribirse al estado de favoritos desde NGXS
+    this.favoritoSub = this.store.select(FavoritosState.ids).pipe(
+      map(ids => ids.includes(this.sala.id_sala))
+    ).subscribe(isFav => {
+      this.isFavorito = isFav;
+      this.cdr.markForCheck();
+    });
   }
 
   /**
@@ -148,7 +151,8 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
 
     this.animationFrameId = requestAnimationFrame(() => {
       target.classList.add('pulse-animation');
-      this.favoritosService.toggleFavorito(this.sala.id_sala);
+      // Dispatch acción NGXS para toggle favorito
+      this.store.dispatch(new ToggleFavorito(this.sala.id_sala));
       setTimeout(() => {
         target.classList.remove('pulse-animation');
         this.animationFrameId = null;

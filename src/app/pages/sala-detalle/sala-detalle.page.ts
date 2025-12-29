@@ -5,9 +5,10 @@ import { Store } from '@ngxs/store';
 import { Sala } from 'src/app/models/sala.model';
 import { SalaService } from 'src/app/services/sala.service';
 import { AuthState } from 'src/app/states/auth.state';
+import { FavoritosState, ToggleFavorito } from 'src/app/states/favoritos.state';
 import { environment } from 'src/environments/environment';
-import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
@@ -53,8 +54,7 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
     private router: Router,
     private navCtrl: NavController,
     private salaService: SalaService,
-    private store: Store,
-    private favoritosService: FavoritosService
+    private store: Store
   ) {}
 
   ngOnInit() {
@@ -133,9 +133,9 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
 
       // ---- Favorito: suscripción por sala ----
       this.favSub?.unsubscribe();
-      this.favSub = this.favoritosService
-        .getFavoritoStatusStream(s.id_sala)
-        .subscribe(v => this.isFavorito = v);
+      this.favSub = this.store.select(FavoritosState.ids).pipe(
+        map(ids => ids.includes(s.id_sala))
+      ).subscribe(v => this.isFavorito = v);
 
       // Marcar que tras render se mida overflow (líneas)
       this.pendingOverflowCheck = true;
@@ -193,7 +193,8 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
       target.classList.add('pulse-animation');
       setTimeout(() => target.classList.remove('pulse-animation'), 300);
     }
-    this.favoritosService.toggleFavorito(this.sala!.id_sala);
+    // Dispatch acción NGXS
+    this.store.dispatch(new ToggleFavorito(this.sala!.id_sala));
   }
 
   togglePriceTable() {

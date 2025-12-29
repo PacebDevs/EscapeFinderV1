@@ -1,17 +1,50 @@
-<ion-header [translucent]="true">
+<ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>
-      Tab 2
-    </ion-title>
+    <ion-title>Mis Favoritos</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2 Prueba2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Pull to refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="chevron-down-circle-outline"
+      pullingText="Suelta para actualizar"
+      refreshingSpinner="circles"
+      refreshingText="Actualizando...">
+    </ion-refresher-content>
+  </ion-refresher>
 
-  <app-explore-container name="Tab 2 page Prueba2"></app-explore-container>
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Cargando favoritos...</p>
+  </div>
+
+  <!-- Lista de favoritos -->
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="(favoritos$ | async) as favoritos">
+      <ng-container *ngIf="favoritos.length > 0; else noFavoritos">
+        <app-sala-card
+          class="sala-card"
+          *ngFor="let sala of favoritos; trackBy: trackBySalaId"
+          [sala]="sala"
+          (open)="abrirSalaDetalle($event)">
+        </app-sala-card>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+
+  <!-- Estado vacío -->
+  <ng-template #noFavoritos>
+    <div class="empty-state">
+      <ion-icon name="heart-dislike-outline" class="empty-icon"></ion-icon>
+      <h2>No tienes favoritos aún</h2>
+      <p>Explora salas y guarda tus favoritas tocando el corazón</p>
+      <ion-button fill="solid" color="primary" routerLink="/tabs/tab1">
+        <ion-icon name="compass-outline" slot="start"></ion-icon>
+        Explorar Salas
+      </ion-button>
+    </div>
+  </ng-template>
 </ion-content>

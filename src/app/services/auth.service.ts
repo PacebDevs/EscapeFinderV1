@@ -9,6 +9,7 @@ import { SignInWithApple, SignInWithAppleOptions, SignInWithAppleResponse } from
 import { Capacitor } from '@capacitor/core';
 import { Store, Select } from '@ngxs/store';
 import { AuthState, SetAuthData, ClearAuthData, UpdateAuthUser, AuthUser } from '../states/auth.state';
+import { LoadFavoritoIds, ClearFavoritos } from '../states/favoritos.state';
 
 // Re-exportar para compatibilidad
 export type Usuario = AuthUser;
@@ -107,6 +108,7 @@ export class AuthService {
   logout() {
     console.log('👋 Cerrando sesión');
     this.store.dispatch(new ClearAuthData());
+    this.store.dispatch(new ClearFavoritos());
     this.router.navigate(['/login']);
   }
 
@@ -141,6 +143,10 @@ export class AuthService {
       token: response.token || null,
       user: response.user
     }));
+    
+    // Cargar favoritos del usuario (solo IDs, ligero)
+    console.log('⭐ Cargando favoritos del usuario...');
+    this.store.dispatch(new LoadFavoritoIds());
   }
 
   /**

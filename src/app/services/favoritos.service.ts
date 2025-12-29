@@ -1,44 +1,50 @@
-// src/app/services/favoritos.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map } from 'rxjs';
-import { Preferences } from '@capacitor/preferences';
-import { STORAGE_KEYS } from '../constants/storage.keys';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Sala } from '../models/sala.model';
 
-@Injectable({ providedIn: 'root' })
+export interface SalaFavorita extends Sala {
+  fecha_favorito?: string;
+}
+
+export interface FavoritosResponse {
+  count: number;
+  favoritos: SalaFavorita[];
+}
+
+export interface FavoritoIdsResponse {
+  ids: number[];
+}
+
+export interface ToggleFavoritoResponse {
+  mensaje: string;
+  action: 'added' | 'removed';
+  isFavorite: boolean;
+  id_sala: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class FavoritosService {
-  private favoritosSubject = new BehaviorSubject<number[]>([]);
-  favoritos$ = this.favoritosSubject.asObservable(); // expone solo lectura
+  private readonly API_URL = `${environment.apiUrl}/favoritos`;
 
-  constructor() {
-    this.loadFavoritos(); // cuando se crea el servicio
+  constructor(private http: HttpClient) {}
+
+  getFavoritos(coordenadas?: { lat: number; lng: number }): Observable<FavoritosResponse> {
+    const params = coordenadas 
+      ? { lat: coordenadas.lat.toString(), lng: coordenadas.lng.toString() }
+      : {};
+    
+    return this.http.get<FavoritosResponse>(this.API_URL, { params });
   }
 
-  private async loadFavoritos() {
-    const { value } = await Preferences.get({ key: STORAGE_KEYS.FAVORITOS_SALAS });
-    const ids = value ? JSON.parse(value) : [];
-    this.favoritosSubject.next(ids);
+  getFavoritoIds(): Observable<FavoritoIdsResponse> {
+    return this.http.get<FavoritoIdsResponse>(`${this.API_URL}/ids`);
   }
 
-  async toggleFavorito(id: number) {
-    const current = this.favoritosSubject.value;
-    const updated = current.includes(id)
-      ? current.filter(favId => favId !== id)
-      : [...current, id];
-
-    this.favoritosSubject.next(updated);
-    await Preferences.set({
-      key: STORAGE_KEYS.FAVORITOS_SALAS,
-      value: JSON.stringify(updated)
-    });
-  }
-
-  isFavorito(id: number): boolean {
-    return this.favoritosSubject.value.includes(id);
-  }
-
-  getFavoritoStatusStream(id: number) {
-    return this.favoritos$.pipe(
-      map(favoritos => favoritos.includes(id))
-    );
+  toggleFavorito(id_sala: number): Observable<ToggleFavoritoResponse> {
+    return this.http.post<ToggleFavoritoResponse>(`${this.API_URL}/${id_sala}/toggle`, {});
   }
 }
