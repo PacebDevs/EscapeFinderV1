@@ -1,17 +1,132 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="profile-content">
+  <div class="profile-container" *ngIf="user">
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+      <div class="avatar-wrapper">
+        <ion-avatar class="avatar">
+          <ion-icon name="person"></ion-icon>
+        </ion-avatar>
+        <ion-button 
+          class="avatar-edit-btn" 
+          fill="clear" 
+          size="small"
+          disabled>
+          <ion-icon slot="icon-only" name="camera"></ion-icon>
+        </ion-button>
+      </div>
+      <h2 class="user-name">{{ user.nombre || 'Usuario' }} {{ user.apellidos || '' }}</h2>
+      <p class="user-email">{{ user.email }}</p>
+    </div>
 
-<ion-content>
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- Información Personal -->
+    <div class="section">
+      <div class="section-header">
+        <h3>Información Personal</h3>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          class="edit-btn"
+          (click)="toggleEdit()">
+          <ion-icon 
+            slot="icon-only" 
+            [name]="isEditing ? 'close-outline' : 'create-outline'">
+          </ion-icon>
+        </ion-button>
+      </div>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+      <!-- Email (solo lectura) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item readonly">
+          <ion-icon name="mail-outline" slot="start"></ion-icon>
+          <ion-input
+            [value]="user.email" 
+            readonly
+            placeholder="Email">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Nombre (editable) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item" [class.readonly]="!isEditing">
+          <ion-icon name="person-outline" slot="start"></ion-icon>
+          <ion-input
+            [(ngModel)]="nombre"
+            [readonly]="!isEditing"
+            placeholder="Nombre">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Apellidos (editable) -->
+      <div class="input-group">
+        <ion-item lines="none" class="input-item" [class.readonly]="!isEditing">
+          <ion-icon name="person-outline" slot="start"></ion-icon>
+          <ion-input
+            [(ngModel)]="apellidos"
+            [readonly]="!isEditing"
+            placeholder="Apellidos">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Botón Guardar (solo visible al editar) -->
+      <ion-button 
+        *ngIf="isEditing"
+        expand="block" 
+        (click)="saveProfile()"
+        class="save-btn">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Guardar Cambios
+      </ion-button>
+    </div>
+
+    <!-- Configuración de Cuenta -->
+    <div class="section">
+      <div class="section-header">
+        <h3>Configuración de Cuenta</h3>
+      </div>
+
+      <!-- Cambiar Contraseña -->
+      <div class="action-item" (click)="requestPasswordReset()">
+        <div class="action-content">
+          <ion-icon name="key-outline" class="action-icon"></ion-icon>
+          <div class="action-text">
+            <h4>Cambiar Contraseña</h4>
+            <p>Recibir correo para restablecer contraseña</p>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Cerrar Sesión -->
+      <div class="action-item" (click)="logout()">
+        <div class="action-content">
+          <ion-icon name="log-out-outline" class="action-icon warning"></ion-icon>
+          <div class="action-text">
+            <h4>Cerrar Sesión</h4>
+            <p>Salir de tu cuenta</p>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+
+      <!-- Eliminar Cuenta -->
+      <div class="action-item" (click)="deleteAccount()">
+        <div class="action-content">
+          <ion-icon name="trash-outline" class="action-icon danger"></ion-icon>
+          <div class="action-text">
+            <h4 class="danger-text">Eliminar Cuenta</h4>
+            <p>Esta acción es permanente</p>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+      </div>
+    </div>
+
+    <!-- App Info -->
+    <div class="app-info">
+      <p>EscapeFinder v1.0.0</p>
+    </div>
+  </div>
 </ion-content>

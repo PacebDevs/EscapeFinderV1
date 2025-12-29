@@ -151,11 +151,47 @@ export class AuthService {
   }
 
   /**
+   * Actualizar perfil del usuario (nombre y apellidos)
+   */
+  updateProfile(nombre: string, apellidos: string): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.API_URL}/user/profile`, {
+      nombre,
+      apellidos
+    }).pipe(
+      tap(response => {
+        console.log('✅ Perfil actualizado');
+        this.updateCurrentUser(response.user);
+      })
+    );
+  }
+
+  /**
    * Solicitar recuperación de contraseña
    */
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.API_URL}/auth/forgot-password`, { email }).pipe(
       tap(response => console.log('📧 Email de recuperación enviado'))
+    );
+  }
+
+  /**
+   * Solicitar reset de contraseña desde el perfil del usuario autenticado
+   */
+  requestPasswordReset(): Observable<any> {
+    return this.http.post(`${this.API_URL}/user/request-password-reset`, {}).pipe(
+      tap(response => console.log('📧 Email de reset de contraseña enviado'))
+    );
+  }
+
+  /**
+   * Eliminar cuenta del usuario autenticado
+   */
+  deleteAccount(): Observable<any> {
+    return this.http.delete(`${this.API_URL}/user/account`).pipe(
+      tap(response => {
+        console.log('🗑️ Cuenta eliminada');
+        this.logout();
+      })
     );
   }
 
