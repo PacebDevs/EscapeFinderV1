@@ -8,7 +8,7 @@ import { MapService, SalaPinDTO } from 'src/app/services/map.service';
 import { environment } from 'src/environments/environment';
 import { FiltrosBusqueda } from 'src/app/models/filtros.model';
 import { Store } from '@ngxs/store';
-import { UsuarioState } from 'src/app/states/usuario.state';
+import { AuthState } from 'src/app/states/auth.state';
 import { CATEGORIAS } from 'src/app/constants/categorias.const';
 
 @Component({
@@ -90,7 +90,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.subs.push(this.moveEnd$.pipe(debounceTime(400)).subscribe(() => this.fetchByViewport()));
      this.subs.push(
-      this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+      this.store.select(AuthState.ubicacion).subscribe(ubicacion => {
         const lat = ubicacion?.lat;
         const lng = ubicacion?.lng;
         if (Number.isFinite(lat ?? NaN) && Number.isFinite(lng ?? NaN)) {

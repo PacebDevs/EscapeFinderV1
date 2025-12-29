@@ -7,7 +7,7 @@ import { FiltersModalComponent } from '../components/filter-modal/filters-modal.
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
 import { Subscription } from 'rxjs';
-import { UsuarioState } from '../states/usuario.state';
+import { AuthState } from '../states/auth.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { ChangeDetectionStrategy } from '@angular/core';
@@ -73,7 +73,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     );
 
     this.subs.push(
-      this.store.select(UsuarioState.ubicacion).subscribe(ubicacion => {
+      this.store.select(AuthState.ubicacion).subscribe(ubicacion => {
         const { ciudad, lat, lng } = ubicacion || {};
         this.latUsuario = lat ?? null;
         this.lngUsuario = lng ?? null;

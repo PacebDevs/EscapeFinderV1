@@ -8,8 +8,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { SalaState } from './states/salas/salas.state';
-import { UsuarioState } from './states/usuario.state';
-import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
+import { AuthState } from './states/auth.state';
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,10 +18,8 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
     HttpClientModule,
     AppRoutingModule,
 
-    NgxsModule.forRoot([SalaState, UsuarioState]),
-    NgxsStoragePluginModule.forRoot({
-      keys: ['usuario']
-    })
+    NgxsModule.forRoot([SalaState, AuthState])
+    // AuthState maneja autenticación + ubicación con Preferences
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent]

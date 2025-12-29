@@ -4,7 +4,7 @@ import { NavController } from '@ionic/angular';
 import { Store } from '@ngxs/store';
 import { Sala } from 'src/app/models/sala.model';
 import { SalaService } from 'src/app/services/sala.service';
-import { UsuarioState } from 'src/app/states/usuario.state';
+import { AuthState } from 'src/app/states/auth.state';
 import { environment } from 'src/environments/environment';
 import { FavoritosService } from 'src/app/services/favoritos.service';
 import { Subscription } from 'rxjs';
@@ -59,7 +59,7 @@ export class SalaDetallePage implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    const { lat, lng } = this.store.selectSnapshot(UsuarioState.ubicacion) || {};
+    const { lat, lng } = this.store.selectSnapshot(AuthState.ubicacion) || {};
     this.userLat = lat ?? null;
     this.userLng = lng ?? null;
     this.cargarSala(id, lat, lng);

@@ -9,7 +9,7 @@ import { IonicModule, IonModal } from '@ionic/angular';
 import { UbicacionService, UbicacionResultado } from 'src/app/services/ubicacion.service';
 import { Geolocation } from '@capacitor/geolocation';
 import { Store } from '@ngxs/store';
-import { ClearUbicacionUsuario, SetUbicacionUsuario, UsuarioState } from 'src/app/states/usuario.state';
+import { ClearUbicacion, SetUbicacion, AuthState } from 'src/app/states/auth.state';
 import { Keyboard } from '@capacitor/keyboard';
 import { PluginListenerHandle } from '@capacitor/core';
 import { Subject, Subscription, of } from 'rxjs';
@@ -61,7 +61,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const ubicacion = this.store.selectSnapshot(UsuarioState.ubicacion);
+    const ubicacion = this.store.selectSnapshot(AuthState.ubicacion);
     if (ubicacion?.ciudad) {
       this.ciudadActual = ubicacion.ciudad;
     }
@@ -207,7 +207,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
         this.updateCalleNumeroFromDireccion(res);
         const direccionCompacta = this.calleNumero ?? null;
 
-        this.store.dispatch(new SetUbicacionUsuario({
+        this.store.dispatch(new SetUbicacion({
           direccion: res.direccion,
           ciudad: res.ciudad,
           lat: res.lat,
@@ -243,7 +243,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
           this.updateCalleNumeroFromDireccion(res);
           const direccionCompacta = this.calleNumero ?? null;
 
-          this.store.dispatch(new SetUbicacionUsuario({
+          this.store.dispatch(new SetUbicacion({
             direccion: res.direccion,
             ciudad: res.ciudad,
             lat: res.lat,
@@ -269,7 +269,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
     this.predicciones = [];
     this.abierto = false;
     this.ciudadSeleccionada.emit(null);
-    this.store.dispatch(new ClearUbicacionUsuario());
+    this.store.dispatch(new ClearUbicacion());
     this.calleNumero = null;
     this.direccionCompacta = false;
   }

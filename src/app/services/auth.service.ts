@@ -1,23 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { SignInWithApple, SignInWithAppleOptions, SignInWithAppleResponse } from '@capacitor-community/apple-sign-in';
 import { Capacitor } from '@capacitor/core';
+import { Store, Select } from '@ngxs/store';
+import { AuthState, SetAuthData, ClearAuthData, UpdateAuthUser, AuthUser } from '../states/auth.state';
 
-export interface Usuario {
-  id_usuario: number;
-  email: string;
-  nombre: string;
-  apellidos: string;
-  tipo: string;
-  estado: string;
-  id_empresa: number | null;
-  email_verificado?: boolean;
-}
+// Re-exportar para compatibilidad
+export type Usuario = AuthUser;
 
 export interface AuthResponse {
   user: Usuario;
@@ -30,20 +24,16 @@ export interface AuthResponse {
 })
 export class AuthService {
   private readonly API_URL = environment.apiUrl;
-  private readonly TOKEN_KEY = 'escape_auth_token';
-  private readonly USER_KEY = 'escape_auth_user';
 
-  // BehaviorSubject: Observable que mantiene el último valor emitido
-  // Útil para compartir el estado del usuario entre componentes
-  private currentUserSubject = new BehaviorSubject<Usuario | null>(this.getUserFromStorage());
-  public currentUser$ = this.currentUserSubject.asObservable();
-
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
-  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  // Selectores NGXS - Se suscriben automáticamente al estado persistido
+  @Select(AuthState.user) currentUser$!: Observable<Usuario | null>;
+  @Select(AuthState.isAuthenticated) isAuthenticated$!: Observable<boolean>;
+  @Select(AuthState.token) token$!: Observable<string | null>;
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private store: Store
   ) {
     console.log('🔐 AuthService initialized');
     
@@ -51,6 +41,11 @@ export class AuthService {
     if (Capacitor.isNativePlatform()) {
       GoogleAuth.initialize();
     }
+
+    // Log del estado inicial (ya cargado por NGXS Storage Plugin)
+    const isAuth = this.store.selectSnapshot(AuthState.isAuthenticated);
+    const user = this.store.selectSnapshot(AuthState.user);
+    console.log('🔐 Estado inicial desde NGXS:', { isAuthenticated: isAuth, email: user?.email });
   }
 
   /**
@@ -107,64 +102,52 @@ export class AuthService {
   }
 
   /**
-   * Cierra sesión y limpia el localStorage
+   * Cierra sesión y limpia el store NGXS
    */
   logout() {
     console.log('👋 Cerrando sesión');
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
-    this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
+    this.store.dispatch(new ClearAuthData());
     this.router.navigate(['/login']);
   }
 
   /**
-   * Obtiene el token JWT del localStorage
+   * Obtiene el token JWT desde el store NGXS
    */
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.store.selectSnapshot(AuthState.token);
   }
 
   /**
-   * Obtiene el usuario actual
+   * Obtiene el usuario actual desde el store NGXS
    */
   getCurrentUser(): Usuario | null {
-    return this.currentUserSubject.value;
+    return this.store.selectSnapshot(AuthState.user);
   }
 
   /**
-   * Verifica si el usuario está autenticado
+   * Verifica si el usuario está autenticado (desde NGXS)
    */
   isAuthenticated(): boolean {
-    return this.hasToken();
+    return this.store.selectSnapshot(AuthState.isAuthenticated);
   }
 
   /**
-   * Guarda el token y usuario en localStorage
-   * y actualiza los observables
+   * Guarda el token y usuario en el store NGXS
+   * NgxsStoragePluginModule lo persiste automáticamente en localStorage
    */
-  private saveAuthData(response: AuthResponse) {
-    if (response.token) {
-      localStorage.setItem(this.TOKEN_KEY, response.token);
-    }
-    localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-    this.currentUserSubject.next(response.user);
-    this.isAuthenticatedSubject.next(true);
+  private saveAuthData(response: AuthResponse): void {
+    console.log('💾 Guardando sesión en NGXS Store:', response.user.email);
+    this.store.dispatch(new SetAuthData({
+      token: response.token || null,
+      user: response.user
+    }));
   }
 
   /**
-   * Lee el usuario del localStorage al iniciar
+   * Actualiza los datos del usuario en el store
    */
-  private getUserFromStorage(): Usuario | null {
-    const userJson = localStorage.getItem(this.USER_KEY);
-    return userJson ? JSON.parse(userJson) : null;
-  }
-
-  /**
-   * Verifica si existe un token
-   */
-  private hasToken(): boolean {
-    return !!localStorage.getItem(this.TOKEN_KEY);
+  updateCurrentUser(user: Usuario): void {
+    this.store.dispatch(new UpdateAuthUser(user));
   }
 
   /**
