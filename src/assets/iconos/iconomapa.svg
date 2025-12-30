@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Mapa">
+  <!-- Contorno del mapa plegado -->
+  <path
+    d="M3.6 6.4 9 4.8l6 2 5.4-1.6v12.6L15 19.2l-6-2-5.4 1.6V6.4Z"
+    fill="none"
+    stroke="#bfa76a"
+    stroke-width="1.4"
+    stroke-linejoin="round"
+  />
+
+  <!-- Pliegues -->
+  <path
+    d="M9 4.8v12.6M15 6.8v12.6"
+    fill="none"
+    stroke="#bfa76a"
+    stroke-width="0.95"
+    stroke-linecap="round"
+    opacity="0.75"
+  />
+
+  <!-- Laberinto sutil -->
+  <path
+    d="M6.2 9h2.1v1.9H7.2v1.6h2.4v-1.3h1.6v2.8H8v-1.4H6.2V9Z
+       M12.6 9.1h2.6v1.5h-1.3v1.3h1.2v1.5h-2.6V12h1.2v-1.4h-1.2V9.1Z
+       M16.9 12.1h1.7v1.7h-1.7v1.2h2.2v1.4h-3.9v-4.3h1.7v0.9Z"
+    fill="none"
+    stroke="#bfa76a"
+    stroke-width="0.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.6"
+  />
+
+  <!-- Objetivo: X -->
+  <path
+    d="M17.1 9.4l2 2M19.1 9.4l-2 2"
+    fill="none"
+    stroke="#bfa76a"
+    stroke-width="1.4"
+    stroke-linecap="round"
+  />
+
+  <!-- Punto de ruta -->
+  <circle
+    cx="7.1"
+    cy="14.9"
+    r="0.9"
+    fill="#bfa76a"
+    opacity="0.95"
+  />
+</svg>

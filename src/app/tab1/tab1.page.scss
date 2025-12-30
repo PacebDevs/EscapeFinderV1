@@ -209,32 +209,7 @@ ion-searchbar {
 }
 
 ion-content {
+  height: 100vh; /* Asegura que el contenido ocupe toda la altura de la pantalla */
   --padding-bottom: 0;
   --padding-top: 0;
-  height: 100%;
-  --background: #f8f9fa url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23dce1e6' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-ion-content::part(scroll) {
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
-}
-
-.reset-btn__badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: var(--ion-color-danger);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-  transition: transform 180ms ease, opacity 180ms ease;
 }
