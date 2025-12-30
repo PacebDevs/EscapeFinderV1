@@ -14,6 +14,8 @@ export interface FavoritosStateModel {
   favoritos: SalaFavorita[];        // Información completa de salas favoritas
   loaded: boolean;                  // Indica si ya se cargaron los datos
   loading: boolean;                 // Indica si está cargando
+  toggleRequestCounter: number;     // Contador monotónico para ordenar respuestas de toggle
+  pendingToggles: Record<number, number>; // requestId por id_sala (último toggle en vuelo)
 }
 
 // Acciones
@@ -41,7 +43,9 @@ export class ClearFavoritos {
     ids: [],
     favoritos: [],
     loaded: false,
-    loading: false
+    loading: false,
+    toggleRequestCounter: 0,
+    pendingToggles: {}
   }
 })
 @Injectable()
@@ -171,6 +175,13 @@ export class FavoritosState implements NgxsOnInit {
     const idsBackup = [...state.ids];
     const favoritosBackup = [...state.favoritos];
 
+    // Identificador de esta petición para poder ignorar respuestas antiguas
+    const requestId = state.toggleRequestCounter + 1;
+    ctx.patchState({
+      toggleRequestCounter: requestId,
+      pendingToggles: { ...state.pendingToggles, [action.id_sala]: requestId }
+    });
+
     // Optimista
     if (isFavorito) {
       ctx.patchState({
@@ -187,6 +198,12 @@ export class FavoritosState implements NgxsOnInit {
     return this.favoritosService.toggleFavorito(action.id_sala).pipe(
       tap({
         next: async (response) => {
+          const latest = ctx.getState().pendingToggles[action.id_sala];
+          if (latest !== requestId) {
+            // Respuesta vieja (hubo otro toggle después). No tocar el estado.
+            return;
+          }
+
           console.log('✅ Toggle confirmado por API');
           const newIds = response.isFavorite
             ? (ctx.getState().ids.includes(action.id_sala) ? ctx.getState().ids : [...ctx.getState().ids, action.id_sala])
@@ -196,12 +213,19 @@ export class FavoritosState implements NgxsOnInit {
             ? ctx.getState().favoritos
             : ctx.getState().favoritos.filter(f => f.id_sala !== action.id_sala);
 
-          ctx.patchState({ ids: newIds, favoritos: newFavoritos });
+          const { [action.id_sala]: _removed, ...restPending } = ctx.getState().pendingToggles;
+          ctx.patchState({ ids: newIds, favoritos: newFavoritos, pendingToggles: restPending });
           await this.saveToLocal(newIds);
         },
         error: async (error) => {
+          const latest = ctx.getState().pendingToggles[action.id_sala];
+          if (latest !== requestId) {
+            return;
+          }
+
           console.error('❌ Error toggle, revirtiendo');
-          ctx.patchState({ ids: idsBackup, favoritos: favoritosBackup });
+          const { [action.id_sala]: _removed, ...restPending } = ctx.getState().pendingToggles;
+          ctx.patchState({ ids: idsBackup, favoritos: favoritosBackup, pendingToggles: restPending });
           await this.saveToLocal(idsBackup);
         }
       })
@@ -210,7 +234,14 @@ export class FavoritosState implements NgxsOnInit {
 
   @Action(ClearFavoritos)
   async clearFavoritos(ctx: StateContext<FavoritosStateModel>) {
-    ctx.setState({ ids: [], favoritos: [], loaded: false, loading: false });
+    ctx.setState({
+      ids: [],
+      favoritos: [],
+      loaded: false,
+      loading: false,
+      toggleRequestCounter: 0,
+      pendingToggles: {}
+    });
     await this.saveToLocal([]);
   }
 }
