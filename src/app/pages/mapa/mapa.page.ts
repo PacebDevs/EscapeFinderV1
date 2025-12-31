@@ -133,15 +133,13 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
     if (!mapEl) return;
 
     const headerEl = document.querySelector('ion-header.page-mapa') as HTMLElement | null;
-    const tabsEl = document.querySelector('ion-tab-bar[slot="bottom"]') as HTMLElement | null;
 
     const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-top')) || 0;
     const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ion-safe-area-bottom')) || 0;
 
     const headerH = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
-    const tabsH   = tabsEl   ? Math.round(tabsEl.getBoundingClientRect().height)   : 0;
 
-    const targetHeight = window.innerHeight - headerH - tabsH - safeTop - safeBottom;
+    const targetHeight = window.innerHeight - headerH - safeTop - safeBottom;
     mapEl.style.height = `${Math.max(200, targetHeight)}px`;
     mapEl.style.width = '100%';
   }
