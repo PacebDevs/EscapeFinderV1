@@ -304,10 +304,7 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
   private fetchByViewport() {
     const bbox = this.getBBoxQuery();
-    const center = this.map.getCenter();
-    const lat = Number(center.lat.toFixed(6));
-    const lng = Number(center.lng.toFixed(6));
-    const params: FiltrosBusqueda = { ...this.filtros, lat, lng, bbox };
+    const params: FiltrosBusqueda = { ...this.filtros, bbox };
     this.fetch(params);
   }
 
@@ -316,7 +313,15 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.hasFetchedOnce = true;
-    this.mapService.getSalasMap(params).subscribe({
+    
+    // ✅ Siempre agregar ubicación del usuario si está disponible
+    const finalParams = { ...params };
+    if (this.userLocation?.lat != null && this.userLocation?.lng != null) {
+      finalParams.lat = this.userLocation.lat;
+      finalParams.lng = this.userLocation.lng;
+    }
+    
+    this.mapService.getSalasMap(finalParams).subscribe({
       next: (rows) => {
         this.zone.run(() => {
           this.salas = rows || [];

@@ -329,13 +329,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
-    if (!filtros.distancia_km) { 
-      delete filtros.lat; 
-      delete filtros.lng; 
-    } else { 
-      filtros.lat = this.latUsuario; 
-      filtros.lng = this.lngUsuario; 
+    
+    // ✅ Siempre enviar coordenadas si el usuario tiene ubicación
+    if (this.latUsuario != null && this.lngUsuario != null) {
+      filtros.lat = this.latUsuario;
+      filtros.lng = this.lngUsuario;
     }
+    
     return filtros;
   }
 
@@ -415,10 +415,6 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
     this.router.navigate(['/mapa'], { queryParams: params });
     console.log('🗺️ Click en botón de mapa (a implementar)');
-  }
-
-  onNotificacionesClick() { 
-    console.log('🔔 Notificaciones clickeadas'); 
   }
 
   get filtrosActivos(): number {
