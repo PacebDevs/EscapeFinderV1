@@ -1,9 +1,3 @@
-<ion-header class="ion-no-border">
-  <div class="top-actions">
-    <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
-  </div>
-</ion-header>
-
 <ion-content #pageContent scrollEvents="true" (ionScroll)="onScroll($event)">
 
   <!-- Overlay transparente que impide el scroll (touch + wheel) cuando no hay salas -->
@@ -13,6 +7,10 @@
   <div #collapsible class="collapsible">
     <div class="collapsible-inner">
       <ion-toolbar>
+        <div class="top-actions">
+          <app-direccion-picker (ciudadSeleccionada)="onCiudadSeleccionada($event)"></app-direccion-picker>
+        </div>
+
         <div class="searchbar-con-boton">
           <ion-searchbar
             placeholder="Buscar sala o empresa..."

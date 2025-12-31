@@ -1,8 +1,8 @@
-/* ====== Header fijo (fila superior) ====== */
+/* ====== Header superior (dirección) dentro del bloque sticky ====== */
 .top-actions {
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 10px 8px 0 8px;
 
   app-direccion-picker {
     flex: 1;
@@ -32,7 +32,21 @@
   background: var(--ion-background-color, #fff);
   box-shadow: 0 2px 10px rgba(0,0,0,0.06);
   pointer-events: auto;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: none;
+}
+
+/* Evita que el ion-toolbar meta su propio fondo/borde (cortes visibles) */
+.collapsible-inner ion-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  --border-color: transparent;
+  --min-height: auto;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.collapsible-inner ion-toolbar::part(background) {
+  background: transparent;
 }
 
 /* ====== Searchbar + botones (tus estilos) ====== */
@@ -44,7 +58,7 @@ ion-searchbar {
   --padding-end: 12px;
   --placeholder-color: #999;
 
-  margin: 12px auto 0 auto;
+  margin: 10px auto 0 auto;
   max-width: 100%;
   height: 40px;
   --height: 40px;
