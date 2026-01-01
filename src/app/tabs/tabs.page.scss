@@ -6,7 +6,8 @@ ion-tab-bar {
 
   position: relative;
   margin: 0;
-  padding: 6px 6px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  /* Mantiene safe-area pero reduce un poco el padding superior para compensar labels más grandes */
+  padding: clamp(2px, 0.8vw, 5px) 6px calc(env(safe-area-inset-bottom, 0px) + clamp(3px, 1.0vw, 6px));
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.08);
@@ -24,29 +25,30 @@ ion-tab-bar {
 }
 
 ion-tab-button {
-  --padding-start: 14px;
-  --padding-end: 14px;
+  --padding-start: clamp(10px, 3.2vw, 14px);
+  --padding-end: clamp(10px, 3.2vw, 14px);
   --background: transparent;
   --background-focused: transparent;
   --background-activated: transparent;
   --ripple-color: transparent;
 
   position: relative;
-  gap: 6px;
+  gap: clamp(2px, 1.2vw, 4px);
   overflow: hidden;
   transition: color 0.28s ease;
 
   /* Compactar altura visual */
-  padding-top: 2px;
-  padding-bottom: 2px;
+  padding-top: 0;
+  padding-bottom: 0;
 
   ion-icon {
-    font-size: 20px;
+    font-size: clamp(18px, 4.2vw, 20px);
     transition: transform 0.28s ease, filter 0.28s ease;
   }
 
   ion-label {
-    font-size: 11px;
+    font-size: clamp(11px, 3.2vw, 12px);
+    line-height: 1;
     font-weight: 600;
     letter-spacing: 0.01em;
   }

@@ -2,7 +2,7 @@
 .top-actions {
   display: flex;
   align-items: center;
-  padding: 10px 8px 0 8px;
+  padding: clamp(6px, 1.6vw, 10px) 8px 0 8px;
 
   app-direccion-picker {
     flex: 1;
@@ -58,10 +58,10 @@ ion-searchbar {
   --padding-end: 12px;
   --placeholder-color: #999;
 
-  margin: 10px auto 0 auto;
+  margin: clamp(6px, 1.6vw, 10px) auto 0 auto;
   max-width: 100%;
-  height: 40px;
-  --height: 40px;
+  height: clamp(34px, 5.2vw, 40px);
+  --height: clamp(34px, 5.2vw, 40px);
 
   input {
     font-size: 14px;
@@ -72,19 +72,19 @@ ion-searchbar {
   display: flex;
   align-items: center;
   padding: 0 8px;
-  gap: 6px;
+  gap: clamp(4px, 1.2vw, 6px);
 
   ion-searchbar {
     flex: 1;
-    margin: 12px 0 0 0;
+    margin: clamp(6px, 1.6vw, 10px) 0 0 0;
     max-width: calc(100% - 96px); // 2 botones de 48px
   }
 
   ion-button {
-    margin-top: 12px;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
+    margin-top: clamp(6px, 1.6vw, 10px);
+    width: clamp(34px, 5.2vw, 40px);
+    height: clamp(34px, 5.2vw, 40px);
+    min-width: clamp(34px, 5.2vw, 40px);
     --padding-start: 0;
     --padding-end: 0;
   }
@@ -92,7 +92,7 @@ ion-searchbar {
   .btn-filtros {
     --color: var(--ion-color-success);
     --border-radius: 12px;
-    font-size: 20px;
+    font-size: clamp(18px, 3.4vw, 20px);
     position: relative;
     overflow: visible !important;
     
@@ -104,11 +104,11 @@ ion-searchbar {
   .btn-mapa {
     --color: #3399ff;
     --border-radius: 12px;
-    font-size: 22px;
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    margin-top: 10px;
+    font-size: clamp(18px, 3.6vw, 22px);
+    width: clamp(36px, 5.8vw, 48px);
+    height: clamp(36px, 5.8vw, 48px);
+    min-width: clamp(36px, 5.8vw, 48px);
+    margin-top: clamp(4px, 1.2vw, 10px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -138,9 +138,9 @@ ion-searchbar {
 .categorias-scroll {
   display: flex;
   overflow-x: auto;
-  padding: 10px 0;
-  gap: 14px;
-  margin-bottom: 8px;
+  padding: clamp(6px, 1.8vw, 10px) 0;
+  gap: clamp(10px, 2.4vw, 14px);
+  margin-bottom: clamp(4px, 1.4vw, 8px);
   padding-left: 12px;
   scroll-snap-type: x mandatory;
 
@@ -154,7 +154,7 @@ ion-searchbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 70px;
+  min-width: clamp(56px, 16vw, 70px);
   cursor: pointer;
   opacity: 0.6;
   scroll-snap-align: start;
@@ -182,8 +182,8 @@ ion-searchbar {
   }
 
   img {
-    width: 40px;
-    height: 40px;
+    width: clamp(32px, 9.6vw, 40px);
+    height: clamp(32px, 9.6vw, 40px);
     border-radius: 10px;
     object-fit: cover;
     transition: box-shadow 0.3s ease;
@@ -192,7 +192,7 @@ ion-searchbar {
 
   .nombre {
     margin-top: 3px;
-    font-size: 12px;
+    font-size: clamp(10px, 2.8vw, 12px);
     text-align: center;
     font-weight: 500;
     color: #333;
@@ -211,7 +211,20 @@ ion-searchbar {
 .oculto { display: none; }
 
 .sala-card {
-  margin: 0 12px 16px 12px;
+  margin: 0 12px clamp(10px, 2.2vw, 16px) 12px;
+
+  /* Compacta solo en tab1 (sin afectar Favoritos/Perfil) */
+  --ef-sala-card-image-h: clamp(180px, 42vw, 220px);
+  --ef-sala-card-fav-icon-size: clamp(24px, 6.2vw, 30px);
+  --ef-sala-card-title-fs: clamp(16px, 4.2vw, 18px);
+  --ef-sala-card-subtitle-fs: clamp(12px, 3.4vw, 14px);
+  --ef-sala-card-city-fs: clamp(11px, 3.2vw, 13px);
+  --ef-sala-card-chip-fs: clamp(11px, 3.0vw, 13px);
+  --ef-sala-card-chip-icon: clamp(14px, 3.4vw, 16px);
+  --ef-sala-card-chip-pad: clamp(5px, 1.4vw, 6px) clamp(8px, 2.4vw, 10px);
+  --ef-sala-card-content-pad: clamp(10px, 2.4vw, 12px) clamp(12px, 3.2vw, 16px);
+  --ef-sala-card-desc-fs: clamp(13px, 3.2vw, 14px);
+  --ef-sala-card-desc-lines: 4;
   
   &:last-of-type {
     margin-bottom: 80px;
