@@ -34,6 +34,13 @@
   color: var(--ion-color-success);
 }
 
+.texto-sin-ubicacion {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ion-color-medium);
+  letter-spacing: 0.3px;
+}
+
 .centro {
   color: var(--ion-color-medium);
   font-weight: 500;
@@ -80,7 +87,7 @@
 
 .modal-header {
   padding: 8px 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px var(--app-shadow);
   border-bottom: none;
   border-radius: 0 0 8px 8px;
   z-index: 10;
@@ -97,12 +104,12 @@
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-  color: #222;
+  color: var(--app-text-primary);
 }
 
 .modal-header .header-content .close-icon {
   font-size: 24px;
-  color: #555;
+  color: var(--app-text-secondary);
   cursor: pointer;
 }
 
@@ -123,13 +130,13 @@
   justify-items: center;
 }
 
-/* Estética del buscador */
+/* Estética del buscador - adaptativo */
 .searchbar-custom {
-  --background: #f6f7f9;
-  --color: #1f2937;
-  --placeholder-color: #9aa3af;
-  --icon-color: #6b7280;
-  --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  --background: var(--app-bg-secondary);
+  --color: var(--app-text-primary);
+  --placeholder-color: var(--app-text-tertiary);
+  --icon-color: var(--app-text-secondary);
+  --box-shadow: 0 6px 16px var(--app-shadow);
   --border-radius: 14px;
   --cancel-button-color: var(--ion-color-medium);
   border-radius: 14px; /* asegura radio en host */
@@ -139,9 +146,18 @@
   border-radius: 14px;
 }
 
-.searchbar-custom:focus-within {
-  --background: #ffffff;
-  --box-shadow: 0 10px 24px rgba(16, 185, 129, 0.15);
+@media (prefers-color-scheme: light) {
+  .searchbar-custom:focus-within {
+    --background: #ffffff;
+    --box-shadow: 0 10px 24px rgba(16, 185, 129, 0.15);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .searchbar-custom:focus-within {
+    --background: var(--ion-item-background);
+    --box-shadow: 0 10px 24px rgba(16, 185, 129, 0.3);
+  }
 }
 
 .searchbar-custom::part(container) {
@@ -170,23 +186,32 @@
   --color: #6b7280;
 }
 
-/* Lista de predicciones */
+/* Lista de predicciones - adaptativo */
 .predictions-list {
   margin-top: 6px;
 }
 
 .prediction-item {
-  --background: #f8fafc;
+  --background: var(--app-bg-secondary);
   --inner-padding-end: 8px;
   --padding-start: 8px;
   border-radius: 12px;
   margin: 6px 0;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  box-shadow: 0 1px 0 var(--app-shadow);
 }
 
-.prediction-item:hover {
-  --background: #ffffff;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+@media (prefers-color-scheme: light) {
+  .prediction-item:hover {
+    --background: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .prediction-item:hover {
+    --background: var(--ion-item-background);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.05);
+  }
 }
 
 .prediction-icon {
@@ -196,18 +221,18 @@
 }
 
 .prediction-chevron {
-  color: #94a3b8;
+  color: var(--app-text-tertiary);
 }
 
-/* Resaltado del término */
+/* Resaltado del término - adaptativo */
 .hl {
-  background: rgba(16, 185, 129, 0.12);
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--ion-color-success-shade);
   padding: 0 2px;
   border-radius: 4px;
 }
 
-/* Dirección completa seleccionada (debajo del buscador) */
+/* Dirección completa seleccionada (debajo del buscador) - adaptativo */
 .direccion-completa-wrapper {
   display: flex;
   align-items: center;
@@ -216,14 +241,26 @@
   width: 100%;
 }
 
+@media (prefers-color-scheme: light) {
+  .direccion-completa {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .direccion-completa {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+  }
+}
+
 .direccion-completa {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
   border-radius: 12px;
   max-width: 100%;
 }
@@ -241,7 +278,7 @@
 }
 
 .direccion-completa-text {
-  color: #374151;
+  color: var(--app-text-primary);
   font-size: 14px;
   font-weight: 500;
   white-space: pre-wrap; /* permite saltos de línea */
@@ -255,8 +292,8 @@
   align-items: center;
   gap: 6px;
   font-weight: 600;
-  --background: #e6f9f1;
-  --color: #047857;
+  --background: var(--ion-color-success-tint);
+  --color: var(--ion-color-success-shade);
   padding: 6px 10px;
   border-radius: 999px;
 }

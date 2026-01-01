@@ -1,15 +1,18 @@
 <div class="direccion-picker">
   <ion-item button lines="none" class="trigger" (click)="togglePanel()">
     <ion-label class="ubicacion-label">
-      <div class="linea-ubicacion">
-        <span class="ciudad" [class.seleccionada]="ciudadActual">{{ ciudadActual ? ciudadActual : 'Dirección' }}</span>
-  <ng-container *ngIf="ciudadActual && !calleNumero">
+      <div class="linea-ubicacion" *ngIf="ciudadActual">
+        <span class="ciudad" [class.seleccionada]="ciudadActual">{{ ciudadActual }}</span>
+        <ng-container *ngIf="ciudadActual && !calleNumero">
           <span class="centro">(centro)</span>
         </ng-container>
         <ng-container *ngIf="calleNumero">
           <span class="sep">·</span>
           <span #direccionEl class="direccion" [class.compacta]="direccionCompacta">{{ calleNumero }}</span>
         </ng-container>
+      </div>
+      <div class="linea-ubicacion sin-seleccion" *ngIf="!ciudadActual">
+        <span class="texto-sin-ubicacion">Sin ubicación - Ves toda España</span>
       </div>
     </ion-label>
     <ion-icon name="chevron-down-outline" slot="end"></ion-icon>

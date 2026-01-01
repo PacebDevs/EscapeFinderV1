@@ -68,7 +68,7 @@
       bottom: 12px;
       left: 12px;
       right: 12px;
-      color: white;
+      color: white !important;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
       z-index: 2;
 
@@ -77,15 +77,18 @@
         font-size: var(--ef-sala-card-title-fs, 18px);
         font-weight: 600;
         line-height: 1.2;
+        color: white !important;
       }
       .empresa {
         font-size: var(--ef-sala-card-subtitle-fs, 14px);
         margin: 0;
         opacity: 0.9;
+        color: white !important;
       }
       small {
         font-size: var(--ef-sala-card-city-fs, 13px);
         opacity: 0.75;
+        color: white !important;
       }
     }
 
@@ -238,10 +241,30 @@
   animation: fadeInDescripcion 0.3s ease-in;
 }
 
+@media (prefers-color-scheme: dark) {
+  .descripcion-limitada {
+    color: #d5d5d5;
+    border-top-color: #3a3a3a;
+  }
+}
+
 @keyframes fadeInDescripcion {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .sala-card {
+    background: #2e2e2e;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .chip {
+    background: #3a3a3a !important;
+    color: #efefef !important;
+    border-color: #4a4a4a !important;
   }
 }
 

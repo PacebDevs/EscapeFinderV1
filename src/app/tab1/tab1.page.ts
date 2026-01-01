@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { ModalController, IonContent } from '@ionic/angular';
+import { ModalController, IonContent, AlertController } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
 import { FiltersModalComponent } from '../components/filter-modal/filters-modal.component';
@@ -60,7 +60,8 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     private socketService: SocketService,
     private modalCtrl: ModalController,
     private router: Router,
-    private cdr: ChangeDetectorRef // 👈 Agregado para updates manuales
+    private cdr: ChangeDetectorRef, // 👈 Agregado para updates manuales
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {
@@ -392,7 +393,27 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     return sala.id_sala; 
   }
 
-  onMapaClick() {
+  async onMapaClick() {
+    // Verificar si hay una ubicación seleccionada
+    const ubicacion = this.store.selectSnapshot(AuthState.ubicacion);
+    
+    if (!ubicacion?.ciudad) {
+      // Mostrar alerta si no hay ubicación
+      const alert = await this.alertCtrl.create({
+        header: 'Ubicación requerida',
+        message: 'Debes seleccionar una ubicación para acceder al mapa.',
+        buttons: [
+          {
+            text: 'Entendido',
+            role: 'cancel'
+          }
+        ]
+      });
+      
+      await alert.present();
+      return;
+    }
+
     // Lee los filtros actuales de tu UI/estado de la lista y pásalos tal cual como queryParams
     // Ejemplo mínimo: si guardas filtros en this.filters
     const params = { ...this.filters };
@@ -414,7 +435,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     delete (params as any).coordenadas;
 
     this.router.navigate(['/mapa'], { queryParams: params });
-    console.log('🗺️ Click en botón de mapa (a implementar)');
+    console.log('🗺️ Click en botón de mapa');
   }
 
   get filtrosActivos(): number {

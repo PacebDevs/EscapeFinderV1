@@ -29,10 +29,17 @@
   transform: translate3d(0, calc(-1 * var(--header-offset, 0px)), 0);
   backface-visibility: hidden;
   contain: paint;
-  background: var(--ion-background-color, #fff);
+  background: #fff;
   box-shadow: 0 2px 10px rgba(0,0,0,0.06);
   pointer-events: auto;
   border-bottom: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .collapsible-inner {
+    background: #242424;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
 }
 
 /* Evita que el ion-toolbar meta su propio fondo/borde (cortes visibles) */
@@ -65,6 +72,13 @@ ion-searchbar {
 
   input {
     font-size: 14px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-searchbar {
+    --background: #2e2e2e;
+    --placeholder-color: #999;
   }
 }
 
@@ -200,6 +214,18 @@ ion-searchbar {
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  .categoria-item {
+    &.active::after {
+      background: var(--ion-color-success-tint);
+    }
+    
+    .nombre {
+      color: #efefef;
+    }
+  }
+}
+
 /* ====== Varios (tuyos, sin cambios) ====== */
 .spinner-global {
   display: flex;
@@ -274,6 +300,27 @@ ion-searchbar {
     max-width: 300px;
     font-weight: 500;
     line-height: 1.5;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .no-resultados-wrapper {
+    .no-resultados-icon-wrapper {
+      background: var(--ion-color-success-tint);
+      box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+    }
+    
+    .no-resultados-icono {
+      stroke: var(--ion-color-success);
+    }
+    
+    h2 {
+      color: #efefef;
+    }
+    
+    p {
+      color: #b8b8b8;
+    }
   }
 }
 

@@ -1,12 +1,29 @@
 .favoritos-content {
-  --background: linear-gradient(
-    180deg,
-    #e8f5e9 0%,
-    #f1f8e9 30%,
-    #ffffff 70%
-  );
+  --background: var(--app-bg-secondary);
   --padding-top: 0px;
   --padding-bottom: var(--safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-color-scheme: light) {
+  .favoritos-content {
+    --background: linear-gradient(
+      180deg,
+      #e8f5e9 0%,
+      #f1f8e9 30%,
+      #ffffff 70%
+    );
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .favoritos-content {
+    --background: linear-gradient(
+      180deg,
+      #2a3f2e 0%,
+      #2e2e2e 30%,
+      #242424 70%
+    );
+  }
 }
 
 // Header Section
@@ -19,13 +36,13 @@
     font-size: 32px;
     font-weight: 700;
     margin: 0 0 8px 0;
-    color: #2e7d32;
+    color: var(--app-text-primary);
     letter-spacing: -0.5px;
   }
   
   .page-subtitle {
     font-size: 15px;
-    color: #66bb6a;
+    color: var(--app-text-secondary);
     font-weight: 500;
     margin: 0;
   }
@@ -43,11 +60,11 @@
   ion-spinner {
     width: 50px;
     height: 50px;
-    --color: #4caf50;
+    --color: var(--ion-color-success);
   }
   
   p {
-    color: #66bb6a;
+    color: var(--app-text-secondary);
     font-size: 0.95rem;
     font-weight: 500;
   }
@@ -76,30 +93,30 @@
     width: 140px;
     height: 140px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    background: var(--ion-color-success-tint);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.15);
+    box-shadow: 0 8px 24px var(--app-shadow);
     
     .empty-icon {
       font-size: 70px;
-      color: #66bb6a;
+      color: var(--ion-color-success);
     }
   }
   
   h2 {
     font-size: 24px;
     font-weight: 700;
-    color: #2e7d32;
+    color: var(--app-text-primary);
     margin: 0 0 12px 0;
     letter-spacing: -0.3px;
   }
   
   p {
     font-size: 15px;
-    color: #66bb6a;
+    color: var(--app-text-secondary);
     margin: 0 0 32px 0;
     max-width: 300px;
     font-weight: 500;
@@ -107,11 +124,11 @@
   }
   
   .explore-btn {
-    --background: linear-gradient(135deg, #66bb6a, #4caf50);
-    --background-hover: #45a049;
+    --background: linear-gradient(135deg, #66bb6a, var(--ion-color-success));
+    --background-hover: var(--ion-color-success-shade);
     --color: white;
     --border-radius: 16px;
-    --box-shadow: 0 10px 24px rgba(76, 175, 80, 0.25);
+    --box-shadow: 0 10px 24px var(--app-shadow);
     height: 56px;
     font-weight: 700;
     font-size: 16px;

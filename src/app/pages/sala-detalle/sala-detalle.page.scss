@@ -4,7 +4,7 @@
 .detalle-content {
   --padding-top: 0;
   --padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
-  background: #fff;
+  background: var(--ion-background-color, #fff);
 
   /* Paleta marrón + tipografía */
   --ef-font-stack: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -69,11 +69,11 @@
 /* Dark mode, coherente con el resto de la pantalla */
 @media (prefers-color-scheme: dark) {
   .btn-back {
-    background: rgba(18,18,18,.60);
-    border-color: #2b2c2d;
+    background: rgba(46,46,46,.70);
+    border-color: #3a3a3a;
     box-shadow:
-      0 6px 16px rgba(0,0,0,.45),
-      inset 0 1px 0 rgba(255,255,255,.06);
+      0 6px 16px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.08);
   }
   .btn-back ion-icon {
     color: #E9DFDC; /* marrón claro */
@@ -81,8 +81,8 @@
   .btn-back:focus-visible {
     box-shadow:
       0 0 0 3px rgba(233,223,220,.16),
-      0 6px 16px rgba(0,0,0,.45),
-      inset 0 1px 0 rgba(255,255,255,.06);
+      0 6px 16px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.08);
   }
 }
 
@@ -92,7 +92,7 @@
 .slide-wrapper {
   position: relative;
   height: clamp(180px, 32vh, 300px);
-  background: #f2f3f5;
+  background: var(--app-bg-secondary, #f2f3f5);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
   overflow: hidden;
@@ -295,7 +295,7 @@ swiper-container::part(bullet-active) {
 
 .descripcion-wrapper .descripcion-text {
   margin: 0;
-  color: #374151;
+  color: var(--app-text-primary, #374151);
   line-height: 1.5;          /* antes 1.45 */
   font-size: 15.8px;         /* antes ~14.5px (ligeramente mayor) */
   white-space: pre-wrap;
@@ -349,15 +349,18 @@ swiper-container::part(bullet-active) {
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   .detalle-content {
-    --ef-title-color: #D7CCC8; /* marrón claro */
-    --ef-meta-color:  #9CA3AF; /* gris claro para empresa */
+    --ef-title-color: #E5DDD9; /* marrón claro con más contraste */
+    --ef-meta-color:  #A8AEB8; /* gris claro para empresa */
+  }
+  .descripcion-wrapper .descripcion-text {
+    color: #D5D5D5; /* texto descripción con mejor contraste */
   }
   .fade-shadow {
-    background: linear-gradient(to bottom, rgba(18,18,18,0), #121212 65%);
+    background: linear-gradient(to bottom, rgba(36,36,36,0), #242424 65%);
   }
   .btn-ver-mas {
-    --background: #1e1f20;
-    --border-color: #2b2c2d;
+    --background: #2e2e2e;
+    --border-color: #3a3a3a;
     --color: #E9DFDC;
   }
 }
@@ -424,16 +427,16 @@ swiper-container::part(bullet-active) {
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   .fact {
-    background: #0B1020;
-    border-color: #1F2937;
+    background: #2a2a2a;
+    border-color: #3a3a3a;
     box-shadow: none;
   }
   .fact .icon {
-    background: linear-gradient(180deg, #0E1324, #0B1020);
-    border-color: #1F2937;
+    background: linear-gradient(180deg, #323232, #2a2a2a);
+    border-color: #3a3a3a;
   }
-  .fact .label { color: #9CA3AF; }
-  .fact .value { color: #E5E7EB; }
+  .fact .label { color: #A8AEB8; }
+  .fact .value { color: #efefef; }
 }
 
 /* =========================

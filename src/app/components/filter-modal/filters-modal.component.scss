@@ -15,12 +15,12 @@
       font-size: 18px;
       font-weight: 600;
       margin: 0;
-      color: #222;
+      color: var(--app-text-primary, #222);
     }
 
     .close-icon {
       font-size: 24px;
-      color: #555;
+      color: var(--app-text-secondary, #555);
       cursor: pointer;
     }
    .reset-icon {
@@ -32,13 +32,25 @@
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  .modal-header {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
 .modal-content {
  --padding-top: 12px;
   --padding-start: 16px;
   --padding-end: 16px;
   --padding-bottom: 24px;
-  --background: #fafafa; // 👈 fondo ligeramente distinto
-  
+  --background: var(--app-bg-secondary, #fafafa);
+}
+
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    --background: rgba(42, 42, 42, 0.95); // Fondo oscuro muy suave
+  }
+}
 
 .filtro-section {
   margin-top: 20px;
@@ -50,11 +62,11 @@
     margin-bottom: 8px;
     font-size: 16px;
     font-weight: 600;
-    color: #444;
+    color: var(--app-text-primary, #444);
 
     .dropdown-icon {
       font-size: 18px;
-      color: #666;
+      color: var(--app-text-secondary, #666);
       margin-left: 8px;
     }
   }
@@ -85,37 +97,53 @@
   }
 }
 
-  .categorias-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 10px;
+.categorias-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
 
-    .categoria-btn {
-      padding: 8px;
-      text-align: center;
-      background: #f1f1f1;
-      border-radius: 12px;
-      font-size: 14px;
-      color: #333;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .categoria-btn.selected {
-      background: #a2e3b1;
-      font-weight: bold;
-    }
+  .categoria-btn {
+    padding: 8px;
+    text-align: center;
+    background: var(--app-bg-secondary, #f1f1f1);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--app-text-primary, #333);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .jugadores-select {
+
+  .categoria-btn.selected {
+    background: #a2e3b1;
+    font-weight: bold;
+    color: #1a1a1a;
+  }
+}
+  
+@media (prefers-color-scheme: dark) {
+  .categorias-grid .categoria-btn {
+    background: #2e2e2e;
+    border: 1px solid #3a3a3a;
+  }
+}
+
+.jugadores-select {
   --padding-start: 12px;
   --padding-end: 12px;
   --border-radius: 12px;
-  --background: #f1f1f1;
+  --background: var(--app-bg-secondary, #f1f1f1);
   margin-top: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .jugadores-select {
+    --background: #2e2e2e;
+    color: var(--app-text-primary);
+  }
 }
 
 .precio-info-text {
@@ -124,6 +152,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  color: var(--app-text-primary);
 
   ion-icon {
     font-size: 16px;
@@ -135,13 +164,13 @@
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #444;
+  color: var(--app-text-primary, #444);
   margin-top: 4px;
   padding: 0 2px;
 
   .precio-label {
     font-size: 13px;
-    color: #666;
+    color: var(--app-text-secondary, #666);
     text-align: center;
     flex: 1;
   }
@@ -153,9 +182,6 @@
   }
 }
 
-
-}
-
 .modal-footer {
   /*padding: 16px;
   background: #fff;
@@ -163,7 +189,7 @@
     border-top: none;
   border-radius: 16px 16px 0 0; // 👈 Borde superior curvado
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.04); // 👈 Sombra superior suave
-  background: #fff;
+  background: var(--ion-background-color, #fff);
   z-index: 10;
   position: relative;
   padding: 5px;
@@ -173,8 +199,13 @@
     --border-radius: 12px;
     font-weight: 600;
   }
+}
 
-  
+@media (prefers-color-scheme: dark) {
+  .modal-footer {
+    background: #2e2e2e;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .categoria-icon {
@@ -228,18 +259,25 @@
 }
 
 .checkbox-item {
-  --background: #f7f7f7;
+  --background: var(--app-bg-secondary, #f7f7f7);
   --inner-padding-end: 8px;
   --padding-start: 8px;
   border-radius: 12px;
   /* El 'gap' de la rejilla se encarga del espaciado vertical */
 }
 
+@media (prefers-color-scheme: dark) {
+  .checkbox-item {
+    --background: #2e2e2e;
+    --color: var(--app-text-primary);
+  }
+}
+
 .checkbox-item ion-icon.checkbox-icon {
   margin-left: 8px;
   margin-right: 8px;
   font-size: 20px;
-  color: #555;
+  color: var(--app-text-secondary, #555);
 }
 
 ion-checkbox.modern-checkbox {
@@ -388,10 +426,22 @@ ion-checkbox.modern-checkbox {
 
 /* Modo oscuro: ajusta fondo e icono */
 :host-context(.dark) .reset-btn {
-  background: rgba(24, 24, 27, 0.55);
+  background: rgba(46, 46, 46, 0.65);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.06),
-    0 4px 14px rgba(0,0,0,0.35);
+    inset 0 0 0 1px rgba(255,255,255,0.08),
+    0 4px 14px rgba(0,0,0,0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .reset-btn {
+    background: rgba(46, 46, 46, 0.65);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.08),
+      0 4px 14px rgba(0,0,0,0.3);
+  }
+  .reset-btn__icon {
+    color: #efefef;
+  }
 }
 
 :host-context(.dark) .reset-btn__icon {
@@ -439,19 +489,26 @@ ion-checkbox.modern-checkbox {
   ion-label.filter-label {
     font-size: 16px;
     font-weight: 600;
-    color: #444;
+    color: var(--app-text-primary, #444);
     flex-shrink: 0; /* Evita que la etiqueta se encoja */
     margin-right: 16px; /* Añade un espacio de seguridad */
   }
 
   ion-select.idioma-select {
-    --background: #f1f1f1;
+    --background: var(--app-bg-secondary, #f1f1f1);
     --border-radius: 12px;
     --padding-start: 12px;
     --padding-end: 12px;
     font-size: 14px;
     min-width: 160px;
     text-align: right;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .filter-row ion-select.idioma-select {
+    --background: #2e2e2e;
+    color: var(--app-text-primary);
   }
 }
 
