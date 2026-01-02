@@ -76,6 +76,9 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     this.subs.push(
       this.store.select(AuthState.ubicacion).subscribe(ubicacion => {
         const { ciudad, lat, lng } = ubicacion || {};
+        const prevLat = this.latUsuario;
+        const prevLng = this.lngUsuario;
+        
         this.latUsuario = lat ?? null;
         this.lngUsuario = lng ?? null;
         
@@ -85,6 +88,11 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
         } else {
           const { ciudad: _c, ...rest } = this.filters;
           this.filters = { ...rest };
+          
+          // Si se borraron las coordenadas, recargar salas sin distancia
+          if (prevLat !== null || prevLng !== null) {
+            this.reloadSalas();
+          }
         }
         this.cdr.markForCheck(); // 👈 Marca para check manual
       })
@@ -307,8 +315,11 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     if (ciudad) {
       this.filters = { ...this.filters, ciudad };
     } else {
+      // Limpiar filtros y coordenadas cuando se borra la ubicación
       const { ciudad: _c, distancia_km: _d, coordenadas: _coords, ...rest } = this.filters;
       this.filters = { ...rest };
+      this.latUsuario = null;
+      this.lngUsuario = null;
     }
     this.reloadSalas();
     this.cdr.markForCheck(); // 👈 Marca para check manual
