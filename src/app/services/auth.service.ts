@@ -172,6 +172,20 @@ export class AuthService {
   }
 
   /**
+   * Actualizar avatar del usuario
+   */
+  updateAvatar(avatarId: string): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.API_URL}/user/avatar`, {
+      avatar_url: avatarId
+    }).pipe(
+      tap(response => {
+        console.log('✅ Avatar actualizado');
+        this.updateCurrentUser(response.user);
+      })
+    );
+  }
+
+  /**
    * Solicitar recuperación de contraseña
    */
   forgotPassword(email: string): Observable<any> {
@@ -219,7 +233,7 @@ export class AuthService {
   }
 
   // Métodos preparados para login social (implementar después)
-  async loginWithGoogle(): Promise<void> {
+  async loginWithGoogle(): Promise<AuthResponse> {
     try {
       console.log('🔵 Iniciando login con Google...');
       
@@ -240,17 +254,18 @@ export class AuthService {
 
       console.log('✅ Login con Google exitoso:', response.user.email);
       this.saveAuthData(response);
-      await this.router.navigate(['/tabs/tab1']);
+      return response;
     } catch (error: any) {
       console.error('❌ Error en login con Google:', error);
       // Si el usuario canceló, no mostramos error
       if (error.error !== 'popup_closed_by_user' && error.error !== 'POPUP_CLOSED') {
         throw error;
       }
+      throw error;
     }
   }
 
-  async loginWithApple(): Promise<void> {
+  async loginWithApple(): Promise<AuthResponse> {
     try {
       console.log('🍎 Iniciando login con Apple...');
 
@@ -279,13 +294,14 @@ export class AuthService {
 
       console.log('✅ Login con Apple exitoso:', response.user.email);
       this.saveAuthData(response);
-      await this.router.navigate(['/tabs/tab1']);
+      return response;
     } catch (error: any) {
       console.error('❌ Error en login con Apple:', error);
       // Si el usuario canceló, no mostramos error
       if (error.error !== '1001') { // Código de cancelación de Apple
         throw error;
       }
+      throw error;
     }
   }
 }

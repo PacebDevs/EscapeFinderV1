@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService, Usuario } from '../services/auth.service';
-import { AlertController, ToastController, LoadingController } from '@ionic/angular';
+import { AlertController, ToastController, LoadingController, ModalController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
+import { AvatarSelectorComponent } from '../components/avatar-selector/avatar-selector.component';
 
 @Component({
   selector: 'app-tab3',
@@ -21,7 +22,8 @@ export class Tab3Page implements OnInit {
     private authService: AuthService,
     private alertController: AlertController,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -39,6 +41,55 @@ export class Tab3Page implements OnInit {
     if (this.user) {
       this.nombre = this.user.nombre || '';
       this.apellidos = this.user.apellidos || '';
+    }
+  }
+
+  getAvatarPath(): string | null {
+    if (this.user?.avatar_url && this.user.avatar_url !== 'SIN_AVATAR') {
+      return `assets/avatars/${this.user.avatar_url}.png`;
+    }
+    return null;
+  }
+
+  async openAvatarSelector() {
+    const modal = await this.modalController.create({
+      component: AvatarSelectorComponent,
+      componentProps: {
+        currentAvatar: this.user?.avatar_url,
+        isRequired: false
+      },
+      cssClass: 'avatar-selector-modal'
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data) {
+      await this.updateAvatar(data);
+    }
+  }
+
+  async updateAvatar(avatarId: string) {
+    const loading = await this.loadingController.create({
+      message: 'Actualizando avatar...'
+    });
+    await loading.present();
+
+    try {
+      await firstValueFrom(
+        this.authService.updateAvatar(avatarId)
+      );
+      
+      await loading.dismiss();
+      await this.showToast('Avatar actualizado correctamente', 'success');
+      this.loadUserData();
+    } catch (error: any) {
+      await loading.dismiss();
+      console.error('Error actualizando avatar:', error);
+      await this.showToast(
+        error.error?.error || 'Error al actualizar el avatar',
+        'danger'
+      );
     }
   }
 

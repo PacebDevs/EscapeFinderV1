@@ -1,0 +1,51 @@
+<ion-header class="modal-header">
+  <div class="header-content">
+    <h2>{{ isRequired ? 'Elige tu avatar' : 'Cambiar avatar' }}</h2>
+    <ion-icon 
+      *ngIf="!isRequired" 
+      name="close-outline" 
+      class="close-icon" 
+      (click)="dismiss()">
+    </ion-icon>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="avatar-grid">
+    <div 
+      *ngFor="let avatar of avatares" 
+      class="avatar-item"
+      [class.selected]="selectedAvatar === avatar.id"
+      (click)="selectAvatar(avatar.id)">
+      <div class="avatar-wrapper">
+        <img [src]="avatar.path" [alt]="avatar.id" class="avatar-img">
+        <div class="selection-ring"></div>
+        <ion-icon 
+          *ngIf="selectedAvatar === avatar.id" 
+          name="checkmark-circle" 
+          class="check-icon">
+        </ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-container">
+    <ion-button 
+      *ngIf="isRequired"
+      expand="block" 
+      fill="clear"
+      (click)="skipAvatar()"
+      class="skip-btn">
+      Ahora no
+    </ion-button>
+    
+    <ion-button 
+      expand="block" 
+      [disabled]="!selectedAvatar"
+      (click)="confirm()"
+      class="confirm-btn">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      {{ isRequired ? 'Continuar' : 'Guardar' }}
+    </ion-button>
+  </div>
+</ion-content>

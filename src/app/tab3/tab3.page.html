@@ -4,13 +4,14 @@
     <div class="avatar-section">
       <div class="avatar-wrapper">
         <ion-avatar class="avatar">
-          <ion-icon name="person"></ion-icon>
+          <img *ngIf="getAvatarPath()" [src]="getAvatarPath()" alt="Avatar">
+          <ion-icon *ngIf="!getAvatarPath()" name="person"></ion-icon>
         </ion-avatar>
         <ion-button 
           class="avatar-edit-btn" 
           fill="clear" 
           size="small"
-          disabled>
+          (click)="openAvatarSelector()">
           <ion-icon slot="icon-only" name="camera"></ion-icon>
         </ion-button>
       </div>

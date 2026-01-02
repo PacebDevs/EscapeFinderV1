@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
+import { AvatarSelectorComponent } from '../../components/avatar-selector/avatar-selector.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +26,8 @@ export class LoginPage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private alertController: AlertController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -75,6 +78,16 @@ export class LoginPage implements OnInit {
       next: async (response) => {
         await loading.dismiss();
         console.log('✅ Login exitoso, navegando a tabs');
+        console.log('🔍 DEBUG avatar_url:', response.user.avatar_url, 'tipo:', typeof response.user.avatar_url);
+        
+        // Verificar si es primer login (avatar_url === null)
+        if (response.user.avatar_url === null) {
+          console.log('🎭 Mostrando modal de selección de avatar (primer login)');
+          await this.showAvatarSelector(true);
+        } else {
+          console.log('✅ Usuario ya tiene avatar:', response.user.avatar_url);
+        }
+        
         this.router.navigate(['/tabs/tab1']);
       },
       error: async (error) => {
@@ -85,6 +98,33 @@ export class LoginPage implements OnInit {
         this.showAlert('Error', mensaje);
       }
     });
+  }
+
+  /**
+   * Mostrar modal de selección de avatar
+   */
+  async showAvatarSelector(isRequired: boolean = false) {
+    const modal = await this.modalController.create({
+      component: AvatarSelectorComponent,
+      componentProps: {
+        currentAvatar: null,
+        isRequired: isRequired
+      },
+      cssClass: 'avatar-selector-modal',
+      backdropDismiss: !isRequired
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data) {
+      try {
+        await firstValueFrom(this.authService.updateAvatar(data));
+        console.log('✅ Avatar seleccionado:', data);
+      } catch (error) {
+        console.error('❌ Error guardando avatar:', error);
+      }
+    }
   }
 
   /**
@@ -119,8 +159,15 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.loginWithGoogle();
+      const response = await this.authService.loginWithGoogle();
       await loading.dismiss();
+      
+      // Verificar si es primer login (avatar_url === null)
+      if (response.user.avatar_url === null) {
+        await this.showAvatarSelector(true);
+      }
+      
+      this.router.navigate(['/tabs/tab1']);
     } catch (error: any) {
       await loading.dismiss();
       console.error('❌ Error en Google login:', error);
@@ -146,8 +193,15 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.loginWithApple();
+      const response = await this.authService.loginWithApple();
       await loading.dismiss();
+      
+      // Verificar si es primer login (avatar_url === null)
+      if (response.user.avatar_url === null) {
+        await this.showAvatarSelector(true);
+      }
+      
+      this.router.navigate(['/tabs/tab1']);
     } catch (error: any) {
       await loading.dismiss();
       console.error('❌ Error en Apple login:', error);

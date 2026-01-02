@@ -14,6 +14,7 @@ export interface AuthUser {
   estado: string;
   id_empresa: number | null;
   email_verificado?: boolean;
+  avatar_url?: string | null;
 }
 
 // Modelo del estado de autenticación (ahora incluye ubicación)
