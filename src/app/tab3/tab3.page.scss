@@ -25,6 +25,16 @@
       #242424 70%
     );
   }
+
+  .avatar-section {
+    .avatar-wrapper {
+      .avatar {
+        img {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+  }
 }
 
 .profile-container {
@@ -46,12 +56,27 @@
     display: inline-block;
     margin-bottom: 16px;
 
+    --avatar-size: clamp(140px, 34vw, 176px);
+
     .avatar {
-      width: 110px;
-      height: 110px;
-      border: 4px solid var(--ion-color-success);
-      box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
-      background: linear-gradient(135deg, #66bb6a, var(--ion-color-success));
+      width: var(--avatar-size);
+      height: var(--avatar-size);
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      border-radius: 50%;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 0;
+        display: block;
+        transform: scale(1.16);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
 
       ion-icon {
         font-size: 56px;
@@ -66,8 +91,8 @@
       --background: var(--ion-color-success);
       --color: white;
       --border-radius: 50%;
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
     }
   }
