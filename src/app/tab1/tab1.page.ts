@@ -3,6 +3,7 @@ import { Store } from '@ngxs/store';
 import { ModalController, IonContent, AlertController } from '@ionic/angular';
 import { GetSalas, AppendSalas, SalaState, UpdateSala } from '../states/salas/salas.state';
 import { SocketService } from '../services/socket.service';
+import { SalaService } from '../services/sala.service';
 import { FiltersModalComponent } from '../components/filter-modal/filters-modal.component';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { CATEGORIAS } from '../constants/categorias.const';
@@ -11,6 +12,13 @@ import { AuthState } from '../states/auth.state';
 import { filter } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { ChangeDetectionStrategy } from '@angular/core';
+
+interface SearchResultItem {
+  type: 'sala' | 'empresa';
+  id?: number;
+  nombre: string;
+  subtitulo: string;
+}
 
 
 @Component({
@@ -29,9 +37,18 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   private subs: Subscription[] = [];
   private navSub?: Subscription;
+  private searchSub?: Subscription;
+  private searchDebounceTimer?: number;
+
+  searchResults: SearchResultItem[] = [];
+  searchLoading = false;
+  showSearchResults = false;
 
   @ViewChild(IonContent) pageContent!: IonContent;
   @ViewChild('collapsible', { static: false }) collapsibleRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('searchbarShell', { static: false }) searchbarShellRef!: ElementRef<HTMLDivElement>;
+
+  searchDropdownTop = 96;
 
   private latUsuario: number | null = null;
   private lngUsuario: number | null = null;
@@ -60,11 +77,27 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
     private socketService: SocketService,
     private modalCtrl: ModalController,
     private router: Router,
-    private cdr: ChangeDetectorRef, // 👈 Agregado para updates manuales
-    private alertCtrl: AlertController
+    private cdr: ChangeDetectorRef,
+    private alertCtrl: AlertController,
+    private salaService: SalaService
   ) {}
 
   ngOnInit() {
+    // ✅ Monitorear autenticación para limpiar filtros al cerrar sesión
+    this.subs.push(
+      this.store.select(AuthState.isAuthenticated).subscribe(isAuth => {
+        if (!isAuth) {
+          // Limpiar todos los filtros cuando se cierra sesión
+          console.log('🧹 Limpiando filtros por cierre de sesión');
+          this.filters = {};
+          this.categoriasActivas = [];
+          this.latUsuario = null;
+          this.lngUsuario = null;
+          this.cdr.markForCheck();
+        }
+      })
+    );
+
     // ✅ Los observables funcionan bien con OnPush
     this.subs.push(
       this.salas$.subscribe(salas => {
@@ -179,8 +212,13 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.navSub?.unsubscribe();
+    this.searchSub?.unsubscribe();
     this.subs.forEach(s => s.unsubscribe());
     this.socketService.disconnect();
+    if (this.searchDebounceTimer) {
+      window.clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = undefined;
+    }
     if (this.ro) { 
       try { this.ro.disconnect(); } catch {} 
       this.ro = undefined; 
@@ -189,6 +227,11 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   // ===== Scroll handling =====
   onScroll(ev: any) {
+    if (this.showSearchResults) {
+      this.showSearchResults = false;
+      this.cdr.markForCheck();
+    }
+
     if (!this.maxCollapse) return;
 
     const y = ev?.detail?.scrollTop ?? 0;
@@ -313,16 +356,172 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   onCiudadSeleccionada(ciudad: string | null) {
     if (ciudad) {
-      this.filters = { ...this.filters, ciudad };
+      this.filters = { ciudad };  // reset completo; solo queda la nueva ciudad
     } else {
-      // Limpiar filtros y coordenadas cuando se borra la ubicación
-      const { ciudad: _c, distancia_km: _d, coordenadas: _coords, ...rest } = this.filters;
-      this.filters = { ...rest };
+      this.filters = {};
       this.latUsuario = null;
       this.lngUsuario = null;
     }
+    this.categoriasActivas = [];
+    this.searchResults = [];
+    this.showSearchResults = false;
     this.reloadSalas();
-    this.cdr.markForCheck(); // 👈 Marca para check manual
+    this.cdr.markForCheck();
+  }
+
+  onSearchInput(event?: any) {
+    const value = (event?.detail?.value ?? this.filters.query ?? '').toString().trim();
+    this.filters.query = value;
+    this.cdr.markForCheck();
+
+    if (this.searchDebounceTimer) {
+      window.clearTimeout(this.searchDebounceTimer);
+    }
+
+    if (!value) {
+      this.searchResults = [];
+      this.searchLoading = false;
+      this.showSearchResults = false;
+      this.filters = { ...this.filters, query: undefined };
+      this.reloadSalas();
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.updateSearchDropdownTop();
+
+    this.searchDebounceTimer = window.setTimeout(() => {
+      this.buscarSugerencias(value);
+    }, 250);
+  }
+
+  onSearchClear() {
+    this.filters = { ...this.filters, query: undefined };
+    this.searchResults = [];
+    this.searchLoading = false;
+    this.showSearchResults = false;
+    this.reloadSalas();
+    this.cdr.markForCheck();
+  }
+
+  private updateSearchDropdownTop() {
+    const shell = this.searchbarShellRef?.nativeElement;
+    if (shell) {
+      const rect = shell.getBoundingClientRect();
+      this.searchDropdownTop = rect.bottom + 6;
+    }
+  }
+
+  private buscarSugerencias(query: string) {
+    this.searchLoading = true;
+    this.showSearchResults = true;
+    this.cdr.markForCheck();
+
+    this.searchSub?.unsubscribe();
+
+    const filtros: any = {
+      query,
+      offset: 0,
+      limit: 8
+    };
+
+    // Coordenadas para ordenar por distancia; sin ciudad para buscar en toda la BD
+    if (this.latUsuario != null) filtros.lat = this.latUsuario;
+    if (this.lngUsuario != null) filtros.lng = this.lngUsuario;
+
+    this.searchSub = this.salaService.getSalas(filtros).subscribe({
+      next: (salas) => {
+        this.searchResults = this.buildSearchResults(salas, query);
+        this.searchLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.searchResults = [];
+        this.searchLoading = false;
+        this.showSearchResults = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private buildSearchResults(salas: any[], query: string): SearchResultItem[] {
+    const normalizedQuery = query.trim().toLowerCase();
+    const empresas = new Map<string, SearchResultItem>();
+    const salasResult: SearchResultItem[] = [];
+
+    salas.forEach((sala) => {
+      const nombreSala = (sala.nombre || 'Sin nombre').trim();
+      const empresa = (sala.empresa || sala.nombre_local || '').trim();
+      const ciudad = sala.ciudad || 'Sin ciudad';
+
+      if (this.scoreMatch(nombreSala, normalizedQuery) > 0) {
+        salasResult.push({
+          type: 'sala',
+          id: sala.id_sala,
+          nombre: nombreSala,
+          subtitulo: [empresa, ciudad].filter(Boolean).join(' • ')
+        });
+      }
+
+      if (empresa && this.scoreMatch(empresa, normalizedQuery) > 0) {
+        const key = empresa.toLowerCase();
+        if (!empresas.has(key)) {
+          empresas.set(key, {
+            type: 'empresa',
+            nombre: empresa,
+            subtitulo: ciudad
+          });
+        }
+      }
+    });
+
+    const allResults = [...Array.from(empresas.values()), ...salasResult];
+    return allResults
+      .sort((a, b) => this.compareResults(a, b, normalizedQuery))
+      .slice(0, 8);
+  }
+
+  private scoreMatch(value: string, query: string): number {
+    const normalized = (value || '').trim().toLowerCase();
+    if (!normalized || !query) return 0;
+    if (normalized === query) return 100;
+    if (normalized.startsWith(query)) return 80;
+    if (normalized.includes(query)) return 60;
+    return 0;
+  }
+
+  private compareResults(a: SearchResultItem, b: SearchResultItem, query: string): number {
+    const scoreA = this.scoreMatch(a.nombre, query) + (a.type === 'empresa' ? 5 : 0);
+    const scoreB = this.scoreMatch(b.nombre, query) + (b.type === 'empresa' ? 5 : 0);
+    if (scoreA !== scoreB) return scoreB - scoreA;
+    return a.nombre.localeCompare(b.nombre);
+  }
+
+  seleccionarResultado(item: SearchResultItem) {
+    this.searchResults = [];
+    this.searchLoading = false;
+    this.showSearchResults = false;
+
+    // Búsqueda global sin ciudad → filtro resultante tampoco lleva ciudad
+    this.categoriasActivas = [];
+    this.cdr.markForCheck();
+
+    void Haptics.impact({ style: ImpactStyle.Light });
+
+    if (item.type === 'sala' && item.id != null) {
+      this.filters = {};
+      this.router.navigate(['/sala-detalle', item.id]);
+      return;
+    }
+
+    this.filters = { query: item.nombre };
+    this.reloadSalas();
+  }
+
+  cerrarResultadosBusqueda() {
+    this.showSearchResults = false;
+    this.searchLoading = false;
+    this.cdr.markForCheck();
   }
 
   aplicaFiltros(sala: any): boolean {
@@ -450,7 +649,7 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get filtrosActivos(): number {
-    const { ciudad, query, ...rest } = this.filters;
+    const { ciudad, query, lat, lng, ...rest } = this.filters;
     let total = 0;
     Object.values(rest).forEach(value => {
       if (Array.isArray(value)) {

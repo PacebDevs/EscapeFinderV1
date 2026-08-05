@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generated_at": "2026-01-04T00:00:00Z",
+    "description": "Mapping para script de scraping -> Excel/DB. Define hojas, columnas, tipos y reglas especiales (precios)."
+  },
+  "sheets": {
+    "salas": {
+      "description": "Fila por sala. Datos principales de la sala.",
+      "columns": {
+        "id_sala": {"type":"integer","nullable":true,"notes":"Dejar vacío para autoincrement. Si se proporciona, script intentará usar/upsert."},
+        "id_local": {"type":"integer","nullable":false,"notes":"FK a tabla local. Si no existe, opcional crear local previo."},
+        "id_tipo_reserva": {"type":"integer","nullable":true},
+        "nombre": {"type":"string","nullable":false,"maxLength":100},
+        "descripcion": {"type":"text","nullable":true},
+        "tiempo": {"type":"string","nullable":true,"maxLength":20,"notes":"Formato libre (ej: '60 min', '1h')."},
+        "jugadores_min": {"type":"integer","nullable":true},
+        "jugadores_max": {"type":"integer","nullable":true},
+        "actores": {"type":"boolean","nullable":true,"accepted_values":["true","false",1,0]},
+        "experiencia_por_jugador": {"type":"text","nullable":true},
+        "cover_url": {"type":"string","nullable":true,"maxLength":512},
+        "dificultad": {"type":"enum","values":["Facil","Media","Alta"],"nullable":true},
+        "descripcion_corta": {"type":"text","nullable":true},
+        "reserva_url": {"type":"string","nullable":true,"maxLength":512,"notes":"URL para reservar (nuevo campo)."}
+      },
+      "scrape_notes": "Obtener nombre, descripcion, jugadores min/max, tiempo, dificultad, cover_url y reserva_url cuando la web lo presente. id_local debe resolverse por negocio/empresa y ubicación."
+    },
+
+    "direcciones": {
+      "description":"Dirección asociada al local de la sala. Puede venir en la misma página de la sala o en la página del local.",
+      "columns": {
+        "id_direccion": {"type":"integer","nullable":true},
+        "id_local": {"type":"integer","nullable":false},
+        "tipo_via": {"type":"string","nullable":true,"maxLength":50},
+        "nombre_via": {"type":"string","nullable":true,"maxLength":100},
+        "numero": {"type":"string","nullable":true,"maxLength":50},
+        "ampliacion": {"type":"string","nullable":true,"maxLength":50},
+        "codigo_postal": {"type":"string","nullable":true,"maxLength":10},
+        "ciudad": {"type":"string","nullable":true,"maxLength":100},
+        "codigo_google": {"type":"string","nullable":true,"maxLength":100,"notes":"place_id si se obtiene"},
+        "latitud": {"type":"float","nullable":true},
+        "longitud": {"type":"float","nullable":true}
+      },
+      "scrape_notes":"Priorizar lat/lng si están disponibles. Si solo hay texto de dirección, dejar campos separados (tipo_via,nombre_via,numero,ampliacion)." 
+    },
+
+    "precios": {
+      "description":"Cada fila representa un precio para un número de jugadores específico. Esta hoja es crítica y el script aplicará reglas estrictas.",
+      "columns": {
+        "id_sala": {"type":"integer","nullable":false},
+        "jugadores": {"type":"integer","nullable":false,"min":1},
+        "price_total": {"type":"decimal","nullable":false,"precision":10,"scale":2},
+        "source": {"type":"string","nullable":true,"notes":"origen del precio (web, scrapped, manual)"},
+        "nota": {"type":"text","nullable":true}
+      },
+      "scrape_notes": [
+        "Obtener precio total por número de jugadores (ej: '120€ para 4 jugadores' => jugadores=4, price_total=120.00).",
+        "No incluir símbolo de moneda en el CSV/XLSX final; si existe, el script lo limpiará.",
+        "Si la web solo muestra precio por persona y no total, convertir price_total = price_per_person * jugadores cuando sea posible y documentarlo en 'source'.",
+        "Detectar y reportar duplicados de 'jugadores' por id_sala; política por defecto: abortar la carga de esa sala y devolver error para corrección manual.",
+        "Formato aceptado: '120', '120.5', '120,50', '120 €' — el importer normaliza comas a punto y elimina símbolos." 
+      ],
+      "rules": {
+        "compute_price_per_player": "En la base de datos la columna price_per_player es GENERATED; el importador solo inserta (id_sala, players, price_total, source). La DB calculará price_per_player = round(price_total/players, 2).",
+        "validation": "jugadores > 0; price_total >= 0; no duplicados players per id_sala",
+        "decimal_parsing": "Reemplazar ',' por '.' y eliminar caracteres no numéricos excepto '.' y '-'. Luego parsear como Decimal con 2 decimales."
+      }
+    },
+
+    "precios_rango": {
+      "description":"Resumen min/max de precios por sala. Opcional: si no se provee, se calculará desde 'precios'.",
+      "columns": {
+        "id_sala": {"type":"integer","nullable":false},
+        "min_total": {"type":"decimal","nullable":true,"precision":10,"scale":2},
+        "max_total": {"type":"decimal","nullable":true,"precision":10,"scale":2},
+        "min_pp": {"type":"decimal","nullable":true,"precision":10,"scale":2},
+        "max_pp": {"type":"decimal","nullable":true,"precision":10,"scale":2},
+        "source": {"type":"string","nullable":true}
+      },
+      "rules": {
+        "fallback_calculation": "Si las columnas están vacías, el importador calculará: min_total = MIN(price_total), max_total = MAX(price_total), min_pp = MIN(round(price_total/players,2)), max_pp = MAX(round(price_total/players,2)) desde la hoja 'precios' para el id_sala."
+      }
+    },
+
+    "imagenes": {
+      "description":"URLs de imágenes asociadas a la sala.",
+      "columns": {
+        "id_sala_imagen": {"type":"integer","nullable":true},
+        "id_sala": {"type":"integer","nullable":false},
+        "tipo": {"type":"string","nullable":false,"notes":"cover, gallery, thumbnail, etc."},
+        "image_url": {"type":"string","nullable":false,"maxLength":512},
+        "created_at": {"type":"timestamp","nullable":true}
+      },
+      "scrape_notes":"Preferir URLs absolutas. Si la web entrega rutas relativas, convertir a absolutas usando la base de la web." 
+    },
+
+    "categorias": {
+      "description":"Listado de categorías disponibles (si las creas desde scraping).",
+      "columns": {"id_categoria": {"type":"integer","nullable":true},"nombre": {"type":"string","nullable":false}}
+    },
+
+    "sala_categoria": {
+      "description":"Asignación sala -> categoria.",
+      "columns": {"id_sala": {"type":"integer","nullable":false},"id_categoria": {"type":"integer","nullable":false}}
+    },
+
+    "idiomas": {
+      "description":"Listado de idiomas.",
+      "columns": {"id_idioma": {"type":"integer","nullable":true},"nombre": {"type":"string","nullable":false}}
+    },
+
+    "sala_idioma": {
+      "description":"Asignación sala -> idioma.",
+      "columns": {"id_sala": {"type":"integer","nullable":false},"id_idioma": {"type":"integer","nullable":false}}
+    },
+
+    "caracteristicas": {
+      "description":"Características con tipo (accesibilidad/restriccion/publico_objetivo).",
+      "columns": {
+        "id_caracteristica": {"type":"integer","nullable":true},
+        "nombre": {"type":"string","nullable":false},
+        "tipo": {"type":"enum","values":["accesibilidad","restriccion","publico_objetivo"],"nullable":false},
+        "descripcion": {"type":"text","nullable":true}
+      }
+    },
+
+    "sala_caracteristica": {
+      "description":"Valor booleano 'es_apta' para cada caracteristica por sala.",
+      "columns": {"id_sala": {"type":"integer","nullable":false},"id_caracteristica": {"type":"integer","nullable":false},"es_apta": {"type":"boolean","nullable":false}}
+    }
+  },
+
+  "caracteristicas_defaults": [
+    { "nombre": "Apto Discapacidad motora", "tipo": "accesibilidad", "default_es_apta": false, "scrape": false, "note": "Por defecto todas las salas NO serán aptas." },
+    { "nombre": "Apto Discapacidad visual", "tipo": "accesibilidad", "default_es_apta": false, "scrape": false, "note": "Por defecto todas las salas NO serán aptas." },
+    { "nombre": "Apto Discapacidad auditiva", "tipo": "accesibilidad", "default_es_apta": false, "scrape": false, "note": "Por defecto todas las salas NO serán aptas." },
+    { "nombre": "Apto para mujeres embarazadas", "tipo": "restriccion", "default_es_apta": true, "scrape": false, "note": "Por defecto todas las salas SÍ serán aptas para embarazadas." },
+    { "nombre": "Apto para personas con claustrofobia", "tipo": "restriccion", "default_es_apta": true, "scrape": false, "note": "Por defecto todas las salas SÍ serán aptas." },
+    { "nombre": "Niños con adulto", "tipo": "publico_objetivo", "default_es_apta": false, "scrape": false, "note": "Por defecto todas las salas NO serán aptas." },
+    { "nombre": "Niños con Monitor", "tipo": "publico_objetivo", "default_es_apta": false, "scrape": false, "note": "Por defecto todas las salas NO serán aptas." },
+    { "nombre": "Empresas", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
+    { "nombre": "Grandes grupos", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
+    { "nombre": "Estandar", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
+    { "nombre": "Familiar", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
+    { "nombre": "Grupos grandes", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
+    { "nombre": "Niños", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." }
+  ],
+
+  "notes": {
+    "overall": [
+      "El script sólo necesita scrapear datos relacionados con salas, empresas/locales y precios. No scrapees usuarios, favoritos ni datos sensibles.",
+      "Priorizar datos que permitan enlazar: nombre_empresa + ciudad + dirección para localizar el 'local' y obtener/crear id_local.",
+      "Todas las inserciones deben realizarse dentro de transacciones y con validaciones; rollback parcial si hay error en la sala.",
+      "Para precios: evitar inferencias arriesgadas. Si la web da solo precio por persona y no número de jugadores, el script debería guardar en 'precios' un registro con jugadores=NULL o marcar en 'source' que es 'pp_only' y dejar price_total calculado solo si se puede inferir razonablemente con jugadores estándar (no recomendado). Mejor: dejar campo price_total vacío y anotar en 'nota' que solo hay precio pp.",
+      "El mapping distingue claramente: hojas obligatorias para importar correctamente: 'salas', 'precios'. Otras hojas recomendadas: 'direcciones','imagenes','categorias','sala_categoria','idiomas','sala_idioma','caracteristicas','sala_caracteristica','precios_rango'."
+    ],
+    "price_edge_cases": [
+      "Si la web muestra 'desde X €' -> registrar price_total = X y 'source'='desde'.",
+      "Si la web muestra rangos (ej: '100-140 € para 4-6 jugadores') -> preferir descomponer en múltiples filas en 'precios' si es posible; si no, guardar en 'precios_rango' y en 'nota' indicar la ambigüedad.",
+      "Si el precio incluye impuestos o comisiones visibles, extraer both: base_price y final_price si están disponibles; si solo hay final_price, usarlo como price_total y documentarlo en 'source'."
+    ]
+  }
+}

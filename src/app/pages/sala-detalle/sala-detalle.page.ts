@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { App } from '@capacitor/app';
 
 @Component({
@@ -176,8 +177,34 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     });
   }
 
-  get tienePrecioPP(): boolean {
-    return !!(this.sala?.precio_min_pp || this.sala?.precio_max_pp || (this.sala?.precios_por_jugadores?.length));
+  get tienePrecio(): boolean {
+    const sala = this.sala;
+    return !!(
+      sala && (
+        sala.precio_min_pp != null ||
+        sala.precio_max_pp != null ||
+        sala.precio_min_total != null ||
+        sala.precio_max_total != null ||
+        sala.precios_por_jugadores?.length
+      )
+    );
+  }
+
+  get reservaUrl(): string | null {
+    const s = this.sala;
+    if (!s) return null;
+
+    const candidates = [
+      s.reserva_url,
+      (s as any).url_reserva,
+      (s as any).enlace_reserva,
+      (s as any).web_reserva,
+      (s as any).website,
+      (s as any).web,
+      (s as any).url
+    ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+
+    return candidates[0] ?? null;
   }
 
   trackByUrl(_i: number, u: string) { return u; }
@@ -220,6 +247,34 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     if (n.includes('visual') || n.includes('visión') || n.includes('ciego')) return 'eye-outline';
     if (n.includes('movilidad') || n.includes('rueda')) return 'accessibility-outline';
     return 'accessibility-outline';
+  }
+
+  private normalizeUrl(url: string): string {
+    const value = url.trim();
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value) || /^mailto:/i.test(value)) return value;
+    if (value.startsWith('//')) return `https:${value}`;
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) return value;
+    return `https://${value}`;
+  }
+
+  async reservarAventura(event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const url = this.reservaUrl;
+    const targetUrl = this.normalizeUrl(url || `https://www.google.com/search?q=${encodeURIComponent(`${this.sala?.nombre || ''} ${this.sala?.empresa || ''} reserva`)}`);
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Browser.open({ url: targetUrl, presentationStyle: 'popover' });
+      } else {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('No se pudo abrir la reserva', error);
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
   }
 
   async abrirEnMapas(event?: Event) {

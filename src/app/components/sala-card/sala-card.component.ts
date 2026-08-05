@@ -172,21 +172,27 @@ export class SalaCardComponent implements OnInit, OnDestroy, OnChanges {
     return `${km.toFixed(1)} km`;
   }
 
-  // NUEVA FUNCIÓN para formatear el rango de precios
-  formatPrecio(min?: number, max?: number): string {
-    if (min && max) {
-      if (min === max) {
-        return `${min}€`;
-      }
-      return `${min}€ - ${max}€`;
+  formatPrecio(
+    min?: number | string | null,
+    max?: number | string | null
+  ): string {
+    const minValue = this.normalizarPrecio(min);
+    const maxValue = this.normalizarPrecio(max);
+
+    if (minValue !== null && maxValue !== null) {
+      return minValue === maxValue
+        ? `${minValue}€`
+        : `${minValue}€ - ${maxValue}€`;
     }
-    if (min) {
-      return `${min}€`;
-    }
-    if (max) {
-      return `${max}€`;
-    }
+    if (minValue !== null) return `${minValue}€`;
+    if (maxValue !== null) return `${maxValue}€`;
     return 'N/A';
+  }
+
+  private normalizarPrecio(value?: number | string | null): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
  

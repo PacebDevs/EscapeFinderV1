@@ -48,9 +48,15 @@
     <!-- Fila Inferior: Precio y Distancia -->
     <div class="chip-row chip-row-bottom">
       <!-- Chip de Precio -->
-      <div class="chip chip-precio" *ngIf="sala.precio_min_pp">
+      <div class="chip chip-precio"
+           *ngIf="sala.precio_min_pp != null || sala.precio_max_pp != null || sala.precio_min_total != null || sala.precio_max_total != null">
         <ion-icon name="cash-outline"></ion-icon>
-        <span>Desde {{ sala.precio_min_pp }}€ por persona</span>
+        <span *ngIf="sala.tipo_precio === 'por_persona' || sala.precio_min_pp != null || sala.precio_max_pp != null; else precioTotal">
+          {{ formatPrecio(sala.precio_min_pp, sala.precio_max_pp) }} por persona
+        </span>
+        <ng-template #precioTotal>
+          <span>{{ formatPrecio(sala.precio_min_total, sala.precio_max_total) }} total</span>
+        </ng-template>
       </div>
       <!-- Chip de Distancia -->
       <div class="chip" *ngIf="sala.distancia_km !== null && sala.distancia_km !== undefined">

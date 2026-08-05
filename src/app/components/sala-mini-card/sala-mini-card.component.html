@@ -18,7 +18,7 @@
       *ngIf="
         sala?.categoria?.length ||
         sala?.dificultad ||
-        sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined ||
+        precioLabel ||
         sala?.distancia_km !== null && sala?.distancia_km !== undefined
       "
     >
@@ -28,8 +28,8 @@
       <div class="chip chip-dificultad" *ngIf="sala?.dificultad">
         {{ sala?.dificultad }}
       </div>
-      <div class="chip chip-precio" *ngIf="sala?.precio_min_pp !== null && sala?.precio_min_pp !== undefined">
-       {{ sala?.precio_min_pp | number: '1.0-0' }} €/pp
+      <div class="chip chip-precio" *ngIf="precioLabel as precio">
+       {{ precio }}
       </div>
       <div class="chip chip-distancia" *ngIf="sala?.distancia_km !== null && sala?.distancia_km !== undefined">
         {{ sala?.distancia_km | number: '1.0-1' }} km

@@ -117,15 +117,27 @@
 
 
     <!-- Precio -->
-    <section class="section pricing-section" *ngIf="tienePrecioPP">
-      <div class="price-range-header" *ngIf="sala.precio_min_pp || sala.precio_max_pp">
+    <section class="section pricing-section" *ngIf="tienePrecio">
+      <div class="price-range-header" *ngIf="sala.precio_min_pp != null || sala.precio_max_pp != null">
         <div class="price-pill min">
-          <span class="label">Mín</span>
+          <span class="label">Mín €/persona</span>
           <span class="value">{{ sala.precio_min_pp || sala.precio_max_pp }} €</span>
         </div>
         <div class="price-pill max">
-          <span class="label">Máx</span>
+          <span class="label">Máx €/persona</span>
           <span class="value">{{ sala.precio_max_pp || sala.precio_min_pp }} €</span>
+        </div>
+      </div>
+
+      <div class="price-range-header"
+           *ngIf="sala.precio_min_pp == null && sala.precio_max_pp == null && (sala.precio_min_total != null || sala.precio_max_total != null)">
+        <div class="price-pill min">
+          <span class="label">Mín total</span>
+          <span class="value">{{ sala.precio_min_total || sala.precio_max_total }} €</span>
+        </div>
+        <div class="price-pill max">
+          <span class="label">Máx total</span>
+          <span class="value">{{ sala.precio_max_total || sala.precio_min_total }} €</span>
         </div>
       </div>
 
@@ -222,7 +234,7 @@
 
 <ion-footer class="footer-reserva">
   <ion-toolbar>
-    <ion-button expand="block" color="success" size="large">
+    <ion-button expand="block" color="success" size="large" (click)="reservarAventura($event)">
       ¡Reservar tu aventura!
     </ion-button>
   </ion-toolbar>

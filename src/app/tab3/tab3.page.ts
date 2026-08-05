@@ -182,8 +182,8 @@ export class Tab3Page implements OnInit {
         },
         {
           text: 'Cerrar Sesión',
-          handler: () => {
-            this.authService.logout();
+          handler: async () => {
+            await this.authService.logout();
           }
         }
       ]

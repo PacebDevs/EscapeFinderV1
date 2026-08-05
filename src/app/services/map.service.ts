@@ -13,7 +13,11 @@ export interface SalaPinDTO {
   longitud: number | null;
   ciudad: string | null;
   cover_url: string | null;
-  precio_min_pp: number | null;
+  precio_min_pp: number | string | null;
+  precio_max_pp: number | string | null;
+  precio_min_total: number | string | null;
+  precio_max_total: number | string | null;
+  tipo_precio: 'por_persona' | 'total' | null;
   distancia_km?: number | null;
   tipo_via?: string | null;
   nombre_via?: string | null;

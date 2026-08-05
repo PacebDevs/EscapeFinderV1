@@ -45,6 +45,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   private queryChanged = new Subject<string>();
   private querySub?: Subscription;
+  private ubicacionSub?: Subscription;
 
   // Cambia a handles reales (no Promises)
   private kbShowSub?: PluginListenerHandle;
@@ -61,27 +62,38 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const ubicacion = this.store.selectSnapshot(AuthState.ubicacion);
-    if (ubicacion?.ciudad) {
+    // Suscribirse a cambios de ubicación para actualizar en tiempo real
+    this.ubicacionSub = this.store.select(AuthState.ubicacion).subscribe(ubicacion => {
+      if (!ubicacion || !ubicacion.ciudad) {
+        // Si no hay ubicación, limpiar todo
+        this.ciudadActual = null;
+        this.direccionActual = null;
+        this.calleNumero = null;
+        this.direccionCompacta = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      // Actualizar con la nueva ubicación
       this.ciudadActual = ubicacion.ciudad;
-    }
+      this.direccionActual = ubicacion.direccion ?? null;
 
-    if (ubicacion?.direccion) {
-      this.direccionActual = ubicacion.direccion;
-    }
+      if (ubicacion.direccionCompacta) {
+        this.calleNumero = ubicacion.direccionCompacta;
+      } else if (ubicacion.direccion) {
+        this.updateCalleNumeroFromDireccion({
+          direccion: ubicacion.direccion,
+          ciudad: ubicacion.ciudad,
+          lat: ubicacion.lat ?? null,
+          lng: ubicacion.lng ?? null
+        } as any as UbicacionResultado);
+      } else {
+        this.calleNumero = '(Centro)';
+      }
 
-    if (ubicacion?.direccionCompacta) {
-      this.calleNumero = ubicacion.direccionCompacta;
-    } else if (ubicacion?.direccion) {
-      this.updateCalleNumeroFromDireccion({
-        direccion: ubicacion.direccion,
-        ciudad: ubicacion.ciudad || null,
-        lat: ubicacion.lat ?? null,
-        lng: ubicacion.lng ?? null
-      } as any as UbicacionResultado);
-    } else if (this.ciudadActual) {
-      this.calleNumero = '(Centro)';
-    }
+      setTimeout(() => this.ajustarTamanoDireccion(), 0);
+      this.cdr.detectChanges();
+    });
 
     setTimeout(() => this.ajustarTamanoDireccion(), 0);
 
@@ -147,6 +159,7 @@ export class DireccionPickerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.querySub?.unsubscribe();
+    this.ubicacionSub?.unsubscribe();
     // remove() devuelve Promise; no es necesario await aquí
     this.kbShowSub?.remove();
     this.kbHideSub?.remove();

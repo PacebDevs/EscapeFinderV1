@@ -105,10 +105,13 @@ export class AuthService {
   /**
    * Cierra sesión y limpia el store NGXS
    */
-  logout() {
+  async logout() {
     console.log('👋 Cerrando sesión');
-    this.store.dispatch(new ClearAuthData());
-    this.store.dispatch(new ClearFavoritos());
+    // Esperar a que se limpien los datos antes de navegar
+    await Promise.all([
+      this.store.dispatch(new ClearAuthData()).toPromise(),
+      this.store.dispatch(new ClearFavoritos()).toPromise()
+    ]);
     this.router.navigate(['/login']);
   }
 
@@ -208,9 +211,9 @@ export class AuthService {
    */
   deleteAccount(): Observable<any> {
     return this.http.delete(`${this.API_URL}/user/account`).pipe(
-      tap(response => {
+      tap(async response => {
         console.log('🗑️ Cuenta eliminada');
-        this.logout();
+        await this.logout();
       })
     );
   }

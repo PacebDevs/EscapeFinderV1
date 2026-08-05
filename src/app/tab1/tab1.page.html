@@ -1,3 +1,25 @@
+<!-- Dropdown fuera del ion-content para no ser recortado por el scroll -->
+<div class="search-dropdown-portal"
+     [style.top.px]="searchDropdownTop"
+     *ngIf="showSearchResults && (searchLoading || searchResults.length > 0)">
+  <div class="search-results__loading" *ngIf="searchLoading">
+    Buscando coincidencias...
+  </div>
+  <button
+    type="button"
+    class="search-result-item"
+    *ngFor="let item of searchResults"
+    (mousedown)="seleccionarResultado(item)">
+    <div class="search-result-item__icon" [class.is-company]="item.type === 'empresa'">
+      <ion-icon [name]="item.type === 'empresa' ? 'business-outline' : 'cube-outline'"></ion-icon>
+    </div>
+    <div class="search-result-item__body">
+      <span class="search-result-item__title">{{ item.nombre }}</span>
+      <span class="search-result-item__subtitle">{{ item.subtitulo }}</span>
+    </div>
+  </button>
+</div>
+
 <ion-content #pageContent scrollEvents="true" (ionScroll)="onScroll($event)">
 
   <!-- Overlay transparente que impide el scroll (touch + wheel) cuando no hay salas -->
@@ -12,14 +34,18 @@
         </div>
 
         <div class="searchbar-con-boton">
-          <ion-searchbar
-            placeholder="Buscar sala o empresa..."
-            [(ngModel)]="filters.query"
-            (ionInput)="reloadSalas()"
-            debounce="300"
-            showCancelButton="never"
-            animated>
-          </ion-searchbar>
+          <div class="searchbar-shell" #searchbarShell>
+            <ion-searchbar
+              placeholder="Buscar sala o empresa..."
+              [(ngModel)]="filters.query"
+              (ionInput)="onSearchInput($event)"
+              (ionClear)="onSearchClear()"
+              (ionBlur)="cerrarResultadosBusqueda()"
+              debounce="300"
+              showCancelButton="never"
+              animated>
+            </ion-searchbar>
+          </div>
 
           <ion-button fill="clear" size="small" class="btn-filtros" (click)="openFilters()">
             <ion-icon name="options-outline"></ion-icon>

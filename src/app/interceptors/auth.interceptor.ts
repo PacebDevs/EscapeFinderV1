@@ -36,7 +36,8 @@ export class AuthInterceptor implements HttpInterceptor {
         // Si el servidor responde 401, el token es inválido o expiró
         if (error.status === 401) {
           console.log('❌ Token inválido/expirado - Cerrando sesión');
-          this.authService.logout();
+          // Ejecutar logout de forma asíncrona sin bloquear el error
+          this.authService.logout().catch(e => console.error('Error en logout:', e));
         }
         return throwError(() => error);
       })

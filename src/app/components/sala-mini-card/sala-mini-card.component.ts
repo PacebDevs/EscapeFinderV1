@@ -18,6 +18,19 @@ export class SalaMiniCardComponent implements OnChanges{
   @Output() focusSala = new EventEmitter<number>();
 
   imageSrc = 'assets/placeholder.jpg';
+
+  get precioLabel(): string | null {
+    const sala = this.sala;
+    if (!sala) return null;
+
+    if (sala.tipo_precio === 'por_persona' || sala.precio_min_pp != null || sala.precio_max_pp != null) {
+      const rango = this.formatPrecio(sala.precio_min_pp, sala.precio_max_pp);
+      return rango ? `${rango} €/persona` : null;
+    }
+
+    const rango = this.formatPrecio(sala.precio_min_total, sala.precio_max_total);
+    return rango ? `${rango} € total` : null;
+  }
   
   get direccionLabel(): string | null {
     const sala = this.sala;
@@ -62,6 +75,26 @@ export class SalaMiniCardComponent implements OnChanges{
     const base = environment.imageURL.replace(/\/$/, '');
     const path = cover.replace(/^\//, '');
     this.imageSrc = `${base}/${path}`;
+  }
+
+  private formatPrecio(
+    min: number | string | null,
+    max: number | string | null
+  ): string | null {
+    const minValue = this.normalizarPrecio(min);
+    const maxValue = this.normalizarPrecio(max);
+    if (minValue !== null && maxValue !== null) {
+      return minValue === maxValue ? `${minValue}` : `${minValue}-${maxValue}`;
+    }
+    if (minValue !== null) return `${minValue}`;
+    if (maxValue !== null) return `${maxValue}`;
+    return null;
+  }
+
+  private normalizarPrecio(value: number | string | null): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   onClick(): void {

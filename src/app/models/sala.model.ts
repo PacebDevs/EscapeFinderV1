@@ -35,6 +35,9 @@ export interface Sala {
   distancia_km?: number | null;
   precio_min_pp?: string | null;
   precio_max_pp?: string | null;
+  precio_min_total?: string | null;
+  precio_max_total?: string | null;
+  tipo_precio?: 'por_persona' | 'total' | null;
   nombre_local?: string | null;
 
   // Derivados solo en front
@@ -56,6 +59,7 @@ export interface Sala {
   // Empresa / reserva
   empresa?: string | null;
   tipo_reserva?: string | null;
+  reserva_url?: string | null;
 
   // Listas
   categorias?: string[];
