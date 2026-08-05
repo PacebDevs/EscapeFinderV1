@@ -540,6 +540,14 @@ export class Tab1Page implements OnInit, OnDestroy, AfterViewInit {
 
   private getFiltros(offset: number): any {
     const filtros = { ...this.filters, offset, limit: this.limit };
+
+    const jugadores = Number(filtros.jugadores);
+    if (!Number.isInteger(jugadores) || jugadores <= 0) {
+      delete filtros.jugadores;
+      delete filtros.precio;
+    } else {
+      filtros.jugadores = jugadores;
+    }
     
     // ✅ Siempre enviar coordenadas si el usuario tiene ubicación
     if (this.latUsuario != null && this.lngUsuario != null) {

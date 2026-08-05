@@ -142,7 +142,6 @@
     { "nombre": "Grandes grupos", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
     { "nombre": "Estandar", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
     { "nombre": "Familiar", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
-    { "nombre": "Grupos grandes", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." },
     { "nombre": "Niños", "tipo": "publico_objetivo", "default_es_apta": null, "scrape": false, "note": "Sin restricción de aptitud por defecto." }
   ],
 

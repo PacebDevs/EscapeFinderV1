@@ -144,12 +144,14 @@
       <div class="pp-table" *ngIf="sala.precios_por_jugadores?.length">
         <div class="pp-row header">
           <span>Jugadores</span>
+          <span>Precio total</span>
           <span>€/persona</span>
         </div>
         <div class="pp-row"
              *ngFor="let p of (priceTableExpanded ? sala.precios_por_jugadores : (sala.precios_por_jugadores | slice:0:6))">
           <span>{{ p.jugadores }}</span>
-          <span>{{ p.pp }}</span>
+          <span>{{ p.total }} €</span>
+          <span>{{ p.pp }} €</span>
         </div>
       </div>
 

@@ -75,6 +75,10 @@ export class MapaPage implements OnInit, AfterViewInit, OnDestroy {
 
         f.jugadores = toNum(qp.jugadores);
         f.precio = toNum(qp.precio);
+        if (!Number.isInteger(f.jugadores) || (f.jugadores as number) <= 0) {
+          f.jugadores = null;
+          f.precio = null;
+        }
         f.distancia_km = toNum(qp.distancia_km);
 
         f.lat = qp.lat !== undefined ? (typeof qp.lat === 'string' ? Number(qp.lat) : qp.lat) : null;

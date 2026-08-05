@@ -8,8 +8,8 @@ export const environment = {
  //apiUrl: 'http://192.168.1.135:3000/api',
 //imageURL: 'http://192.168.1.135:3000/', 
 //Internet
-//apiUrl: 'https://zealand-spotlight-atlantic-intended.trycloudflare.com/api',
-//imageURL: 'https://zealand-spotlight-atlantic-intended.trycloudflare.com/',
+//apiUrl: 'https://ins-consensus-programming-ministers.trycloudflare.com/api',
+//imageURL: 'https://ins-consensus-programming-ministers.trycloudflare.com/',
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/',

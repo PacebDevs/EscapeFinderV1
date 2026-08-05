@@ -29,27 +29,30 @@
 <ion-content class="modal-content">
 <ion-item lines="none" class="filter-row jugadores-row">
   <ion-label class="filter-label">Jugadores</ion-label>
-  <ion-select
+  <ion-input
     slot="end"
-    interface="popover"
+    type="number"
+    inputmode="numeric"
+    min="1"
+    max="500"
     [(ngModel)]="filtros.jugadores"
-    placeholder="Todos"
-    class="jugadores-select">
-    <ion-select-option [value]="null">Todos</ion-select-option>
-    <ion-select-option *ngFor="let num of jugadoresOpciones" [value]="num">
-      {{ num === 10 ? '10 o más' : num }}
-    </ion-select-option>
-  </ion-select>
+    (ngModelChange)="onJugadoresChange($event)"
+    placeholder="Ej. 4"
+    class="jugadores-input">
+  </ion-input>
 </ion-item>
 
 
   <div class="filtro-section">
-  <label class="section-label">Precio por persona (€)</label>
+  <label class="section-label">Precio máximo por persona (€)</label>
 
-  <div *ngIf="!filtros.jugadores">
+  <div *ngIf="!filtros.jugadores" class="precio-disabled-explanation">
     <ion-text color="medium" class="precio-info-text">
       <ion-icon name="information-circle-outline"></ion-icon>
-      Seleccione el número de jugadores para mayor precisión
+      <span>
+        <strong>Selecciona primero el número de jugadores.</strong>
+        El precio por persona depende del tamaño del grupo.
+      </span>
     </ion-text>
   </div>
 
@@ -58,6 +61,8 @@
     max="100"
     step="5"
     snaps="true"
+    [disabled]="!filtros.jugadores"
+    [attr.aria-disabled]="!filtros.jugadores"
     [(ngModel)]="filtros.precio">
   </ion-range>
 

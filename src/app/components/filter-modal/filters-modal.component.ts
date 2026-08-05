@@ -27,7 +27,6 @@ export class FiltersModalComponent implements OnInit {
     actores: false, // 👈 Nuevo filtro para Actores
     idioma: null    // 👈 Nuevo filtro para Idioma
   };
-jugadoresOpciones = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 tiposSalaOpciones: any[] = [ // 👈 CAMBIO: Especificar el tipo como any[]
   'Al aire libre',
   'Escape Room',
@@ -46,15 +45,15 @@ accesibilidadOpciones: any[] = [
 ];
 // 👇 Nuevas opciones de restricciones
 restriccionesOpciones: any[] = [
-  { texto: 'Apto para embarazadas', valor: 'Mujeres embarazadas', icono: 'female-outline' },
-  { texto: 'Apto para claustrofobia', valor: 'Claustrofobia', icono: 'lock-open-outline' }
+  { texto: 'Apto para embarazadas', valor: 'Apto para mujeres embarazadas', icono: 'female-outline' },
+  { texto: 'Apto para claustrofobia', valor: 'Apto para personas con claustrofobia', icono: 'lock-open-outline' }
 ];
 // 👇 Nuevas opciones de público objetivo
 publicoObjetivoOpciones: any[] = [
   { texto: 'Niños con adulto', valor: 'Niños con adulto', icono: 'people-circle-outline' },
   { texto: 'Niños con Monitor', valor: 'Niños con Monitor', icono: 'school-outline' },
   { texto: 'Empresas', valor: 'Empresas', icono: 'business-outline' },
-  { texto: 'Grupos grandes', valor: 'Grupos grandes', icono: 'people-outline' },
+  { texto: 'Grandes grupos', valor: 'Grandes grupos', icono: 'people-outline' },
   { texto: 'Estandar', valor: 'Estandar', icono: 'person-outline' },
   { texto: 'Familiar', valor: 'Familiar', icono: 'home-outline' },
   { texto: 'Niños', valor: 'Niños', icono: 'happy-outline' }
@@ -86,6 +85,14 @@ distanciaIndex: number = 0;
       distancia_km: this.filtrosActuales.distancia_km ?? undefined
     };
     this._tieneUbicacion = !!this.filtrosActuales.ciudad;
+
+    const jugadores = Number(this.filtros.jugadores);
+    if (!Number.isInteger(jugadores) || jugadores <= 0) {
+      this.filtros.jugadores = null;
+      this.filtros.precio = null;
+    } else {
+      this.filtros.jugadores = jugadores;
+    }
 
     this.tiposSalaOpciones = this.tiposSalaOpciones.map(nombre => ({
       nombre,
@@ -157,6 +164,14 @@ distanciaIndex: number = 0;
 aplicarFiltros() {
   const filtrosParaEnviar = { ...this.filtros };
 
+  const jugadores = Number(filtrosParaEnviar.jugadores);
+  if (!Number.isInteger(jugadores) || jugadores <= 0) {
+    filtrosParaEnviar.jugadores = undefined;
+    filtrosParaEnviar.precio = undefined;
+  } else {
+    filtrosParaEnviar.jugadores = jugadores;
+  }
+
   // Booleanos: si es false, que vaya como undefined
   if (!filtrosParaEnviar.actores) filtrosParaEnviar.actores = undefined;
 
@@ -172,6 +187,16 @@ aplicarFiltros() {
   if (!filtrosParaEnviar.distancia_km) filtrosParaEnviar.distancia_km = undefined;
 
   this.modalCtrl.dismiss(filtrosParaEnviar);
+}
+
+onJugadoresChange(value: unknown) {
+  const jugadores = Number(value);
+  if (Number.isInteger(jugadores) && jugadores > 0 && jugadores <= 500) {
+    this.filtros.jugadores = jugadores;
+    return;
+  }
+  this.filtros.jugadores = null;
+  this.filtros.precio = null;
 }
 resetearFiltros() {
   const ciudad = this.filtros.ciudad;

@@ -38,6 +38,11 @@ export interface Sala {
   precio_min_total?: string | null;
   precio_max_total?: string | null;
   tipo_precio?: 'por_persona' | 'total' | null;
+  precio_publicado_source?: string | null;
+  precio_detalle_min_pp?: string | null;
+  precio_detalle_max_pp?: string | null;
+  precio_detalle_min_total?: string | null;
+  precio_detalle_max_total?: string | null;
   nombre_local?: string | null;
 
   // Derivados solo en front

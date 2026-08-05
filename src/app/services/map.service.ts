@@ -18,6 +18,11 @@ export interface SalaPinDTO {
   precio_min_total: number | string | null;
   precio_max_total: number | string | null;
   tipo_precio: 'por_persona' | 'total' | null;
+  precio_publicado_source?: string | null;
+  precio_detalle_min_pp?: number | string | null;
+  precio_detalle_max_pp?: number | string | null;
+  precio_detalle_min_total?: number | string | null;
+  precio_detalle_max_total?: number | string | null;
   distancia_km?: number | null;
   tipo_via?: string | null;
   nombre_via?: string | null;

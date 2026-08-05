@@ -131,19 +131,32 @@
   }
 }
 
-.jugadores-select {
+.jugadores-input {
   --padding-start: 12px;
   --padding-end: 12px;
   --border-radius: 12px;
   --background: var(--app-bg-secondary, #f1f1f1);
   margin-top: 4px;
+  max-width: 120px;
+  text-align: right;
 }
 
 @media (prefers-color-scheme: dark) {
-  .jugadores-select {
+  .jugadores-input {
     --background: #2e2e2e;
     color: var(--app-text-primary);
   }
+}
+
+.precio-disabled-explanation {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+}
+
+ion-range[aria-disabled="true"] {
+  opacity: 0.38;
 }
 
 .precio-info-text {

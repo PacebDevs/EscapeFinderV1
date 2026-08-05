@@ -490,13 +490,16 @@ swiper-container::part(bullet-active) {
 }
 
 .pp-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(76px, .8fr) 1fr 1fr;
+  gap: 8px;
   padding: 10px 14px;
   font-size: 14px;
   font-weight: 500;
   color: #4a4d50;
 }
+
+.pp-row span:not(:first-child) { text-align: right; }
 
 .pp-row:nth-child(even):not(.header) { background: #faf9f8; }
 
