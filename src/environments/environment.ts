@@ -3,19 +3,19 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
+  production: true,
   //Piso y casa de padres
  //apiUrl: 'http://192.168.1.135:3000/api',
 //imageURL: 'http://192.168.1.135:3000/', 
 //Internet
-//apiUrl: 'https://ins-consensus-programming-ministers.trycloudflare.com/api',
-//imageURL: 'https://ins-consensus-programming-ministers.trycloudflare.com/',
+ apiUrl: 'https://escapefinder-api.duckdns.org/api',
+ imageURL: 'https://escapefinder-api.duckdns.org/',
  //Parcela
 //apiUrl: 'http://localhost:3000/api',
 //imageURL: 'http://localhost:3000/',
 /*Piso mio*/
-apiUrl: 'http://localhost:3000/api',
-imageURL: 'http://localhost:3000/',
+//apiUrl: 'http://localhost:3000/api',
+//imageURL: 'http://localhost:3000/',
 /* Mapas*/
 tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 tilesAttribution: '© OpenStreetMap contributors'

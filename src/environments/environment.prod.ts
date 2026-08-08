@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-apiUrl: 'https://ins-consensus-programming-ministers.trycloudflare.com/api',
-imageURL: 'https://ins-consensus-programming-ministers.trycloudflare.com/',
+ apiUrl: 'https://escapefinder-api.duckdns.org/api',
+ imageURL: 'https://escapefinder-api.duckdns.org/',
 /*mapas*/
 tilesUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 tilesAttribution: '© OpenStreetMap contributors'

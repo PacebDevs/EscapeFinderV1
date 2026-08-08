@@ -177,6 +177,30 @@ private cargarSala(id: number, lat?: number | null, lng?: number | null) {
     });
   }
 
+  formatearTiempo(tiempo: string | number | null | undefined): string {
+    if (tiempo === null || tiempo === undefined || tiempo === '') {
+      return '';
+    }
+
+    const texto = String(tiempo).trim();
+    if (!texto) {
+      return '';
+    }
+
+    const lower = texto.toLowerCase();
+    const tieneUnidad = /\b(min|mins|minute|minutes|minutos|h|hr|hrs|hour|hours|horas?|hora)\b/.test(lower);
+
+    if (/^\d+(\.\d+)?$/.test(texto)) {
+      return `${texto} min`;
+    }
+
+    if (tieneUnidad) {
+      return texto;
+    }
+
+    return `${texto} min`;
+  }
+
   get tienePrecio(): boolean {
     const sala = this.sala;
     return !!(
